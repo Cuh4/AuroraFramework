@@ -1,0 +1,12 @@
+-- Author: Nameous Changey
+-- GitHub: https://github.com/nameouschangey/STORMWORKS_VSCodeExtension
+-- Workshop: https://steamcommunity.com/id/Bilkokuya/myworkshopfiles/?appid=573090
+--
+--- Developed using LifeBoatAPI - Stormworks Lua plugin for VSCode - https://code.visualstudio.com/download (search "Stormworks Lua with LifeboatAPI" extension)
+--- If you have any issues, please report them here: https://github.com/nameouschangey/STORMWORKS_VSCodeExtension/issues - by Nameous Changey
+
+---@class LifeBoatAPI.UIElement : LifeBoatAPI.IDisposable
+---@field savedata table
+---@field id number uiID
+---@field show fun(self:LifeBoatAPI.UIElement, peerID:number)
+---@field despawn fun(self:LifeBoatAPI.UIElement)
