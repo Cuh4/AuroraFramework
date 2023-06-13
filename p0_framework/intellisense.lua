@@ -79,6 +79,7 @@
 ---@field author af_services_player_player The player who sent this message
 ---@field content string The content of this message
 ---@field id integer The ID of this message
+---@field isSentByPlayer boolean True = sent by player, False = sent by addon
 
 ---------------- Commands
 ---@class af_services_commands_command

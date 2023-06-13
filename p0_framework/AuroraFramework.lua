@@ -1021,6 +1021,7 @@ end
 --------------------------------------------------------------------------------
 AuroraFramework.services.chatService = {
 	initialize = function()
+		-- register messages
 		AuroraFramework.game.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
 			AuroraFramework.libraries.timer.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
 				-- get player
@@ -1033,16 +1034,8 @@ AuroraFramework.services.chatService = {
 				-- construct message
 				local message = AuroraFramework.services.chatService.internal.construct(player, content)
 
-				-- enforce message limit
-				if #AuroraFramework.services.chatService.messages >= 129 then
-					table.remove(AuroraFramework.services.chatService.messages, 1)
-				end
-
-				-- save the message
-				table.insert(AuroraFramework.services.chatService.messages, message)
-
-				-- fire event
-				AuroraFramework.services.chatService.events.onMessageSent:fire(message)
+				-- register
+				AuroraFramework.services.chatService.internal.register(message)
 			end)
 		end)
 	end,
@@ -1061,17 +1054,45 @@ AuroraFramework.services.chatService = {
 
 local af_messageID = 0
 
+-- Register a message
+---@param message af_services_chat_message
+AuroraFramework.services.chatService.internal.register = function(message)
+	-- enforce message limit
+	if #AuroraFramework.services.chatService.messages >= 129 then
+		table.remove(AuroraFramework.services.chatService.messages, 1)
+	end
+
+	-- save the message
+	table.insert(AuroraFramework.services.chatService.messages, message)
+
+	-- fire event
+	AuroraFramework.services.chatService.events.onMessageSent:fire(message)
+end
+
 -- Construct a message
----@param _player af_services_player_player
+---@param _player af_services_player_player|string
 ---@return af_services_chat_message
 AuroraFramework.services.chatService.internal.construct = function(_player, messageContent)
 	af_messageID = af_messageID + 1
+
+	local isSentByPlayer = false
+
+	if type(_player) == "string" then -- custom player
+		isSentByPlayer = true
+
+		_player = {
+			properties = {
+				name = _player
+			}
+		}
+	end
 
 	return {
 		properties = {
 			author = _player,
 			content = messageContent,
-			id = af_messageID
+			id = af_messageID,
+			isSentByPlayer = isSentByPlayer
 		},
 
 		---@param self af_services_chat_message
@@ -1173,17 +1194,18 @@ AuroraFramework.services.chatService.isSameMessage = function(message1, message2
 end
 
 -- Send a message to everyone/a player
----@param author any
----@param message any
+---@param author string|any
+---@param message string|any
 ---@param player af_services_player_player|nil
-AuroraFramework.services.chatService.sendMessage = function(author, message, player)
-	local peer_id = -1
-
-	if player then
-		peer_id = player.properties.peer_id
-	end
-
+---@param shouldRegister boolean|nil True = Save this message internally, so it can be deleted or edited like a normal message
+AuroraFramework.services.chatService.sendMessage = function(author, message, player, shouldRegister)
+	local peer_id = AuroraFramework.libraries.miscellaneous.getPeerID(player)
 	server.announce(tostring(author), tostring(message), peer_id)
+
+	if shouldRegister then
+		local msg = AuroraFramework.services.chatService.internal.construct(author, message)
+		AuroraFramework.services.chatService.internal.register(msg)
+	end
 end
 
 -- Clear chat for everyone/a player by sending 129 blank messages
