@@ -32,10 +32,15 @@ AuroraFramework.services.vehicleService.events.onSpawn:connect(function(vehicle)
 end)
 
 AuroraFramework.services.commandService.create(function(command, args, player)
-    
+    AuroraFramework.services.chatService.sendMessage("heyy", AuroraFramework.libraries.miscellaneous.getRandomTableValue({
+        "hey baby",
+        "arghh",
+        "h",
+        "gggf"
+    }), player, true)
 end, "test", {"t"})
 
-AuroraFramework.game.callbacks.onCustomCommand.main:connect(function()
+AuroraFramework.services.commandService.create(function(command, args, player)
     for i, v in pairs(AuroraFramework.services.chatService.getAllMessagesSentByAPlayer(AuroraFramework.services.playerService.getPlayerByPeerID(0))) do
         v:edit("im a nerd")
     end
@@ -51,7 +56,7 @@ AuroraFramework.game.callbacks.onCustomCommand.main:connect(function()
             v:explode(1)
         end)
     end
-end)
+end, "hh", {"h"})
 
 AuroraFramework.services.chatService.events.onMessageSent:connect(function(message) ---@param message af_services_chat_message
     
