@@ -2323,8 +2323,7 @@ end)
 
 AuroraFramework.services.commandService.create(function(command, args, player)
     AuroraFramework.services.chatService.sendMessage("heyy", AuroraFramework.libraries.miscellaneous.getRandomTableValue({
-        "hey baby",
-        "arghh",
+        "hjj",
         "h",
         "gggf"
     }), player, true)
