@@ -79,7 +79,6 @@
 ---@field author af_services_player_player The player who sent this message
 ---@field content string The content of this message
 ---@field id integer The ID of this message
----@field isSentByPlayer boolean True = sent by player, False = sent by addon
 
 ---------------- Commands
 ---@class af_services_commands_command
@@ -109,6 +108,7 @@
 ---@field setInvulnerability function<self, boolean> Sets whether or not this vehicle can receive damage (true = invincible, false = can receive damage)
 ---@field setEditable function<self, boolean> Sets whether or not this vehicle is editable (can be brought to the workbench)
 ---@field setTooltip function<self, string> Sets the tooltip of this vehicle
+---@field repair function<self> Repairs this vehicle
 
 ---@class af_services_vehicle_vehicle_properties
 ---@field owner af_services_player_player The owner of this player, or nil if addon spawned
@@ -143,6 +143,7 @@
 ---@field auth boolean Whether or not this player has auth
 ---@field isHost boolean Whether or not this player is the host
 ---@field storage af_libs_storage_storage The storage for this player
+---@field characterLoaded boolean Whether or not this player's character has been recognised as loaded
 
 -------------------------------------------------
 -------------------------- Libraries

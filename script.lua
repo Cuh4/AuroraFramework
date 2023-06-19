@@ -1078,10 +1078,10 @@ end
 AuroraFramework.services.chatService.internal.construct = function(_player, messageContent)
 	af_messageID = af_messageID + 1
 
-	local isSentByPlayer = false
+	local isSentByPlayer = true
 
 	if type(_player) == "string" then -- custom player
-		isSentByPlayer = true
+		isSentByPlayer = false
 
 		_player = {
 			properties = {
@@ -1206,7 +1206,7 @@ AuroraFramework.services.chatService.sendMessage = function(author, message, pla
 	server.announce(tostring(author), tostring(message), peer_id)
 
 	if shouldRegister then
-		local msg = AuroraFramework.services.chatService.internal.construct(author, message)
+		local msg = AuroraFramework.services.chatService.internal.construct(tostring(author), tostring(message))
 		AuroraFramework.services.chatService.internal.register(msg)
 	end
 end

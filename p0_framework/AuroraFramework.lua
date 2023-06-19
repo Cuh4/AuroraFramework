@@ -25,7 +25,7 @@ AuroraFramework.libraries.matrix = {}
 ---@param y number|nil 0 if nil
 ---@param z number|nil 0 if nil
 AuroraFramework.libraries.matrix.offset = function(position, x, y, z)
-	local toOffset ={x or 0, y or 0, z or 0}
+	local toOffset = {x or 0, y or 0, z or 0}
 
 	for i = 1, 3 do
 		position[12 + i] = position[12 + i] + toOffset[i]
@@ -44,6 +44,20 @@ end
 
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
+
+-- Clamp a number between min and max
+---@param num number
+---@param min number
+---@param max number
+AuroraFramework.libraries.miscellaneous.clamp = function(num, min, max)
+	if num < min then
+		return min
+	elseif num > max then
+		return max
+	end
+
+	return num
+end
 
 -- Remove a value from a table
 ---@param tbl table
@@ -102,7 +116,6 @@ AuroraFramework.libraries.miscellaneous.round = function(input, numDecimalPlaces
     local mult = 10 ^ (numDecimalPlaces or 0)
     return math.floor(input * mult + 0.5) / mult
 end
-
 
 -- Converts a string to a bool ("true"/"TruE" = true, anything else = false)
 ---@param input string
@@ -543,6 +556,11 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 		end,
 
 		---@param self af_services_vehicle_vehicle
+		repair = function(self)
+			server.resetVehicleState(self.properties.vehicle_id)
+		end,
+
+		---@param self af_services_vehicle_vehicle
 		getPosition = function(self, voxelX, voxelY, voxelZ)
 			return (server.getVehiclePos(self.properties.vehicle_id, voxelX, voxelY, voxelZ)) -- in brackets to only get pos, not success
 		end,
@@ -639,6 +657,13 @@ AuroraFramework.services.vehicleService.getVehicleCountOfPlayer = function(playe
 	return #AuroraFramework.services.vehicleService.getAllVehiclesSpawnedByAPlayer(player)
 end
 
+-- Returns whether or not two vehicles are the same
+---@param vehicle1 af_services_vehicle_vehicle
+---@param vehicle2 af_services_vehicle_vehicle
+AuroraFramework.services.vehicleService.isSameVehicle = function(vehicle1, vehicle2)
+	return vehicle1.properties.vehicle_id == vehicle2.properties.vehicle_id
+end
+
 --------------------------------------------------------------------------------
 --// Notification \\--
 --------------------------------------------------------------------------------
@@ -704,6 +729,19 @@ AuroraFramework.services.playerService = {
 			AuroraFramework.services.playerService.internal.removePlayerData(peer_id)
 		end)
 
+		-- Character load event
+		AuroraFramework.game.callbacks.onObjectLoad.internal:connect(function(object_id)
+			local player = AuroraFramework.services.playerService.getPlayerByObjectID(object_id)
+
+			if not player then
+				return
+			end
+
+			player.properties.characterLoaded = true
+			AuroraFramework.services.playerService.events.onCharacterLoad:fire(player)
+		end)
+
+		-- Update player properties
 		AuroraFramework.libraries.timer.delay.create(0.01, function() -- wait a tick for addon to attach callbacks to player events
 			-- Activate player join events
 			for _, v in pairs(server.getPlayers()) do
@@ -731,7 +769,8 @@ AuroraFramework.services.playerService = {
 
 	events = {
 		onJoin = AuroraFramework.libraries.events.create("auroraFramework_onPlayerJoin"),
-		onLeave = AuroraFramework.libraries.events.create("auroraFramework_onPlayerLeave")
+		onLeave = AuroraFramework.libraries.events.create("auroraFramework_onPlayerLeave"),
+		onCharacterLoad = AuroraFramework.libraries.events.create("auroraFramework_onPlayerCharacterLoad")
 	},
 
 	internal = {}
@@ -747,7 +786,8 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			admin = admin,
 			auth = auth,
 			isHost = peer_id == 0,
-			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage")
+			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage"),
+			characterLoaded = false
 		},
 
 		setItem = function(self, slot, to, active, int, float)
@@ -951,11 +991,17 @@ AuroraFramework.services.HTTPService.URLArgs = function(url, ...)
 	local packed = {...}
 
 	for i, v in pairs(packed) do
+		if not v.name or not v.value then
+			goto continue
+		end
+
 		if i == 1 then
 			table.insert(args, "?"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
 		else
 			table.insert(args, "&"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
 		end
+
+		::continue::
 	end
 
 	-- anddd return
@@ -1021,7 +1067,6 @@ end
 --------------------------------------------------------------------------------
 AuroraFramework.services.chatService = {
 	initialize = function()
-		-- register messages
 		AuroraFramework.game.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
 			AuroraFramework.libraries.timer.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
 				-- get player
@@ -1034,8 +1079,16 @@ AuroraFramework.services.chatService = {
 				-- construct message
 				local message = AuroraFramework.services.chatService.internal.construct(player, content)
 
-				-- register
-				AuroraFramework.services.chatService.internal.register(message)
+				-- enforce message limit
+				if #AuroraFramework.services.chatService.messages >= 129 then
+					table.remove(AuroraFramework.services.chatService.messages, 1)
+				end
+
+				-- save the message
+				table.insert(AuroraFramework.services.chatService.messages, message)
+
+				-- fire event
+				AuroraFramework.services.chatService.events.onMessageSent:fire(message)
 			end)
 		end)
 	end,
@@ -1054,45 +1107,17 @@ AuroraFramework.services.chatService = {
 
 local af_messageID = 0
 
--- Register a message
----@param message af_services_chat_message
-AuroraFramework.services.chatService.internal.register = function(message)
-	-- enforce message limit
-	if #AuroraFramework.services.chatService.messages >= 129 then
-		table.remove(AuroraFramework.services.chatService.messages, 1)
-	end
-
-	-- save the message
-	table.insert(AuroraFramework.services.chatService.messages, message)
-
-	-- fire event
-	AuroraFramework.services.chatService.events.onMessageSent:fire(message)
-end
-
 -- Construct a message
----@param _player af_services_player_player|string
+---@param _player af_services_player_player
 ---@return af_services_chat_message
 AuroraFramework.services.chatService.internal.construct = function(_player, messageContent)
 	af_messageID = af_messageID + 1
-
-	local isSentByPlayer = false
-
-	if type(_player) == "string" then -- custom player
-		isSentByPlayer = true
-
-		_player = {
-			properties = {
-				name = _player
-			}
-		}
-	end
 
 	return {
 		properties = {
 			author = _player,
 			content = messageContent,
-			id = af_messageID,
-			isSentByPlayer = isSentByPlayer
+			id = af_messageID
 		},
 
 		---@param self af_services_chat_message
@@ -1194,89 +1219,25 @@ AuroraFramework.services.chatService.isSameMessage = function(message1, message2
 end
 
 -- Send a message to everyone/a player
----@param author string|any
----@param message string|any
+---@param author any
+---@param message any
 ---@param player af_services_player_player|nil
----@param shouldRegister boolean|nil True = Save this message internally, so it can be deleted or edited like a normal message
-AuroraFramework.services.chatService.sendMessage = function(author, message, player, shouldRegister)
-	local peer_id = AuroraFramework.libraries.miscellaneous.getPeerID(player)
-	server.announce(tostring(author), tostring(message), peer_id)
+AuroraFramework.services.chatService.sendMessage = function(author, message, player)
+	local peer_id = -1
 
-	if shouldRegister then
-		local msg = AuroraFramework.services.chatService.internal.construct(author, message)
-		AuroraFramework.services.chatService.internal.register(msg)
+	if player then
+		peer_id = player.properties.peer_id
 	end
+
+	server.announce(tostring(author), tostring(message), peer_id)
 end
 
--- Clear chat for everyone/a player by sending 129 blank messages
+-- Clear chat for everyone/a player
 ---@param player af_services_player_player|nil
 AuroraFramework.services.chatService.clear = function(player)
-	for _ = 1, 129 do
+	for _ = 1, 11 do
 		AuroraFramework.services.chatService.sendMessage(" ", " ", player)
 	end
-end
-
---------------------------------------------------------------------------------
---// Disasters \\--
---------------------------------------------------------------------------------
-AuroraFramework.services.disasterService = {}
-
--- Spawn a tsunami
----@param pos SWMatrix
----@param magnitude number|nil 0-1
-AuroraFramework.services.disasterService.startTsunami = function(pos, magnitude)
-	server.spawnTsunami(pos, magnitude or 1)
-
-	return {
-		-- Cancels this tsunami
-		cancel = function()
-			server.cancelGerstner()
-		end,
-	}
-end
-
--- Spawn a whirlpool
----@param pos SWMatrix
----@param magnitude number|nil 0-1
-AuroraFramework.services.disasterService.spawnWhirlpool = function(pos, magnitude)
-	server.spawnWhirlpool(pos, magnitude or 1)
-
-	return {
-		-- Cancels this tsunami
-		cancel = function()
-			server.cancelGerstner()
-		end,
-	}
-end
-
--- Spawn a meteor
----@param pos SWMatrix
----@param magnitude number|nil 0-1
----@param tsunamiOnImpact boolean|nil
-AuroraFramework.services.disasterService.spawnMeteor = function(pos, magnitude, tsunamiOnImpact)
-	server.spawnMeteor(pos, magnitude or 1, tsunamiOnImpact or false)
-end
-
--- Spawn a meteor shower
----@param pos SWMatrix
----@param magnitude number|nil 0-1
----@param tsunamiOnImpact boolean|nil
-AuroraFramework.services.disasterService.spawnMeteorShower = function(pos, magnitude, tsunamiOnImpact)
-	server.spawnMeteorShower(pos, magnitude or 1, tsunamiOnImpact or false)
-end
-
--- Spawn a tornado
----@param pos SWMatrix
----@param magnitude number|nil 0-1
-AuroraFramework.services.disasterService.spawnTornado = function(pos, magnitude)
-	server.spawnTornado(pos, magnitude or 1)
-end
-
--- Spawn a volcano
----@param pos SWMatrix
----@param magnitude number|nil 0-1
-AuroraFramework.services.disasterService.spawnVolcano = function(pos, magnitude)
-	server.spawnVolcano(pos, magnitude or 1)
 end
 
 --------------------------------------------------------------------------------
