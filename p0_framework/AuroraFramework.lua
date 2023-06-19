@@ -729,6 +729,28 @@ AuroraFramework.services.playerService = {
 			AuroraFramework.services.playerService.internal.removePlayerData(peer_id)
 		end)
 
+		-- Die event
+		AuroraFramework.game.callbacks.onPlayerDie.internal:connect(function(_, _, peer_id)
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
+
+			if not player then
+				return
+			end
+
+			AuroraFramework.services.playerService.events.onDie:fire(player)
+		end)
+
+		-- Respawn event
+		AuroraFramework.game.callbacks.onPlayerRespawn.internal:connect(function(peer_id)
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
+
+			if not player then
+				return
+			end
+
+			AuroraFramework.services.playerService.events.onRespawn:fire(player)
+		end)
+
 		-- Character load event
 		AuroraFramework.game.callbacks.onObjectLoad.internal:connect(function(object_id)
 			local player = AuroraFramework.services.playerService.getPlayerByObjectID(object_id)
@@ -770,7 +792,9 @@ AuroraFramework.services.playerService = {
 	events = {
 		onJoin = AuroraFramework.libraries.events.create("auroraFramework_onPlayerJoin"),
 		onLeave = AuroraFramework.libraries.events.create("auroraFramework_onPlayerLeave"),
-		onCharacterLoad = AuroraFramework.libraries.events.create("auroraFramework_onPlayerCharacterLoad")
+		onCharacterLoad = AuroraFramework.libraries.events.create("auroraFramework_onPlayerCharacterLoad"),
+		onDie = AuroraFramework.libraries.events.create("auroraFramework_onPlayerDie"),
+		onRespawn = AuroraFramework.libraries.events.create("auroraFramework_onPlayerRespawn")
 	},
 
 	internal = {}
