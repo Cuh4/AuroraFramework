@@ -1524,6 +1524,7 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 		properties = {
 			startPoint = startPoint,
 			endPoint = endPoint,
+			visible = true,
 			player = player,
 			id = id,
 
