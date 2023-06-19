@@ -37,6 +37,23 @@
 ---@field id number The ID of this UI
 ---@field labelType SWLabelTypeEnum The type of label
 
+---@class af_services_ui_map_line
+---@field properties af_services_ui_map_line_properties The properties of this UI
+---@field refresh function<self> Refreshes the UI
+---@field remove function<self> Remove this UI
+
+---@class af_services_ui_map_line_properties
+---@field startPoint SWMatrix The position where this UI starts on the map
+---@field endPoint SWMatrix The position where this UI ends on the map
+---@field visible boolean Whether or not this UI is visible
+---@field player af_services_player_player|nil The player this UI is shown to. Everyone if nil
+---@field id number The ID of this UI
+---@field r integer 0-255
+---@field g integer 0-255
+---@field b integer 0-255
+---@field a integer 0-255
+---@field thickness number The thickness of this line
+
 ---@class af_services_ui_map_object
 ---@field properties af_services_ui_map_object_properties The properties of this UI
 ---@field refresh function<self> Refreshes the UI

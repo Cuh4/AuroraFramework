@@ -771,6 +771,11 @@ AuroraFramework.services.playerService = {
 				AuroraFramework.game.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
 			end
 
+			for _, v in pairs(AuroraFramework.services.playerService.getAllPlayers()) do
+				v.properties.characterLoaded = true -- set character loaded to true on script reload n shit
+				AuroraFramework.services.playerService.events.onCharacterLoad:fire(v)
+			end
+
 			-- Update player data
 			AuroraFramework.libraries.timer.loop.create(0.01, function()
 				for _, player in pairs(server.getPlayers()) do
@@ -801,7 +806,7 @@ AuroraFramework.services.playerService = {
 }
 
 -- Give player data to a player
-AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
+AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth, characterLoaded)
 	AuroraFramework.services.playerService.players[peer_id] = {
 		properties = {
 			steam_id = tostring(steam_id),
@@ -811,7 +816,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			auth = auth,
 			isHost = peer_id == 0,
 			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage"),
-			characterLoaded = false
+			characterLoaded = characterLoaded or false
 		},
 
 		setItem = function(self, slot, to, active, int, float)
@@ -1367,27 +1372,13 @@ AuroraFramework.services.UIService = {
 	initialize = function()
 		-- show ui on join
 		AuroraFramework.services.playerService.events.onJoin:connect(function(player) ---@param player af_services_player_player
-			-- show screen ui
-			for _, ui in pairs(AuroraFramework.services.UIService.UI.screen) do
-				if not ui.properties.player then -- since the player who joined has a new peer id, they will never be the target of an ui object, so no point in checking
-					-- show to all
-					ui:refresh()
-				end
-			end
-
-			-- show map labels
-			for _, ui in pairs(AuroraFramework.services.UIService.UI.mapLabels) do
-				if not ui.properties.player then -- since the player who joined has a new peer id, they will never be the target of an ui object, so no point in checking
-					-- show to all
-					ui:refresh()
-				end
-			end
-
-			-- show map objects
-			for _, ui in pairs(AuroraFramework.services.UIService.UI.mapObjects) do
-				if not ui.properties.player then -- since the player who joined has a new peer id, they will never be the target of an ui object, so no point in checking
-					-- show to all
-					ui:refresh()
+			-- show all ui
+			for _, uiContainers in pairs(AuroraFramework.services.UIService.UI) do
+				for _, ui in pairs(uiContainers) do
+					if not ui.properties.player then -- since the player who joined has a new peer id, they will never be the target of an ui object, so no point in checking
+						-- show to all
+						ui:refresh()
+					end
 				end
 			end
 		end)
@@ -1401,7 +1392,10 @@ AuroraFramework.services.UIService = {
 		mapLabels = {},
 
 		---@type table<integer, af_services_ui_map_object>
-		mapObjects = {}
+		mapObjects = {},
+
+		---@type table<integer, af_services_ui_map_line>
+		mapLines = {}
 	},
 
 	internal = {}
@@ -1513,6 +1507,72 @@ AuroraFramework.services.UIService.removeMapLabel = function(id)
 	data:refresh() -- hide ui
 
 	AuroraFramework.services.UIService.UI.mapLabels[id] = nil
+end
+
+-- Create a Map Line
+---@param id number
+---@param startPoint SWMatrix
+---@param endPoint SWMatrix
+---@param thickness number
+---@param player af_services_player_player|nil
+---@param r integer|nil 0-255
+---@param g integer|nil 0-255
+---@param b integer|nil 0-255
+---@param a integer|nil 0-255
+AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endPoint, thickness, r, g, b, a, player)
+	AuroraFramework.services.UIService.UI.mapLines[id] = {
+		properties = {
+			startPoint = startPoint,
+			endPoint = endPoint,
+			player = player,
+			id = id,
+
+			r = r or 255,
+			g = g or 255,
+			b = b or 255,
+			a = a or 255,
+
+			thickness = thickness
+		},
+
+		---@param self af_services_ui_map_line
+		refresh = function(self)
+			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+			server.removeMapLine(peerID, self.properties.id)
+
+			if not self.properties.visible then -- if not visible, dont add the line back
+				return
+			end
+
+			server.addMapLine(peerID, self.properties.id, self.properties.startPoint, self.properties.endPoint, self.properties.thickness, self.properties.r, self.properties.g, self.properties.b, self.properties.a)
+		end,
+
+		---@param self af_services_ui_map_line
+		remove = function(self)
+			return AuroraFramework.services.UIService.removeMapLine(self.properties.id)
+		end,
+	}
+
+	local data = AuroraFramework.services.UIService.UI.mapLines[id]
+	data:refresh() -- show
+
+	return data
+end
+
+-- Get a Map Line
+---@param id number
+AuroraFramework.services.UIService.getMapLine = function(id)
+	return AuroraFramework.services.UIService.UI.mapLines[id]
+end
+
+-- Remove a Map Line
+---@param id number
+AuroraFramework.services.UIService.removeMapLine = function(id)
+	local data = AuroraFramework.services.UIService.UI.mapLines[id]
+	data.properties.visible = false
+	data:refresh() -- hide ui
+
+	AuroraFramework.services.UIService.UI.mapLines[id] = nil
 end
 
 -- Create a Map Object
