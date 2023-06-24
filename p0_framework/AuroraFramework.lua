@@ -25,13 +25,19 @@ AuroraFramework.libraries.matrix = {}
 ---@param y number|nil 0 if nil
 ---@param z number|nil 0 if nil
 AuroraFramework.libraries.matrix.offset = function(position, x, y, z)
+	local new = matrix.translation(0, 0, 0)
+
+	for i, v in pairs(position) do
+		new[i] = v
+	end
+
 	local toOffset = {x or 0, y or 0, z or 0}
 
 	for i = 1, 3 do
-		position[12 + i] = position[12 + i] + toOffset[i]
+		new[12 + i] = new[12 + i] + toOffset[i]
 	end
 
-	return position
+	return new
 end
 
 -- Offsets the position by a random x, y, z, between -max, and max
@@ -2120,6 +2126,18 @@ AuroraFramework.game.callbacks.onVolcano = {
 function onVolcano(...)
 	AuroraFramework.game.callbacks.onVolcano.internal:fire(...)
 	AuroraFramework.game.callbacks.onVolcano.main:fire(...)
+end
+
+----------------
+
+AuroraFramework.game.callbacks.onOilSpill = {
+	internal = AuroraFramework.libraries.events.create("callback_onOilSpill_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onOilSpill_addon")
+}
+
+function onOilSpill(...)
+	AuroraFramework.game.callbacks.onOilSpill.internal:fire(...)
+	AuroraFramework.game.callbacks.onOilSpill.main:fire(...)
 end
 
 --------------------------------------------------------------------------------
