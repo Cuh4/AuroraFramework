@@ -136,6 +136,20 @@ AuroraFramework.libraries.miscellaneous.getRandomTableValue = function(tbl)
     return tbl[math.random(1, #tbl)]
 end
 
+-- Returns the average of a table full of numbers
+---@param tbl table
+AuroraFramework.libraries.miscellaneous.average = function(tbl)
+    local sum = 0
+
+	for _, v in pairs(tbl) do
+		if type(v) == "number" then
+			sum = sum + v
+		end
+	end
+
+	return sum / AuroraFramework.libraries.miscellaneous.getTableLength(tbl)
+end
+
 -- Returns on or off depending on whether or not switch is true
 ---@param off any
 ---@param on any
@@ -436,15 +450,9 @@ AuroraFramework.services.TPSService = {
 				AuroraFramework.services.TPSService.tpsData.tps = ticks * 2
 
 				-- calculate avg tps
-				if #AuroraFramework.services.TPSService.internal.avgTicksTbl > 10 then
+				if #AuroraFramework.services.TPSService.internal.avgTicksTbl > 5 then
 					-- calculate average tps
-					local sum = 0
-
-					for i, v in pairs(AuroraFramework.services.TPSService.internal.avgTicksTbl) do
-						sum = sum + v
-					end
-
-					AuroraFramework.services.TPSService.tpsData.avg = sum / #AuroraFramework.services.TPSService.internal.avgTicksTbl
+					AuroraFramework.services.TPSService.tpsData.avg = AuroraFramework.libraries.miscellaneous.average(AuroraFramework.services.TPSService.internal.avgTicksTbl)
 					AuroraFramework.services.TPSService.internal.avgTicksTbl = {}
 				else
 					-- add tps to avg tps table
