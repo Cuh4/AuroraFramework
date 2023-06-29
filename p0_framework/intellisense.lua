@@ -141,7 +141,8 @@
 ---@class af_services_player_player
 ---@field properties af_services_player_player_properties The properties of this player
 ---@field setItem function<self, SWSlotNumberEnum, SWEquipmentTypeEnum, boolean, integer|nil, float|nil> Give this player an item
----@field removeItem function<self, SWSlotNumberEnum> Remove whatever item is in the specified slotf rom this player
+---@field removeItem function<self, SWSlotNumberEnum> Remove whatever item is in the specified slot from this player
+---@field getItem function<self, SWSlotNumberEnum> Returns the equipment ID of the item in the specified slot
 ---@field kick function<self> Kick this player from the server
 ---@field ban function<self> Ban this player from the server
 ---@field teleport function<self, SWMatrix> Teleport this player to a position

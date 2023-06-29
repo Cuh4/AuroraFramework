@@ -540,6 +540,10 @@ AuroraFramework.services.vehicleService = {
 
 -- Give vehicle data to a vehicle
 AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, cost)
+	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
+		return
+	end
+
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if nil, because of the addonSpawned property
 
 	AuroraFramework.services.vehicleService.vehicles[vehicle_id] = {
@@ -617,6 +621,14 @@ end
 ---@return table<integer, af_services_vehicle_vehicle>
 AuroraFramework.services.vehicleService.getAllVehicles = function()
 	return AuroraFramework.services.vehicleService.vehicles
+end
+
+-- Spawn an addon vehicle
+---@param componentID integer Found in the playlist.xml of your addon folder and in the addon editor
+---@param position SWMatrix
+AuroraFramework.services.vehicleService.spawnAddonVehicle = function(componentID, position)
+	local vehicleID = server.spawnAddonVehicle(position, (server.getAddonIndex()), componentID)
+	return AuroraFramework.services.vehicleService.internal.giveVehicleData(vehicleID, -1, position[13], position[14], position[15], 0)
 end
 
 -- Get a vehicle by its ID
@@ -839,6 +851,10 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 		removeItem = function(self, slot)
 			server.setCharacterItem(self:getCharacter(), slot, 0, false)
+		end,
+
+		getItem = function(self, slot)
+			return server.getCharacterItem(self:getCharacter(), slot)
 		end,
 
 		---@param self af_services_player_player
