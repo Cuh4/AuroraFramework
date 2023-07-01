@@ -626,6 +626,7 @@ end
 -- Spawn an addon vehicle
 ---@param componentID integer Found in the playlist.xml of your addon folder and in the addon editor
 ---@param position SWMatrix
+---@return af_services_vehicle_vehicle
 AuroraFramework.services.vehicleService.spawnAddonVehicle = function(componentID, position)
 	local vehicleID = server.spawnAddonVehicle(position, (server.getAddonIndex()), componentID)
 	return AuroraFramework.services.vehicleService.internal.giveVehicleData(vehicleID, -1, position[13], position[14], position[15], 0)
