@@ -490,6 +490,10 @@ AuroraFramework.services.vehicleService = {
 			-- give vehicle data
 			local vehicle = AuroraFramework.services.vehicleService.internal.giveVehicleData(...)
 
+			if not vehicle then
+				return
+			end
+
 			-- fire events
 			AuroraFramework.services.vehicleService.events.onSpawn:fire(vehicle)
 		end)
@@ -511,18 +515,20 @@ AuroraFramework.services.vehicleService = {
 
 		-- Remove vehicle data whenever a vehicle is despawned
 		AuroraFramework.game.callbacks.onVehicleDespawn.internal:connect(function(vehicle_id)
-			-- fire events
-			local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+			AuroraFramework.libraries.timer.delay.create(0.05, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away
+				-- fire events
+				local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
-			if not vehicle then
-				return
-			end
+				if not vehicle then
+					return
+				end
 
-			-- fire events
-			AuroraFramework.services.vehicleService.events.onDespawn:fire(vehicle)
+				-- fire events
+				AuroraFramework.services.vehicleService.events.onDespawn:fire(vehicle)
 
-			-- remove data
-			AuroraFramework.services.vehicleService.internal.removeVehicleData(vehicle_id)
+				-- remove data
+				AuroraFramework.services.vehicleService.internal.removeVehicleData(vehicle_id)
+			end)
 		end)
 	end,
 
