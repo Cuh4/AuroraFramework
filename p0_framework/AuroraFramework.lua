@@ -51,6 +51,36 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Create a PID object (from https://steamcommunity.com/sharedfiles/filedetails/?id=1800568163)
+---@param proportional number
+---@param integral number
+---@param derivative number
+---@return af_libs_miscellaneous_pid
+AuroraFramework.libraries.miscellaneous.pid = function(proportional, integral, derivative)
+    return {
+		proportional=proportional,
+		integral=integral,
+		derivative=derivative,
+
+		_E = 0,
+		_D = 0,
+		_I = 0,
+
+		---@param self af_libs_miscellaneous_pid
+		run = function(self, setPoint, processVariable)
+			local E = setPoint - processVariable
+			local D = E - self._E
+			local absolute = math.abs(D - self._D)
+
+			self._E = E
+			self._D = D
+			self._I = absolute < E and self._I + E * self.integral or self._I * 0.5
+
+			return E * self.proportional + (absolute < E and self._I or 0) + D * self.derivative
+		end
+	}
+end
+
 -- Clamp a number between min and max
 ---@param num number
 ---@param min number

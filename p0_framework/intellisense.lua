@@ -206,3 +206,15 @@
 ---@field clear function<self> Clear all functions connected to this event
 ---@field remove function<self> Remove the event
 ---@field connect function<self, function> Connect a function to this event
+
+---------------- Miscellaneous
+---@class af_libs_miscellaneous_pid
+---@field proportional number The P in PID
+---@field integral number The I in PID
+---@field derivative number The D in PID
+---
+---@field _E number internal
+---@field _D number internal
+---@field _I number internal
+---
+---@field run function<self, number, number> Run this PID
