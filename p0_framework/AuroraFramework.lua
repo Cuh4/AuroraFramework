@@ -600,7 +600,10 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 
 		---@param self af_services_vehicle_vehicle
 		explode = function(self, magnitude)
-			server.spawnExplosion(self:getPosition(), magnitude or 0.1)
+			if server.dlcWeapons() then
+				server.spawnExplosion(self:getPosition(), magnitude or 0.1)
+			end
+
 			self:despawn()
 		end,
 

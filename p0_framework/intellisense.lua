@@ -217,4 +217,4 @@
 ---@field _D number internal
 ---@field _I number internal
 ---
----@field run function<self, number, number> Run this PID
+---@field run function<self, number, number> Run this PID. 1st arg = setPoint, 2nd arg = processVariable
