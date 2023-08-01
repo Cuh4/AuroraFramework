@@ -1171,7 +1171,42 @@ AuroraFramework.services.HTTPService.cancel = function(port, url)
 	AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url] = nil
 end
 
+-- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
+-- Useful for encoding things like JSON strings in a URL.
+AuroraFramework.services.HTTPService.base64= {
+	conversion = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+}
+
+AuroraFramework.services.HTTPService.base64.encode = function(data)
+	return ((data:gsub('.', function(x)
+		local r, b = '', x:byte()
+		for i = 8, 1, -1 do r = r .. (b % 2 ^ i - b % 2 ^ (i - 1) > 0 and '1' or '0') end
+		return r
+	end) .. '0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+		if (#x < 6) then return '' end
+		local c = 0
+		for i = 1, 6 do c = c + (x:sub(i, i) == '1' and 2 ^ (6 - i) or 0) end
+		return AuroraFramework.services.HTTPService.base64.conversion:sub(c + 1, c + 1)
+	end) .. ({ '', '==', '=' })[#data % 3 + 1])
+end
+
+AuroraFramework.services.HTTPService.base64.decode = function(data)
+	data = string.gsub(data, '[^' .. AuroraFramework.services.HTTPService.base64.conversion .. '=]', '')
+	return (data:gsub('.', function(x)
+		if (x == '=') then return '' end
+		local r, f = '', (AuroraFramework.services.HTTPService.base64.conversion:find(x) - 1)
+		for i = 6, 1, -1 do r = r .. (f % 2 ^ i - f % 2 ^ (i - 1) > 0 and '1' or '0') end
+		return r;
+	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+		if (#x ~= 8) then return '' end
+		local c = 0
+		for i = 1, 8 do c = c + (x:sub(i, i) == '1' and 2 ^ (7 - i) or 0) end
+		return string.char(c)
+	end))
+end
+
 -- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
+-- Encode Lua objects into strings, and decode strings into Lua objects. Handy for transferring/receiving data via HTTP URLs and responses.
 AuroraFramework.services.HTTPService.json = {}
 
 -- Internal
