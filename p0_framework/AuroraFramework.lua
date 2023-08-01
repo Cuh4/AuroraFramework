@@ -1271,9 +1271,6 @@ AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
 	return table.concat(s)
 end
 
--- Internal
-AuroraFramework.services.HTTPService.json.null = {}
-
 -- Decode a JSON string into a Lua object
 ---@param str string
 ---@param pos number|nil
@@ -1291,7 +1288,7 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 			key, pos = AuroraFramework.services.HTTPService.json.decode(str, pos, '}')
 			if key == nil then return obj, pos end
 			if not delim_found then return nil end
-			pos = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ':', true) -- true -> error if missing.
+			pos = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ':')
 			obj[key], pos = AuroraFramework.services.HTTPService.json.decode(str, pos)
 			pos, delim_found = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ',')
 		end
@@ -1315,11 +1312,15 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 		local literals = {
 			['true'] = true,
 			['false'] = false,
-			['null'] = AuroraFramework.services.HTTPService.json.null
+			['null'] = "nil"
 		}
 		for lit_str, lit_val in pairs(literals) do
 			local lit_end = pos + #lit_str - 1
 			if str:sub(pos, lit_end) == lit_str then
+				if lit_str == "null" then
+					return nil, lit_end + 1
+				end
+
 				return lit_val, lit_end + 1
 			end
 		end
@@ -1539,11 +1540,13 @@ AuroraFramework.services.commandService = {
 				if cmd.properties.capsSensitive then
 					if cmd.properties.name == command or AuroraFramework.libraries.miscellaneous.isValueInTable(command, cmd.properties.shorthands) then
 						cmd.events.onActivation:fire(cmd, args, player)
+						AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
 						return -- no need to go through the rest of the commands
 					end
 				else
 					if cmd.properties.name:lower() == loweredCommand or AuroraFramework.libraries.miscellaneous.isValueInTable(loweredCommand, AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable(cmd.properties.shorthands)) then
 						cmd.events.onActivation:fire(cmd, args, player)
+						AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
 						return -- no need to go through the rest of the commands 2
 					end
 				end
@@ -1555,6 +1558,9 @@ AuroraFramework.services.commandService = {
 
 	---@type table<string, af_services_commands_command>
 	commands = {},
+	events = {
+		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_onCommandActivated") -- command, args, player
+	},
 
 	internal = {}
 }
