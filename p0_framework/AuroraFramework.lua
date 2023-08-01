@@ -1420,7 +1420,7 @@ AuroraFramework.services.chatService = {
 				AuroraFramework.services.chatService.events.onMessageSent:fire(message)
 			end)
 		end)
-	end,h
+	end,
 
 	events = {
 		onMessageSent = AuroraFramework.libraries.events.create("auroraFramework_onMessageSent"), -- message
@@ -1431,22 +1431,22 @@ AuroraFramework.services.chatService = {
 	---@type table<integer, af_services_chat_message>
 	messages = {}, -- max of 129, since thats all the chat window can contain
 
-	internal = {}
+	internal = {
+		message_id = 0
+	}
 }
-
-local af_messageID = 0
 
 -- Construct a message
 ---@param _player af_services_player_player
 ---@return af_services_chat_message
 AuroraFramework.services.chatService.internal.construct = function(_player, messageContent)
-	af_messageID = af_messageID + 1
+	AuroraFramework.services.chatService.internal.message_id = AuroraFramework.services.chatService.internal.message_id + 1
 
 	return {
 		properties = {
 			author = _player,
 			content = messageContent,
-			id = af_messageID
+			id = AuroraFramework.services.chatService.internal.message_id
 		},
 
 		---@param self af_services_chat_message
