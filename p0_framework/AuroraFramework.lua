@@ -58,9 +58,9 @@ AuroraFramework.libraries.miscellaneous = {}
 ---@return af_libs_miscellaneous_pid
 AuroraFramework.libraries.miscellaneous.pid = function(proportional, integral, derivative)
     return {
-		proportional=proportional,
-		integral=integral,
-		derivative=derivative,
+		proportional = proportional,
+		integral = integral,
+		derivative = derivative,
 
 		_E = 0,
 		_D = 0,
