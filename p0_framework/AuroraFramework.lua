@@ -1420,7 +1420,7 @@ AuroraFramework.services.chatService = {
 				AuroraFramework.services.chatService.events.onMessageSent:fire(message)
 			end)
 		end)
-	end,
+	end,h
 
 	events = {
 		onMessageSent = AuroraFramework.libraries.events.create("auroraFramework_onMessageSent"), -- message
