@@ -1279,23 +1279,34 @@ end
 AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
 	local s = {}           -- We'll build the string as an array of strings to be concatenated.
 	local kind = AuroraFramework.services.HTTPService.json.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
+
 	if kind == 'array' then
-		if as_key then return end
+		if as_key then
+			return
+		end
+
 		s[#s + 1] = '['
+
 		for i, val in ipairs(obj) do
 			if i > 1 then s[#s + 1] = ',' end
 			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(val)
 		end
+
 		s[#s + 1] = ']'
 	elseif kind == 'table' then
-		if as_key then return end
+		if as_key then
+			return
+		end
+
 		s[#s + 1] = '{'
+
 		for k, v in pairs(obj) do
 			if #s > 1 then s[#s + 1] = ',' end
 			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(k, true)
 			s[#s + 1] = ':'
 			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(v)
 		end
+
 		s[#s + 1] = '}'
 	elseif kind == 'string' then
 		return '"' .. AuroraFramework.services.HTTPService.json.escape_str(obj) .. '"'
@@ -1309,6 +1320,7 @@ AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
 	else
 		return
 	end
+
 	return table.concat(s)
 end
 
@@ -1319,12 +1331,18 @@ end
 ---@return any, any
 AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 	pos = pos or 1
-	if pos > #str then return nil end
+
+	if pos > #str then
+		return nil
+	end
+
 	local pos = pos + #str:match('^%s*', pos) -- Skip whitespace.
 	local first = str:sub(pos, pos)
+
 	if first == '{' then                   -- Parse an object.
 		local obj, key, delim_found = {}, true, true
 		pos = pos + 1
+
 		while true do
 			key, pos = AuroraFramework.services.HTTPService.json.decode(str, pos, '}')
 			if key == nil then return obj, pos end
@@ -1336,8 +1354,9 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 	elseif first == '[' then -- Parse an array.
 		local arr, val, delim_found = {}, true, true
 		pos = pos + 1
+
 		while true do
-			val, pos = json.parse(str, pos, ']')
+			val, pos = AuroraFramework.services.HTTPService.json.decode(str, pos, ']')
 			if val == nil then return arr, pos end
 			if not delim_found then return nil end
 			arr[#arr + 1] = val
@@ -1355,6 +1374,7 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 			['false'] = false,
 			['null'] = "nil"
 		}
+
 		for lit_str, lit_val in pairs(literals) do
 			local lit_end = pos + #lit_str - 1
 			if str:sub(pos, lit_end) == lit_str then
@@ -1365,8 +1385,8 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 				return lit_val, lit_end + 1
 			end
 		end
-		local pos_info_str = 'position ' .. pos .. ': ' ..
-			str:sub(pos, pos + 10)
+
+		str:sub(pos, pos + 10)
 		return nil
 	end
 end
