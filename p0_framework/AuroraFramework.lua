@@ -1058,6 +1058,16 @@ AuroraFramework.services.HTTPService = {
 ---@param url string
 ---@param callback function|nil
 AuroraFramework.services.HTTPService.request = function(port, url, callback)
+	local ongoingRequest = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
+
+	if ongoingRequest then -- a request has already been made to the same port and url, so we simply connect to the request's event
+		if not callback then
+			return
+		end
+
+		return ongoingRequest.properties.event:connect(callback)
+	end
+
 	AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url] = {
 		properties = {
 			port = port,
