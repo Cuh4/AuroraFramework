@@ -777,6 +777,11 @@ AuroraFramework.services.playerService = {
 		AuroraFramework.game.callbacks.onPlayerJoin.internal:connect(function(...)
 			-- give data and fire join event
 			local player = AuroraFramework.services.playerService.internal.givePlayerData(...)
+
+			if not player then -- errored somewhere or something
+				return
+			end
+
 			AuroraFramework.services.playerService.events.onJoin:fire(player)
 		end)
 
@@ -868,11 +873,17 @@ AuroraFramework.services.playerService = {
 		onRespawn = AuroraFramework.libraries.events.create("auroraFramework_onPlayerRespawn")
 	},
 
-	internal = {}
+	internal = {},
+
+	isDedicatedServer = false
 }
 
 -- Give player data to a player
 AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth, characterLoaded)
+	if steam_id == 0 and AuroraFramework.services.playerService.isDedicatedServer then
+		return
+	end
+
 	AuroraFramework.services.playerService.players[peer_id] = {
 		properties = {
 			steam_id = tostring(steam_id),
@@ -975,6 +986,24 @@ end
 -- Returns all recognised players
 AuroraFramework.services.playerService.getAllPlayers = function()
 	return AuroraFramework.services.playerService.players
+end
+
+-- Sets whether or not this addon is being used in a dedicated server. If set to true, the host (the server itself) will not be considered a player. This cannot be reversed
+---@param isDedicatedServer boolean
+AuroraFramework.services.playerService.setDedicatedServer = function(isDedicatedServer)
+	AuroraFramework.services.playerService.isDedicatedServer = isDedicatedServer
+
+	if isDedicatedServer then
+		local host = AuroraFramework.services.playerService.getPlayerByPeerID(0)
+
+		if not host then
+			return
+		end
+
+		if host.properties.steam_id == 0 then
+			AuroraFramework.services.playerService.internal.removePlayerData(0)
+		end
+	end
 end
 
 -- Returns whether or not two players are the same
@@ -1213,10 +1242,10 @@ end
 
 -- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
 -- Encode Lua objects into strings, and decode strings into Lua objects. Handy for transferring/receiving data via HTTP URLs and responses.
-AuroraFramework.services.HTTPService.json = {}
+AuroraFramework.services.HTTPService.JSON = {}
 
 -- Internal
-AuroraFramework.services.HTTPService.json.kind_of = function(obj)
+AuroraFramework.services.HTTPService.JSON.kind_of = function(obj)
 	if type(obj) ~= "table" then return type(obj) end
 	local i = 1
 	for _ in pairs(obj) do
@@ -1234,7 +1263,7 @@ AuroraFramework.services.HTTPService.json.kind_of = function(obj)
 end
 
 -- Internal
-AuroraFramework.services.HTTPService.json.escape_str = function(s)
+AuroraFramework.services.HTTPService.JSON.escape_str = function(s)
 	local in_char = { '\\', '"', '/', '\b', '\f', '\n', '\r', '\t' }
 	local out_char = { '\\', '"', '/', 'b', 'f', 'n', 'r', 't' }
 	for i, c in ipairs(in_char) do s = s:gsub(c, '\\' .. out_char[i]) end
@@ -1242,7 +1271,7 @@ AuroraFramework.services.HTTPService.json.escape_str = function(s)
 end
 
 -- Internal
-AuroraFramework.services.HTTPService.json.skip_delim = function(str, pos, delim)
+AuroraFramework.services.HTTPService.JSON.skip_delim = function(str, pos, delim)
 	pos = pos + #str:match('^%s*', pos)
 	if str:sub(pos, pos) ~= delim then
 		return pos, false
@@ -1251,21 +1280,21 @@ AuroraFramework.services.HTTPService.json.skip_delim = function(str, pos, delim)
 end
 
 -- Internal
-AuroraFramework.services.HTTPService.json.parse_str_val = function(str, pos, val)
+AuroraFramework.services.HTTPService.JSON.parse_str_val = function(str, pos, val)
 	val = val or ''
 	if pos > #str then return end
 	local c = str:sub(pos, pos)
 	if c == '"' then return val, pos + 1 end
-	if c ~= '\\' then return AuroraFramework.services.HTTPService.json.parse_str_val(str, pos + 1, val .. c) end
+	if c ~= '\\' then return AuroraFramework.services.HTTPService.JSON.parse_str_val(str, pos + 1, val .. c) end
 	-- We must have a \ character.
 	local esc_map = { b = '\b', f = '\f', n = '\n', r = '\r', t = '\t' }
 	local nextc = str:sub(pos + 1, pos + 1)
 	if not nextc then return end
-	return AuroraFramework.services.HTTPService.json.parse_str_val(str, pos + 2, val .. (esc_map[nextc] or nextc))
+	return AuroraFramework.services.HTTPService.JSON.parse_str_val(str, pos + 2, val .. (esc_map[nextc] or nextc))
 end
 
 -- Internal
-AuroraFramework.services.HTTPService.json.parse_num_val = function(str, pos)
+AuroraFramework.services.HTTPService.JSON.parse_num_val = function(str, pos)
 	local num_str = str:match('^-?%d+%.?%d*[eE]?[+-]?%d*', pos)
 	local val = tonumber(num_str)
 	if not val then return end
@@ -1276,9 +1305,9 @@ end
 ---@param obj any The thing to encode
 ---@param as_key boolean|nil
 ---@return string
-AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
+AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key)
 	local s = {}           -- We'll build the string as an array of strings to be concatenated.
-	local kind = AuroraFramework.services.HTTPService.json.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
+	local kind = AuroraFramework.services.HTTPService.JSON.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
 
 	if kind == 'array' then
 		if as_key then
@@ -1289,7 +1318,7 @@ AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
 
 		for i, val in ipairs(obj) do
 			if i > 1 then s[#s + 1] = ',' end
-			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(val)
+			s[#s + 1] = AuroraFramework.services.HTTPService.JSON.encode(val)
 		end
 
 		s[#s + 1] = ']'
@@ -1302,14 +1331,14 @@ AuroraFramework.services.HTTPService.json.encode = function(obj, as_key)
 
 		for k, v in pairs(obj) do
 			if #s > 1 then s[#s + 1] = ',' end
-			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(k, true)
+			s[#s + 1] = AuroraFramework.services.HTTPService.JSON.encode(k, true)
 			s[#s + 1] = ':'
-			s[#s + 1] = AuroraFramework.services.HTTPService.json.encode(v)
+			s[#s + 1] = AuroraFramework.services.HTTPService.JSON.encode(v)
 		end
 
 		s[#s + 1] = '}'
 	elseif kind == 'string' then
-		return '"' .. AuroraFramework.services.HTTPService.json.escape_str(obj) .. '"'
+		return '"' .. AuroraFramework.services.HTTPService.JSON.escape_str(obj) .. '"'
 	elseif kind == 'number' then
 		if as_key then return '"' .. tostring(obj) .. '"' end
 		return tostring(obj)
@@ -1329,7 +1358,7 @@ end
 ---@param pos number|nil
 ---@param end_delim string|nil
 ---@return any, any
-AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
+AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 
 	if pos > #str then
@@ -1344,28 +1373,28 @@ AuroraFramework.services.HTTPService.json.decode = function(str, pos, end_delim)
 		pos = pos + 1
 
 		while true do
-			key, pos = AuroraFramework.services.HTTPService.json.decode(str, pos, '}')
+			key, pos = AuroraFramework.services.HTTPService.JSON.decode(str, pos, '}')
 			if key == nil then return obj, pos end
 			if not delim_found then return nil end
-			pos = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ':')
-			obj[key], pos = AuroraFramework.services.HTTPService.json.decode(str, pos)
-			pos, delim_found = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ',')
+			pos = AuroraFramework.services.HTTPService.JSON.skip_delim(str, pos, ':')
+			obj[key], pos = AuroraFramework.services.HTTPService.JSON.decode(str, pos)
+			pos, delim_found = AuroraFramework.services.HTTPService.JSON.skip_delim(str, pos, ',')
 		end
 	elseif first == '[' then -- Parse an array.
 		local arr, val, delim_found = {}, true, true
 		pos = pos + 1
 
 		while true do
-			val, pos = AuroraFramework.services.HTTPService.json.decode(str, pos, ']')
+			val, pos = AuroraFramework.services.HTTPService.JSON.decode(str, pos, ']')
 			if val == nil then return arr, pos end
 			if not delim_found then return nil end
 			arr[#arr + 1] = val
-			pos, delim_found = AuroraFramework.services.HTTPService.json.skip_delim(str, pos, ',')
+			pos, delim_found = AuroraFramework.services.HTTPService.JSON.skip_delim(str, pos, ',')
 		end
 	elseif first == '"' then                   -- Parse a string.
-		return AuroraFramework.services.HTTPService.json.parse_str_val(str, pos + 1)
+		return AuroraFramework.services.HTTPService.JSON.parse_str_val(str, pos + 1)
 	elseif first == '-' or first:match('%d') then -- Parse a number.
-		return AuroraFramework.services.HTTPService.json.parse_num_val(str, pos)
+		return AuroraFramework.services.HTTPService.JSON.parse_num_val(str, pos)
 	elseif first == end_delim then             -- End of an object or array.
 		return nil, pos + 1
 	else                                       -- Parse true, false, or null.
