@@ -1006,9 +1006,7 @@ AuroraFramework.services.playerService.setDedicatedServer = function(isDedicated
 			return
 		end
 
-		if host.properties.steam_id == 0 then
-			AuroraFramework.services.playerService.internal.removePlayerData(0)
-		end
+		AuroraFramework.services.playerService.internal.removePlayerData(0)
 	end
 end
 
