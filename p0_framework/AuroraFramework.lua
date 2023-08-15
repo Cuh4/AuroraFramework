@@ -769,6 +769,79 @@ AuroraFramework.services.notificationService.custom = function(title, message, p
 end
 
 --------------------------------------------------------------------------------
+--// Configuration \\--
+--------------------------------------------------------------------------------
+AuroraFramework.services.configurationService = {
+	created = {}
+}
+
+-- Register a configuration value
+---@param configValue any slider/checkbox
+AuroraFramework.services.configurationService.register = function(configValue)
+	if AuroraFramework.services.configurationService.created[configValue.name] then
+		return
+	end
+
+	-- register internally
+	AuroraFramework.services.configurationService.created[configValue.name] = configValue
+
+	-- add to g_savedata
+	local savedata = g_savedata or {}
+
+	if configValue.type == "checkbox" then
+		savedata["config_"..configValue.name] = property.checkbox(configValue.text, configValue.defaultValue)
+	elseif configValue.type == "slider" then
+		savedata["config_"..configValue.name] = property.slider(configValue.text, configValue.minimum, configValue.maximum, configValue.increment, configValue.defaultValue)
+	end
+end
+
+-- Get a configuration value
+---@param name string
+---@return boolean|number
+AuroraFramework.services.configurationService.get = function(name)
+	if not AuroraFramework.services.configurationService.created[name] then
+		return ---@diagnostic disable-line
+	end
+
+	local savedata = g_savedata or {}
+	return savedata["config_"..name]
+end
+
+--- Create a slider
+---@param name string
+---@param text string
+---@param minimumValue number
+---@param maximumValue number
+---@param increment number
+---@param defaultValue number
+---@return af_services_configuration_slider
+AuroraFramework.services.configurationService.slider = function(name, text, minimumValue, maximumValue, increment, defaultValue)
+	return {
+		name = name,
+		text = text,
+		minimum = minimumValue,
+		maximumValue = maximumValue,
+		increment = increment,
+		defaultValue = defaultValue,
+
+		type = "slider"
+	}
+end
+
+--- Create a checkbox
+---@param name string
+---@param text string
+---@param defaultValue boolean
+---@return af_services_configuration_checkbox
+AuroraFramework.services.configurationService.checkbox = function(name, text, defaultValue)
+	return {
+		name = name,
+		text = text,
+		defaultValue = defaultValue
+	}
+end
+
+--------------------------------------------------------------------------------
 --// Players \\--
 --------------------------------------------------------------------------------
 AuroraFramework.services.playerService = {
@@ -850,6 +923,10 @@ AuroraFramework.services.playerService = {
 			-- Update player data
 			AuroraFramework.libraries.timer.loop.create(0.01, function()
 				for _, player in pairs(server.getPlayers()) do
+					if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
+						goto continue
+					end
+
 					AuroraFramework.services.playerService.internal.givePlayerData(
 						player.steam_id,
 						player.name,
@@ -857,6 +934,8 @@ AuroraFramework.services.playerService = {
 						player.admin,
 						player.auth
 					)
+
+				    ::continue::
 				end
 			end)
 		end)

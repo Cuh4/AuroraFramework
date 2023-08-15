@@ -10,6 +10,24 @@
 -------------------------- Services
 -------------------------------------------------
 
+---------------- Configuration
+---@class af_services_configuration_slider
+---@field name string
+---@field text string
+---@field minimum number
+---@field maximum number
+---@field increment number
+---@field defaultValue number
+---
+---@field type "slider"
+
+---@class af_services_configuration_checkbox
+---@field name string
+---@field text string
+---@field defaultValue boolean
+---
+---@field type "checkbox"
+
 ---------------- UI
 ---@class af_services_ui_screen
 ---@field properties af_services_ui_screen_properties The properties of this UI
