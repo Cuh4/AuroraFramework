@@ -1135,7 +1135,7 @@ AuroraFramework.services.HTTPService.URLArgs = function(url, ...)
 	local packed = {...}
 
 	for i, v in pairs(packed) do
-		if not v.name or not v.value then
+		if v.name == nil or v.value == nil then
 			goto continue
 		end
 
@@ -1155,7 +1155,13 @@ end
 -- URL encode a string
 ---@param input string
 AuroraFramework.services.HTTPService.URLEncode = function(input)
-	if type(input) ~= "string" or tonumber(input) then -- dont url encode numbers/non-strings
+	local inputType = type(input)
+
+	if inputType == "boolean" then
+		return tostring(input)
+	end
+
+	if inputType ~= "string" or tonumber(input) then -- dont url encode numbers/non-strings
 		return input
 	end
 
