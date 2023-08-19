@@ -256,17 +256,22 @@ AuroraFramework.libraries.storage.create = function(name)
 
 		---@param self af_libs_storage_storage
 		save = function(self, index, value)
+			self = AuroraFramework.libraries.storage.get(self.name) -- prevent modifying a "cached" version of this storage instead of the actual storage
+
 			self.data[index] = value
 			return self
 		end,
 
 		---@param self af_libs_storage_storage
 		get = function(self, index)
+			self = AuroraFramework.libraries.storage.get(self.name)
 			return self.data[index]
 		end,
 
 		---@param self af_libs_storage_storage
 		destroy = function(self, index)
+			self = AuroraFramework.libraries.storage.get(self.name)
+
 			self.data[index] = nil
 			return self
 		end,
