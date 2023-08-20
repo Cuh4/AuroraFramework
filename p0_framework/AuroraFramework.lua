@@ -180,6 +180,37 @@ AuroraFramework.libraries.miscellaneous.average = function(tbl)
 	return sum / AuroraFramework.libraries.miscellaneous.getTableLength(tbl)
 end
 
+-- Adds both set and get methods to the provided class. If the name is "foo", then two new methods will be created under the provided class named "getFoo" and "setFoo" (note the capitalization)
+---@generic class
+---@param class table|class
+---@param name string
+---@param location table|nil The location of the property with the same name as the one provided. If nil, the location will be set to the provided class
+---@return class class The provided class
+AuroraFramework.libraries.miscellaneous.getterSetter = function(class, name, location)
+	if not location then
+		location = class
+	end
+
+	name = AuroraFramework.libraries.miscellaneous.name(name)
+
+	class["get"..name] = function(self)
+		return self[name]
+	end
+
+	class["set"..name] = function(self, to)
+		self[name] = to
+		return self
+	end
+
+	return class
+end
+
+-- Returns the "name" version of the provided string, eg: "bob" -> "Bob"
+---@param input string
+AuroraFramework.libraries.miscellaneous.name = function(input)
+	return input:sub(1, 1):upper()..input:sub(2)
+end
+
 -- Returns on or off depending on whether or not switch is true
 ---@param off any
 ---@param on any
