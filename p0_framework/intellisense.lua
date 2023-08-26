@@ -13,8 +13,8 @@
 ---------------- UI
 ---@class af_services_ui_screen
 ---@field properties af_services_ui_screen_properties The properties of this UI
----@field refresh function<self> Refreshes the UI
----@field remove function<self> Remove this UI
+---@field refresh fun(self: self) Refreshes the UI
+---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_screen_properties
 ---@field x number -1 to 1
@@ -26,8 +26,8 @@
 
 ---@class af_services_ui_map_label
 ---@field properties af_services_ui_map_label_properties The properties of this UI
----@field refresh function<self> Refreshes the UI
----@field remove function<self> Remove this UI
+---@field refresh fun(self: self) Refreshes the UI
+---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_map_label_properties
 ---@field pos SWMatrix The position where this UI is shown on the map
@@ -39,8 +39,8 @@
 
 ---@class af_services_ui_map_line
 ---@field properties af_services_ui_map_line_properties The properties of this UI
----@field refresh function<self> Refreshes the UI
----@field remove function<self> Remove this UI
+---@field refresh fun(self: self) Refreshes the UI
+---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_map_line_properties
 ---@field startPoint SWMatrix The position where this UI starts on the map
@@ -56,9 +56,9 @@
 
 ---@class af_services_ui_map_object
 ---@field properties af_services_ui_map_object_properties The properties of this UI
----@field refresh function<self> Refreshes the UI
----@field remove function<self> Remove this UI
----@field attach function<self, integer, integer> First param == Position Type, Second Param == Object ID/Vehicle ID
+---@field refresh fun(self: self) Refreshes the UI
+---@field remove fun(self: self) Remove this UI
+---@field attach fun(self: self, positionType: integer, objectOrVehicleID: integer) Make this map object follow a vehicle/object
 
 ---@class af_services_ui_map_object_properties
 ---@field pos SWMatrix The position where this UI is shown on the map
@@ -79,7 +79,7 @@
 ---------------- HTTP
 ---@class af_services_http_request
 ---@field properties af_services_http_request_properties The properties of this request
----@field cancel function<self> Cancel this request
+---@field cancel fun(self: self) Cancel this request
 
 ---@class af_services_http_request_properties
 ---@field port integer The port of this request
@@ -89,8 +89,8 @@
 ---------------- Messages
 ---@class af_services_chat_message
 ---@field properties af_services_chat_message_properties The properties of this message
----@field delete function<self, af_services_player_player|nil> Delete this message
----@field edit function<self, string, af_services_player_player|nil> Edit this message
+---@field delete fun(self: self, player: af_services_player_player|nil) Delete this message for a specific player/everyone
+---@field edit fun(self: self, newContent: string, player: af_services_player_player|nil) Edit this message for a specific player/everyone
 
 ---@class af_services_chat_message_properties
 ---@field author af_services_player_player The player who sent this message
@@ -101,7 +101,7 @@
 ---@class af_services_commands_command
 ---@field properties af_services_commands_command_properties The properties of this command
 ---@field events af_services_commands_command_events The events of this command
----@field remove function<self> Remove this command
+---@field remove fun(self: self) Remove this command
 
 ---@class af_services_commands_command_events
 ---@field onActivation af_libs_event_event Event for the activation of this command
@@ -117,15 +117,15 @@
 ---------------- Vehicles
 ---@class af_services_vehicle_vehicle
 ---@field properties af_services_vehicle_vehicle_properties The properties of this vehicle
----@field despawn function<self> Despawn this vehicle
----@field explode function<self, number|nil> Explode this vehicle. Second param is optional magnitude (0-1). Weapons DLC required
----@field teleport function<self, SWMatrix> Teleport this vehicle to a position
----@field getPosition function<self, number|nil, number|nil, number|nil> Get the position of this vehicle
----@field getLoadedVehicleData function<self> Raw vehicle data that can be retrieved when this vehicle is loaded
----@field setInvulnerability function<self, boolean> Sets whether or not this vehicle can receive damage (true = invincible, false = can receive damage)
----@field setEditable function<self, boolean> Sets whether or not this vehicle is editable (can be brought to the workbench)
----@field setTooltip function<self, string> Sets the tooltip of this vehicle
----@field repair function<self> Repairs this vehicle
+---@field despawn fun(self: self) Despawn this vehicle
+---@field explode fun(self: self, magnitude: number|nil) Explode this vehicle. Second param is optional magnitude (0-1). Weapons DLC required
+---@field teleport fun(self: self, position: SWMatrix) Teleport this vehicle to a position
+---@field getPosition fun(self: self, voxelX: number|nil, voxelY: number|nil, voxelZ: number|nil) Get the position of this vehicle
+---@field getLoadedVehicleData fun(self: self) Raw vehicle data that can be retrieved when this vehicle is loaded
+---@field setInvulnerability fun(self: self, isInvulnerable: boolean) Sets whether or not this vehicle can receive damage (true = invincible, false = can receive damage)
+---@field setEditable fun(self: self, isEditable: boolean) Sets whether or not this vehicle is editable (can be brought to the workbench)
+---@field setTooltip fun(self: self, text: string) Sets the tooltip of this vehicle
+---@field repair fun(self: self) Repairs this vehicle
 
 ---@class af_services_vehicle_vehicle_properties
 ---@field owner af_services_player_player The owner of this player, or nil if addon spawned
@@ -140,18 +140,18 @@
 ---------------- Players
 ---@class af_services_player_player
 ---@field properties af_services_player_player_properties The properties of this player
----@field setItem function<self, SWSlotNumberEnum, SWEquipmentTypeEnum, boolean|nil, integer|nil, float|nil> Give this player an item
----@field removeItem function<self, SWSlotNumberEnum> Remove whatever item is in the specified slot from this player
----@field getItem function<self, SWSlotNumberEnum> Returns the equipment ID of the item in the specified slot
----@field kick function<self> Kick this player from the server
----@field ban function<self> Ban this player from the server
----@field teleport function<self, SWMatrix> Teleport this player to a position
----@field getPosition function<self> Get the position of this player
----@field getCharacter function<self> Get the object ID of this player's character
----@field damage function<self, number> Damage this player
----@field kill function<self> Kill this player
----@field setAdmin function<self, boolean> Gives/removes admin from this player
----@field setAuth function<self, boolean> Gives/removes auth from this player
+---@field setItem fun(self: self, slot: SWSlotNumberEnum, type: SWEquipmentTypeEnum, active: boolean|nil, int: integer|nil, float: float|nil) Give this player an item
+---@field removeItem fun(self: self, slot: SWSlotNumberEnum) Remove whatever item is in the specified slot from this player
+---@field getItem fun(self: self, slot: SWSlotNumberEnum) Returns the equipment ID of the item in the specified slot
+---@field kick fun(self: self) Kick this player from the server
+---@field ban fun(self: self) Ban this player from the server
+---@field teleport fun(self: self, position: SWMatrix) Teleport this player to a position
+---@field getPosition fun(self: self) Get the position of this player
+---@field getCharacter fun(self: self) Get the object ID of this player's character
+---@field damage fun(self: self, damageToDeal: number) Damage this player
+---@field kill fun(self: self) Kill this player
+---@field setAdmin fun(self: self, shouldGive: boolean) Gives/removes admin from this player
+---@field setAuth fun(self: self, shouldGive: boolean) Gives/removes auth from this player
 
 ---@class af_services_player_player_properties
 ---@field steam_id string The Steam ID of this player
@@ -172,11 +172,11 @@
 ---@field name string The name of this storage
 ---@field data table<any, any> Table containing saved data
 ---
----@field save function<self, any, any> Save a value to this storage
----@field get function<self, any> Retrieve a value saved to this storage
----@field destroy function<self, any> Remove a value saved to this storage
+---@field save fun(self: self, index: any, value: any) Save a value to this storage
+---@field get fun(self: self, index: any) Retrieve a value saved to this storage
+---@field destroy fun(self: self, index: any) Remove a value saved to this storage
 ---
----@field remove function<self> Remove this storage
+---@field remove fun(self: self) Remove this storage
 
 ---------------- Timer
 ---@class af_libs_timer_loop
@@ -185,8 +185,8 @@
 ---@field event af_libs_event_event Event to connect functions to. The loop itself is the first param passed to the event on loop completion
 ---@field id integer The ID of this loop
 ---
----@field remove function<self> Remove this loop
----@field setDuration function<self, number> Set the duration of this loop
+---@field remove fun(self: self) Remove this loop
+---@field setDuration fun(self: self, duration: number) Set the duration of this loop
 
 ---@class af_libs_timer_delay
 ---@field duration number Duration of the delay in seconds
@@ -194,18 +194,18 @@
 ---@field event af_libs_event_event Event to connect functions to. The delay itself is the first param passed to the event on delay completion
 ---@field id integer The ID of this delay
 ---
----@field remove function<self> Remove this delay
----@field setDuration function<self, number> Set the duration of this delay
+---@field remove fun(self: self) Remove this delay
+---@field setDuration fun(self: self, duration: number) Set the duration of this delay
 
 ---------------- Events
 ---@class af_libs_event_event
 ---@field name string The name of this event
 ---@field connections table<integer, function> Table containing functions connected to this event
 ---
----@field fire function<self> Call all functions connected to this event
----@field clear function<self> Clear all functions connected to this event
----@field remove function<self> Remove the event
----@field connect function<self, function> Connect a function to this event
+---@field fire fun(self: self) Call all functions connected to this event
+---@field clear fun(self: self) Clear all functions connected to this event
+---@field remove fun(self: self) Remove the event
+---@field connect fun(self: self, callback: function) Connect a function to this event
 
 ---------------- Miscellaneous
 ---@class af_libs_miscellaneous_pid
@@ -217,4 +217,4 @@
 ---@field _D number internal
 ---@field _I number internal
 ---
----@field run function<self, number, number> Run this PID. 1st arg = setPoint, 2nd arg = processVariable
+---@field run fun(self: self, setPoint: number, processVariable: number) Run this PID
