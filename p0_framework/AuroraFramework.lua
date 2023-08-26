@@ -364,6 +364,7 @@ AuroraFramework.libraries.events.create = function(name)
 		---@param self af_libs_event_event
 		connect = function(self, toConnect)
 			table.insert(self.connections, toConnect)
+			return self
 		end
 	}
 
@@ -664,7 +665,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 				return
 			end
 
-			return server.getVehicleData(self.properties.vehicle_id)
+			return (server.getVehicleData(self.properties.vehicle_id))
 		end,
 
 		---@param self af_services_vehicle_vehicle
@@ -704,7 +705,7 @@ end
 ---@return af_services_vehicle_vehicle
 AuroraFramework.services.vehicleService.spawnAddonVehicle = function(componentID, position)
 	local vehicleID = server.spawnAddonVehicle(position, (server.getAddonIndex()), componentID)
-	return AuroraFramework.services.vehicleService.internal.giveVehicleData(vehicleID, -1, position[13], position[14], position[15], 0)
+	return AuroraFramework.services.vehicleService.internal.giveVehicleData(vehicleID, -1, position[13], position[14], position[15], 0) ---@diagnostic disable-line return-type-mismatch
 end
 
 -- Get a vehicle by its ID
@@ -947,7 +948,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		end,
 
 		getItem = function(self, slot)
-			return server.getCharacterItem(self:getCharacter(), slot)
+			return server.getCharacterItem(self:getCharacter(), slot) ---@diagnostic disable-line
 		end,
 
 		---@param self af_services_player_player
@@ -1132,7 +1133,7 @@ AuroraFramework.services.HTTPService.request = function(port, url, callback)
 
 	if ongoingRequest then -- a request has already been made to the same port and url, so we simply connect to the request's event
 		if callback then
-			return ongoingRequest.properties.event:connect(callback)
+			ongoingRequest.properties.event:connect(callback)
 		end
 
 		return ongoingRequest
@@ -1351,7 +1352,7 @@ end
 -- Encode a Lua object into a JSON string
 ---@param obj any The thing to encode
 ---@param as_key boolean|nil
----@return string
+---@return string|nil
 AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key)
 	local s = {}           -- We'll build the string as an array of strings to be concatenated.
 	local kind = AuroraFramework.services.HTTPService.JSON.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
@@ -1404,7 +1405,7 @@ end
 ---@param str string
 ---@param pos number|nil
 ---@param end_delim string|nil
----@return any, any
+---@return any|nil, number|nil
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 

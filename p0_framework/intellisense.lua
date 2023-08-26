@@ -120,8 +120,8 @@
 ---@field despawn fun(self: self) Despawn this vehicle
 ---@field explode fun(self: self, magnitude: number|nil) Explode this vehicle. Second param is optional magnitude (0-1). Weapons DLC required
 ---@field teleport fun(self: self, position: SWMatrix) Teleport this vehicle to a position
----@field getPosition fun(self: self, voxelX: number|nil, voxelY: number|nil, voxelZ: number|nil) Get the position of this vehicle
----@field getLoadedVehicleData fun(self: self) Raw vehicle data that can be retrieved when this vehicle is loaded
+---@field getPosition fun(self: self, voxelX: number|nil, voxelY: number|nil, voxelZ: number|nil): SWMatrix Get the position of this vehicle
+---@field getLoadedVehicleData fun(self: self): SWVehicleData|nil Raw vehicle data that can be retrieved when this vehicle is loaded
 ---@field setInvulnerability fun(self: self, isInvulnerable: boolean) Sets whether or not this vehicle can receive damage (true = invincible, false = can receive damage)
 ---@field setEditable fun(self: self, isEditable: boolean) Sets whether or not this vehicle is editable (can be brought to the workbench)
 ---@field setTooltip fun(self: self, text: string) Sets the tooltip of this vehicle
@@ -142,12 +142,12 @@
 ---@field properties af_services_player_player_properties The properties of this player
 ---@field setItem fun(self: self, slot: SWSlotNumberEnum, type: SWEquipmentTypeEnum, active: boolean|nil, int: integer|nil, float: float|nil) Give this player an item
 ---@field removeItem fun(self: self, slot: SWSlotNumberEnum) Remove whatever item is in the specified slot from this player
----@field getItem fun(self: self, slot: SWSlotNumberEnum) Returns the equipment ID of the item in the specified slot
+---@field getItem fun(self: self, slot: SWSlotNumberEnum): integer Returns the equipment ID of the item in the specified slot
 ---@field kick fun(self: self) Kick this player from the server
 ---@field ban fun(self: self) Ban this player from the server
 ---@field teleport fun(self: self, position: SWMatrix) Teleport this player to a position
----@field getPosition fun(self: self) Get the position of this player
----@field getCharacter fun(self: self) Get the object ID of this player's character
+---@field getPosition fun(self: self): SWMatrix Get the position of this player
+---@field getCharacter fun(self: self): integer Get the object ID of this player's character
 ---@field damage fun(self: self, damageToDeal: number) Damage this player
 ---@field kill fun(self: self) Kill this player
 ---@field setAdmin fun(self: self, shouldGive: boolean) Gives/removes admin from this player
@@ -172,9 +172,9 @@
 ---@field name string The name of this storage
 ---@field data table<any, any> Table containing saved data
 ---
----@field save fun(self: self, index: any, value: any) Save a value to this storage
----@field get fun(self: self, index: any) Retrieve a value saved to this storage
----@field destroy fun(self: self, index: any) Remove a value saved to this storage
+---@field save fun(self: self, index: any, value: any): self Save a value to this storage
+---@field get fun(self: self, index: any): any Retrieve a value saved to this storage
+---@field destroy fun(self: self, index: any): self Remove a value saved to this storage
 ---
 ---@field remove fun(self: self) Remove this storage
 
@@ -202,10 +202,10 @@
 ---@field name string The name of this event
 ---@field connections table<integer, function> Table containing functions connected to this event
 ---
----@field fire fun(self: self) Call all functions connected to this event
----@field clear fun(self: self) Clear all functions connected to this event
+---@field fire fun(self: self): self Call all functions connected to this event
+---@field clear fun(self: self): self Clear all functions connected to this event
 ---@field remove fun(self: self) Remove the event
----@field connect fun(self: self, callback: function) Connect a function to this event
+---@field connect fun(self: self, callback: function): self Connect a function to this event
 
 ---------------- Miscellaneous
 ---@class af_libs_miscellaneous_pid
@@ -217,4 +217,4 @@
 ---@field _D number internal
 ---@field _I number internal
 ---
----@field run fun(self: self, setPoint: number, processVariable: number) Run this PID
+---@field run fun(self: self, setPoint: number, processVariable: number): number Run this PID
