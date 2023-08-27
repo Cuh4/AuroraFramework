@@ -627,7 +627,8 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			vehicle_id = vehicle_id,
 			spawnPos = matrix.translation(x, y, z),
 			cost = cost,
-			storage = AuroraFramework.libraries.storage.create("vehicle_"..vehicle_id.."_storage")
+			storage = AuroraFramework.libraries.storage.create("vehicle_"..vehicle_id.."_storage"),
+			loaded = false
 		},
 
 		---@param self af_services_vehicle_vehicle
