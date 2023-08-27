@@ -707,9 +707,10 @@ function server.spawnAddonComponent(matrix, addon_index, location_index, compone
 --- @param peerID number|nil The peerID of the player you want to message. -1 messages all players. If ignored, it will message all players
 function server.announce(name, message, peerID) end
 
---- Triggers onCustomCommand callback. Useful for addon communication
---- @param query string The command to activate, along with all args (eg: "?command arg1 arg2")
-function server.command(query) end
+---### Sends a command that can be recieved by addons using the onCustomCommand callback <br>
+---> The peer_id sent will be -1
+---@param message string the message to send, for example, "?prefix command arg1"
+function server.command(message) end
 
 --- Displays a notification for player(s) on the right side of the screen.
 --- @param peerID number The peerID of the player you want to message. -1 messages all players
@@ -1740,11 +1741,6 @@ function server.setAITargetVehicle(object_id, target_vehicle_id) end
 ---@field r number the radius of the oil deposit
 ---@field oil number the amount of oil contained in this oil deposit
 
---- Adds/removes oil to/from the specified position
---- @param transform_matrix SWMatrix The position to add/remove oil to/from
----@param amount number The amount of oil to add (0 - 100). 0 removes oil from the location
-function server.setOilSpill(transform_matrix, amount) end
-
 --- @param transform_matrix SWMatrix
 --- @param magnitude number magnitude 0->1
 --- @return boolean is_success 
@@ -1778,8 +1774,13 @@ function server.getVolcanos() end
 
 --- Gets the blended oil amount at the target location.
 ---@param transform_matrix SWMatrix the position where you want to get the oil amount at
----@return number oil_amount the amount of oil at the specifid matrix.
+---@return number oil_amount the amount of oil at the specified matrix.
 function server.getOilSpill(transform_matrix) end
+
+--- Sets the oil spill amount at the target location. The amount is blended across nearby tiles.
+---@param transform_matrix SWMatrix the position where you want to set the oil amount at.
+---@param amount number the amount of oil you want to set at the specified position.
+function server.setOilSpill(transform_matrix, amount) end
 
 --- Requires Weapons DLC
 --- @param transform_matrix SWMatrix
