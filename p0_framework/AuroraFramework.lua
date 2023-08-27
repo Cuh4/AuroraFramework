@@ -1784,6 +1784,13 @@ AuroraFramework.services.UIService = {
 	internal = {}
 }
 
+-- Convert a number to an UI ID
+---@param id number
+---@return SWUI_ID
+AuroraFramework.services.UIService.ID = function(id)
+	return AuroraFramework.libraries.miscellaneous.clamp(math.floor(id), 0, 99999999) --[[@as SWUI_ID]]
+end
+
 -- Create a Screen UI object
 ---@param id SWUI_ID
 ---@param text string
