@@ -707,6 +707,10 @@ function server.spawnAddonComponent(matrix, addon_index, location_index, compone
 --- @param peerID number|nil The peerID of the player you want to message. -1 messages all players. If ignored, it will message all players
 function server.announce(name, message, peerID) end
 
+--- Triggers onCustomCommand callback. Useful for addon communication
+--- @param query string The command to activate, along with all args (eg: "?command arg1 arg2")
+function server.command(query) end
+
 --- Displays a notification for player(s) on the right side of the screen.
 --- @param peerID number The peerID of the player you want to message. -1 messages all players
 --- @param title string The title of the notification
@@ -1735,6 +1739,11 @@ function server.setAITargetVehicle(object_id, target_vehicle_id) end
 ---@field z number the z position of the oil deposit in world space
 ---@field r number the radius of the oil deposit
 ---@field oil number the amount of oil contained in this oil deposit
+
+--- Adds/removes oil to/from the specified position
+--- @param transform_matrix SWMatrix The position to add/remove oil to/from
+---@param amount number The amount of oil to add (0 - 100). 0 removes oil from the location
+function server.setOilSpill(transform_matrix, amount) end
 
 --- @param transform_matrix SWMatrix
 --- @param magnitude number magnitude 0->1
