@@ -688,16 +688,18 @@ function server.spawnAddonComponent(matrix, addon_index, location_index, compone
 ---| 19 # defend
 
 ---@alias SWNotifiationTypeEnum
----| 0 # new_mission
----| 1 # new_mission_critical
----| 2 # failed_mission
----| 3 # failed_mission_critical
----| 4 # complete_mission
----| 5 # network_connect
----| 6 # network_disconnect
----| 7 # network_info
----| 8 # chat_message
----| 9 # network_info_critical
+---| 0 new_mission
+---| 1 new_mission_critical
+---| 2 failed_mission
+---| 3 failed_mission_critical
+---| 4 complete_mission
+---| 5 network_connect
+---| 6 network_disconnect
+---| 7 network_info
+---| 8 chat_message
+---| 9 star
+---| 10 network_disconnect_critical
+---| 11 science_flask
 
 -- defined like this so the user will get a warning when just trying to use raw numbers. as using raw numbers will break other addons that are trying to use the map.
 ---@class SWUI_ID
