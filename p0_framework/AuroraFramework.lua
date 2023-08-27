@@ -1784,7 +1784,7 @@ AuroraFramework.services.UIService = {
 }
 
 -- Create a Screen UI object
----@param id number
+---@param id SWUI_ID
 ---@param text string
 ---@param x number
 ---@param y number
@@ -1819,13 +1819,13 @@ AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, pla
 end
 
 -- Get a Screen UI object
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.getScreenUI = function(id)
 	return AuroraFramework.services.UIService.UI.screen[id]
 end
 
 -- Remove a Screen UI object
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.removeScreenUI = function(id)
 	local data = AuroraFramework.services.UIService.UI.screen[id]
 	data.properties.visible = false
@@ -1835,7 +1835,7 @@ AuroraFramework.services.UIService.removeScreenUI = function(id)
 end
 
 -- Create a Map Label
----@param id number
+---@param id SWUI_ID
 ---@param text string
 ---@param pos SWMatrix
 ---@param labelType SWLabelTypeEnum
@@ -1876,13 +1876,13 @@ AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labe
 end
 
 -- Get a Map Label
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.getMapLabel = function(id)
 	return AuroraFramework.services.UIService.UI.mapLabels[id]
 end
 
 -- Remove a Map Label
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.removeMapLabel = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
 	data.properties.visible = false
@@ -1892,7 +1892,7 @@ AuroraFramework.services.UIService.removeMapLabel = function(id)
 end
 
 -- Create a Map Line
----@param id number
+---@param id SWUI_ID
 ---@param startPoint SWMatrix
 ---@param endPoint SWMatrix
 ---@param thickness number
@@ -1943,13 +1943,13 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 end
 
 -- Get a Map Line
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.getMapLine = function(id)
 	return AuroraFramework.services.UIService.UI.mapLines[id]
 end
 
 -- Remove a Map Line
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.removeMapLine = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLines[id]
 	data.properties.visible = false
@@ -1959,7 +1959,7 @@ AuroraFramework.services.UIService.removeMapLine = function(id)
 end
 
 -- Create a Map Object
----@param id number
+---@param id SWUI_ID
 ---@param title string
 ---@param subtitle string
 ---@param pos SWMatrix
@@ -2041,13 +2041,13 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 end
 
 -- Get a Map Object
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.getMapObject = function(id)
 	return AuroraFramework.services.UIService.UI.mapObjects[id]
 end
 
 -- Remove a Map Object
----@param id number
+---@param id SWUI_ID
 AuroraFramework.services.UIService.removeMapObject = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
 	data.properties.visible = false
@@ -2370,6 +2370,42 @@ AuroraFramework.game.callbacks.onButtonPress = {
 function onButtonPress(...)
 	AuroraFramework.game.callbacks.onButtonPress.internal:fire(...)
 	AuroraFramework.game.callbacks.onButtonPress.main:fire(...)
+end
+
+----------------
+
+AuroraFramework.game.callbacks.onCreatureSit = {
+	internal = AuroraFramework.libraries.events.create("callback_onCreatureSit_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onCreatureSit_addon")
+}
+
+function onCreatureSit(...)
+	AuroraFramework.game.callbacks.onCreatureSit.internal:fire(...)
+	AuroraFramework.game.callbacks.onCreatureSit.main:fire(...)
+end
+
+----------------
+
+AuroraFramework.game.callbacks.onCreatureUnsit = {
+	internal = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_addon")
+}
+
+function onCreatureUnsit(...)
+	AuroraFramework.game.callbacks.onCreatureUnsit.internal:fire(...)
+	AuroraFramework.game.callbacks.onCreatureUnsit.main:fire(...)
+end
+
+----------------
+
+AuroraFramework.game.callbacks.onCreaturePickup = {
+	internal = AuroraFramework.libraries.events.create("callback_onCreaturePickup_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onCreaturePickup_addon")
+}
+
+function onCreaturePickup(...)
+	AuroraFramework.game.callbacks.onCreaturePickup.internal:fire(...)
+	AuroraFramework.game.callbacks.onCreaturePickup.main:fire(...)
 end
 
 ----------------
