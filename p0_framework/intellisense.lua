@@ -22,7 +22,8 @@
 ---@field text string The text shown in the UI
 ---@field visible boolean Whether or not this UI is visible
 ---@field player af_services_player_player|nil The player this UI is shown to. Everyone if nil
----@field id SWUI_ID The ID of this UI
+---@field id string|number The ID of this UI in the framework
+---@field trueID SWUI_ID The true ID used for the UI
 
 ---@class af_services_ui_map_label
 ---@field properties af_services_ui_map_label_properties The properties of this UI
@@ -34,7 +35,8 @@
 ---@field text string The text shown in the UI
 ---@field visible boolean Whether or not this UI is visible
 ---@field player af_services_player_player|nil The player this UI is shown to. Everyone if nil
----@field id SWUI_ID The ID of this UI
+---@field id string|number The ID of this UI in the framework
+---@field trueID SWUI_ID The true ID used for the UI
 ---@field labelType SWLabelTypeEnum The type of label
 
 ---@class af_services_ui_map_line
@@ -47,7 +49,8 @@
 ---@field endPoint SWMatrix The position where this UI ends on the map
 ---@field visible boolean Whether or not this UI is visible
 ---@field player af_services_player_player|nil The player this UI is shown to. Everyone if nil
----@field id SWUI_ID The ID of this UI
+---@field id string|number The ID of this UI in the framework
+---@field trueID SWUI_ID The true ID used for the UI
 ---@field r integer 0-255
 ---@field g integer 0-255
 ---@field b integer 0-255
@@ -66,7 +69,8 @@
 ---@field subtitle string The subtitle
 ---@field visible boolean Whether or not this UI is visible
 ---@field player af_services_player_player|nil The player this UI is shown to. Everyone if nil
----@field id SWUI_ID The ID of this UI
+---@field id string|number The ID of this UI in the framework
+---@field trueID SWUI_ID The true ID used for the UI
 ---@field objectType SWMarkerTypeEnum The type of map object
 ---@field positionType SWPositionTypeEnum 0, 1, or 2 (fixed, vehicle, object)
 ---@field attachID integer Vehicle ID/Object ID

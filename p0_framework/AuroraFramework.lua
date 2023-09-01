@@ -1784,15 +1784,8 @@ AuroraFramework.services.UIService = {
 	internal = {}
 }
 
--- Convert a number to an UI ID
----@param id number
----@return SWUI_ID
-AuroraFramework.services.UIService.ID = function(id)
-	return AuroraFramework.libraries.miscellaneous.clamp(math.floor(id), 0, 99999999) --[[@as SWUI_ID]]
-end
-
 -- Create a Screen UI object
----@param id SWUI_ID
+---@param id string|number
 ---@param text string
 ---@param x number
 ---@param y number
@@ -1806,13 +1799,14 @@ AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, pla
 			text = text,
 			visible = true,
 			player = player,
-			id = id
+			id = id,
+			trueID = server.getMapID()
 		},
 
 		---@param self af_services_ui_screen
 		refresh = function(self)
 			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.setPopupScreen(peerID, self.properties.id, "", self.properties.visible, self.properties.text, self.properties.x, self.properties.y)
+			server.setPopupScreen(peerID, self.properties.trueID, "", self.properties.visible, self.properties.text, self.properties.x, self.properties.y)
 		end,
 
 		---@param self af_services_ui_screen
@@ -1828,14 +1822,14 @@ AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, pla
 end
 
 -- Get a Screen UI object
----@param id SWUI_ID
+---@param id string|number
 ---@return af_services_ui_screen
 AuroraFramework.services.UIService.getScreenUI = function(id)
 	return AuroraFramework.services.UIService.UI.screen[id]
 end
 
 -- Remove a Screen UI object
----@param id SWUI_ID
+---@param id string|number
 AuroraFramework.services.UIService.removeScreenUI = function(id)
 	local data = AuroraFramework.services.UIService.UI.screen[id]
 	data.properties.visible = false
@@ -1845,7 +1839,7 @@ AuroraFramework.services.UIService.removeScreenUI = function(id)
 end
 
 -- Create a Map Label
----@param id SWUI_ID
+---@param id string|number
 ---@param text string
 ---@param pos SWMatrix
 ---@param labelType SWLabelTypeEnum
@@ -1859,19 +1853,20 @@ AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labe
 			visible = true,
 			player = player,
 			id = id,
+			trueID = server.getMapID(),
 			labelType = labelType
 		},
 
 		---@param self af_services_ui_map_label
 		refresh = function(self)
 			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapLabel(peerID, self.properties.id)
+			server.removeMapLabel(peerID, self.properties.trueID)
 
 			if not self.properties.visible then -- if not visible, dont add the label back
 				return
 			end
 
-			server.addMapLabel(peerID, self.properties.id, self.properties.labelType, self.properties.text, self.properties.pos[13], self.properties.pos[15])
+			server.addMapLabel(peerID, self.properties.trueID, self.properties.labelType, self.properties.text, self.properties.pos[13], self.properties.pos[15])
 		end,
 
 		---@param self af_services_ui_map_label
@@ -1887,14 +1882,14 @@ AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labe
 end
 
 -- Get a Map Label
----@param id SWUI_ID
+---@param id string|number
 ---@return af_services_ui_map_label
 AuroraFramework.services.UIService.getMapLabel = function(id)
 	return AuroraFramework.services.UIService.UI.mapLabels[id]
 end
 
 -- Remove a Map Label
----@param id SWUI_ID
+---@param id string|number
 AuroraFramework.services.UIService.removeMapLabel = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
 	data.properties.visible = false
@@ -1904,7 +1899,7 @@ AuroraFramework.services.UIService.removeMapLabel = function(id)
 end
 
 -- Create a Map Line
----@param id SWUI_ID
+---@param id string|number
 ---@param startPoint SWMatrix
 ---@param endPoint SWMatrix
 ---@param thickness number
@@ -1922,6 +1917,7 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 			visible = true,
 			player = player,
 			id = id,
+			trueID = server.getMapID(),
 
 			r = r or 255,
 			g = g or 255,
@@ -1934,13 +1930,13 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 		---@param self af_services_ui_map_line
 		refresh = function(self)
 			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapLine(peerID, self.properties.id)
+			server.removeMapLine(peerID, self.properties.trueID)
 
 			if not self.properties.visible then -- if not visible, dont add the line back
 				return
 			end
 
-			server.addMapLine(peerID, self.properties.id, self.properties.startPoint, self.properties.endPoint, self.properties.thickness, self.properties.r, self.properties.g, self.properties.b, self.properties.a)
+			server.addMapLine(peerID, self.properties.trueID, self.properties.startPoint, self.properties.endPoint, self.properties.thickness, self.properties.r, self.properties.g, self.properties.b, self.properties.a)
 		end,
 
 		---@param self af_services_ui_map_line
@@ -1956,14 +1952,14 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 end
 
 -- Get a Map Line
----@param id SWUI_ID
+---@param id string|number
 ---@return af_services_ui_map_line
 AuroraFramework.services.UIService.getMapLine = function(id)
 	return AuroraFramework.services.UIService.UI.mapLines[id]
 end
 
 -- Remove a Map Line
----@param id SWUI_ID
+---@param id string|number
 AuroraFramework.services.UIService.removeMapLine = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLines[id]
 	data.properties.visible = false
@@ -1973,7 +1969,7 @@ AuroraFramework.services.UIService.removeMapLine = function(id)
 end
 
 -- Create a Map Object
----@param id SWUI_ID
+---@param id string|number
 ---@param title string
 ---@param subtitle string
 ---@param pos SWMatrix
@@ -1994,6 +1990,7 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 			visible = true,
 			player = player,
 			id = id,
+			trueID = server.getMapID(),
 			objectType = objectType,
 			positionType = 0,
 			attachID = 0,
@@ -2009,7 +2006,7 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 		---@param self af_services_ui_map_object
 		refresh = function(self)
 			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapObject(peerID, self.properties.id)
+			server.removeMapObject(peerID, self.properties.trueID)
 
 			if not self.properties.visible then -- if not visible, dont add the object back
 				return
@@ -2017,7 +2014,7 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 
 			server.addMapObject( -- what the FUCK
 				peerID,
-				self.properties.id,
+				self.properties.trueID,
 				self.properties.positionType,
 				self.properties.objectType,
 				self.properties.pos[13],
@@ -2056,14 +2053,14 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 end
 
 -- Get a Map Object
----@param id SWUI_ID
+---@param id string|number
 ---@return af_services_ui_map_object
 AuroraFramework.services.UIService.getMapObject = function(id)
 	return AuroraFramework.services.UIService.UI.mapObjects[id]
 end
 
 -- Remove a Map Object
----@param id SWUI_ID
+---@param id string|number
 AuroraFramework.services.UIService.removeMapObject = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
 	data.properties.visible = false
