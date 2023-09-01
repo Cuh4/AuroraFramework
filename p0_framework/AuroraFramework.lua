@@ -1768,16 +1768,16 @@ AuroraFramework.services.UIService = {
 	end,
 
 	UI = {
-		---@type table<integer, af_services_ui_screen>
+		---@type table<string|number, af_services_ui_screen>
 		screen = {},
 
-		---@type table<integer, af_services_ui_map_label>
+		---@type table<string|number, af_services_ui_map_label>
 		mapLabels = {},
 
-		---@type table<integer, af_services_ui_map_object>
+		---@type table<string|number, af_services_ui_map_object>
 		mapObjects = {},
 
-		---@type table<integer, af_services_ui_map_line>
+		---@type table<string|number, af_services_ui_map_line>
 		mapLines = {}
 	},
 
