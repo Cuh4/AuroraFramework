@@ -1406,7 +1406,7 @@ end
 ---@param str string
 ---@param pos number|nil
 ---@param end_delim string|nil
----@return any|nil, number|nil
+---@return any|nil, number|nil decodedResult nil = failed
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 
@@ -1797,6 +1797,7 @@ end
 ---@param x number
 ---@param y number
 ---@param player af_services_player_player|nil
+---@return af_services_ui_screen
 AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, player)
 	AuroraFramework.services.UIService.UI.screen[id] = {
 		properties = {
@@ -1828,6 +1829,7 @@ end
 
 -- Get a Screen UI object
 ---@param id SWUI_ID
+---@return af_services_ui_screen
 AuroraFramework.services.UIService.getScreenUI = function(id)
 	return AuroraFramework.services.UIService.UI.screen[id]
 end
@@ -1848,6 +1850,7 @@ end
 ---@param pos SWMatrix
 ---@param labelType SWLabelTypeEnum
 ---@param player af_services_player_player|nil
+---@return af_services_ui_map_label
 AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labelType, player)
 	AuroraFramework.services.UIService.UI.mapLabels[id] = {
 		properties = {
@@ -1885,6 +1888,7 @@ end
 
 -- Get a Map Label
 ---@param id SWUI_ID
+---@return af_services_ui_map_label
 AuroraFramework.services.UIService.getMapLabel = function(id)
 	return AuroraFramework.services.UIService.UI.mapLabels[id]
 end
@@ -1909,6 +1913,7 @@ end
 ---@param g integer|nil 0-255
 ---@param b integer|nil 0-255
 ---@param a integer|nil 0-255
+---@return af_services_ui_map_line
 AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endPoint, thickness, r, g, b, a, player)
 	AuroraFramework.services.UIService.UI.mapLines[id] = {
 		properties = {
@@ -1952,6 +1957,7 @@ end
 
 -- Get a Map Line
 ---@param id SWUI_ID
+---@return af_services_ui_map_line
 AuroraFramework.services.UIService.getMapLine = function(id)
 	return AuroraFramework.services.UIService.UI.mapLines[id]
 end
@@ -1978,6 +1984,7 @@ end
 ---@param g integer|nil 0-255
 ---@param b integer|nil 0-255
 ---@param a integer|nil 0-255
+---@return af_services_ui_map_object
 AuroraFramework.services.UIService.createMapObject = function(id, title, subtitle, pos, objectType, player, radius, r, g, b, a)
 	AuroraFramework.services.UIService.UI.mapObjects[id] = {
 		properties = {
@@ -2050,6 +2057,7 @@ end
 
 -- Get a Map Object
 ---@param id SWUI_ID
+---@return af_services_ui_map_object
 AuroraFramework.services.UIService.getMapObject = function(id)
 	return AuroraFramework.services.UIService.UI.mapObjects[id]
 end
