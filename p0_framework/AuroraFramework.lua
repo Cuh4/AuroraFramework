@@ -13,6 +13,36 @@ AuroraFramework = {
 	services = {}
 }
 
+local function setupSaveData()
+	g_savedata = g_savedata or {}
+end
+
+setupSaveData() -- to allow addon to setup g_savedata first
+
+--------------------------------------------------------------------------------
+--// Internal \\--
+--------------------------------------------------------------------------------
+AuroraFramework.internal = {}
+
+---@param index string
+---@param value any
+AuroraFramework.internal.save = function(index, value)
+	if not g_savedata.AuroraFramework then
+		g_savedata.AuroraFramework = {}
+	end
+
+	g_savedata.AuroraFramework[index] = value
+end
+
+---@param index string
+AuroraFramework.internal.get = function(index)
+	if not g_savedata.AuroraFramework then
+		g_savedata.AuroraFramework = {}
+	end
+
+	return g_savedata.AuroraFramework[index]
+end
+
 --------------------------------------------------------------------------------
 --// Libraries \\--
 --------------------------------------------------------------------------------
@@ -1765,6 +1795,18 @@ AuroraFramework.services.UIService = {
 				end
 			end
 		end)
+
+		-- remove ui on leave
+		AuroraFramework.services.playerService.events.onLeave:connect(function(player) ---@param player af_services_player_player
+			for _, uiContainers in pairs(AuroraFramework.services.UIService.UI) do
+				for _, ui in pairs(uiContainers) do
+					if ui.properties.player and AuroraFramework.services.playerService.isSamePlayer(ui.properties.player, player) then
+						-- remove since this ui is only being shown for this player
+						ui:remove()
+					end
+				end
+			end
+		end)
 	end,
 
 	UI = {
@@ -1783,6 +1825,12 @@ AuroraFramework.services.UIService = {
 
 	internal = {}
 }
+
+---@param name string
+---@param id string|number
+AuroraFramework.services.UIService.internal.saveName = function(name, id)
+	return name.."-"..id
+end
 
 -- Create a Screen UI object
 ---@param id string|number
@@ -1818,6 +1866,8 @@ AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, pla
 	local data = AuroraFramework.services.UIService.UI.screen[id]
 	data:refresh() -- show
 
+	AuroraFramework.internal.save(AuroraFramework.services.UIService.internal.saveName("screen_ui_id", data.properties.id), data.properties.trueID)
+
 	return data
 end
 
@@ -1831,9 +1881,11 @@ end
 -- Remove a Screen UI object
 ---@param id string|number
 AuroraFramework.services.UIService.removeScreenUI = function(id)
-	local data = AuroraFramework.services.UIService.UI.screen[id]
-	data.properties.visible = false
-	data:refresh() -- hide ui
+	local trueID = AuroraFramework.internal.get(AuroraFramework.services.UIService.internal.saveName("screen_ui_id", id))
+
+	if trueID then
+		server.removePopup(-1, trueID)
+	end
 
 	AuroraFramework.services.UIService.UI.screen[id] = nil
 end
@@ -1878,6 +1930,8 @@ AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labe
 	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
 	data:refresh() -- show
 
+	AuroraFramework.internal.save(AuroraFramework.services.UIService.internal.saveName("map_label_ui_id", data.properties.id), data.properties.trueID)
+
 	return data
 end
 
@@ -1891,9 +1945,11 @@ end
 -- Remove a Map Label
 ---@param id string|number
 AuroraFramework.services.UIService.removeMapLabel = function(id)
-	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
-	data.properties.visible = false
-	data:refresh() -- hide ui
+	local trueID = AuroraFramework.internal.get(AuroraFramework.services.UIService.internal.saveName("map_label_ui_id", id))
+
+	if trueID then
+		server.removeMapLabel(-1, trueID)
+	end
 
 	AuroraFramework.services.UIService.UI.mapLabels[id] = nil
 end
@@ -1948,6 +2004,8 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 	local data = AuroraFramework.services.UIService.UI.mapLines[id]
 	data:refresh() -- show
 
+	AuroraFramework.internal.save(AuroraFramework.services.UIService.internal.saveName("map_line_ui_id", data.properties.id), data.properties.trueID)
+
 	return data
 end
 
@@ -1961,9 +2019,11 @@ end
 -- Remove a Map Line
 ---@param id string|number
 AuroraFramework.services.UIService.removeMapLine = function(id)
-	local data = AuroraFramework.services.UIService.UI.mapLines[id]
-	data.properties.visible = false
-	data:refresh() -- hide ui
+	local trueID = AuroraFramework.internal.get(AuroraFramework.services.UIService.internal.saveName("map_line_ui_id", id))
+
+	if trueID then
+		server.removeMapLine(-1, trueID)
+	end
 
 	AuroraFramework.services.UIService.UI.mapLines[id] = nil
 end
@@ -2049,6 +2109,8 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
 	data:refresh() -- show
 
+	AuroraFramework.internal.save(AuroraFramework.services.UIService.internal.saveName("map_object_ui_id", data.properties.id), data.properties.trueID)
+
 	return data
 end
 
@@ -2062,9 +2124,11 @@ end
 -- Remove a Map Object
 ---@param id string|number
 AuroraFramework.services.UIService.removeMapObject = function(id)
-	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
-	data.properties.visible = false
-	data:refresh() -- hide ui
+	local trueID = AuroraFramework.internal.get(AuroraFramework.services.UIService.internal.saveName("map_object_ui_id", id))
+
+	if trueID then
+		server.removeMapObject(-1, trueID)
+	end
 
 	AuroraFramework.services.UIService.UI.mapObjects[id] = nil
 end
