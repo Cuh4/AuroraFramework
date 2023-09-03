@@ -701,9 +701,6 @@ function server.spawnAddonComponent(matrix, addon_index, location_index, compone
 ---| 10 network_disconnect_critical
 ---| 11 science_flask
 
--- defined like this so the user will get a warning when just trying to use raw numbers. as using raw numbers will break other addons that are trying to use the map.
----@class SWUI_ID
-
 --- Messages player(s) using the in-game chat
 --- @param name string The display name of the user sending the message
 --- @param message string The message to send the player(s)
@@ -723,17 +720,17 @@ function server.command(message) end
 function server.notify(peerID, title, message, notificationType) end
 
 --- Gets a unique ID to be used with other UI functions. Functions similar to a vehicle ID. A UI id can be used for multiple lines and map objects but each popup with a different text or position must have it's own ID
---- @return SWUI_ID ui_id
+--- @return integer ui_id
 function server.getMapID() end
 
 --- Remove any UI type created with this ui_id. If you have drawn multiple lines on the map with one UI id, this command would remove all of them.
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The unique ui id to be removed
+--- @param ui_id integer The unique ui id to be removed
 function server.removeMapID(peer_id, ui_id) end
 
 --- Add a map marker for the specified peer(s). x, z represent the worldspace location of the marker, since the map is 2D a y coordinate is not required. If POSITION_TYPE is set to 1 or 2 (vehicle or object) then the marker will track the object/vehicle of object_id/vehicle_id and offset the position by parent_local_x, parent_local_z. 
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The unique ui id to use
+--- @param ui_id integer The unique ui id to use
 --- @param position_type SWPositionTypeEnum number, Defines what type (object/vehicle) the marker should follow. Or if it should not follow anything. If the vehicle/object that object is set to follow cannot be found, this defaults to 0 meaning it becomes static, when the vehicle/object is reloacated, it reverts back to the previous value.
 --- @param marker_type SWMarkerTypeEnum number
 --- @param x number Refer to World Space. Overrides parent_local_x
@@ -753,12 +750,12 @@ function server.addMapObject(peer_id, ui_id, position_type, marker_type, x, z, p
 
 --- Removes the map objects with the specified ui_id for the specified peer(s)
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The unique ui id to use
+--- @param ui_id integer The unique ui id to use
 function server.removeMapObject(peer_id, ui_id) end
 
 --- Adds a map label for the specified peer(s). Map labels appear under fog of war.
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The unique ui id to use
+--- @param ui_id integer The unique ui id to use
 --- @param LABEL_TYPE SWLabelTypeEnum number
 --- @param name string The text that appears on the label
 --- @param x number Refer to World Space
@@ -767,12 +764,12 @@ function server.addMapLabel(peer_id, ui_id, LABEL_TYPE, name, x, z) end
 
 --- Removes a map label with the specified ui_id for the specified peer(s)
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The ui id to use
+--- @param ui_id integer The ui id to use
 function server.removeMapLabel(peer_id, ui_id) end
 
 --- Adds a map line between two world space matrices with the specified ui_id for the specified pee(s). Custom colour defaults to red.
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The ui id to use
+--- @param ui_id integer The ui id to use
 --- @param start_matrix SWMatrix Line start position. worldspace
 --- @param end_matrix SWMatrix Line stop position
 --- @param width number Line width
@@ -784,12 +781,12 @@ function server.addMapLine(peer_id, ui_id, start_matrix, end_matrix, width, r, g
 
 --- Removes a map line with the specified ui_id for the specified peer(s)
 --- @param peer_id number The peer id of the affected player
---- @param ui_id SWUI_ID The ui id to use
+--- @param ui_id integer The ui id to use
 function server.removeMapLine(peer_id, ui_id) end
 
 --- Displays a tooltip-like popup either in the world. If the popup does not exist, it will be created.
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID A unique ui_id to be used with this popup. You cannot re-use ui ids for popups, unless they have the same text and position, then they can be used for multiple players.
+--- @param ui_id integer A unique ui_id to be used with this popup. You cannot re-use ui ids for popups, unless they have the same text and position, then they can be used for multiple players.
 --- @param name string ? Appears to do nothing. Can be left as an empty string: ""
 --- @param is_show boolean If the popup is currently being shown
 --- @param text string The text inside the popup. You can fit 13 characters in a line before it will wrap.
@@ -803,7 +800,7 @@ function server.setPopup(peer_id, ui_id, name, is_show, text, x, y, z, render_di
 
 --- Creates a popup that appears on the player's screen, regardless of their look direction and location in the world.
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID A unique ui_id to be used with this popup. You cannot re-use ui ids for popups. One ui id per popup.
+--- @param ui_id integer A unique ui_id to be used with this popup. You cannot re-use ui ids for popups. One ui id per popup.
 --- @param name string ?
 --- @param is_show boolean If the popup is currently being shown
 --- @param text string The text inside the popup. You can fit 13 characters in a line before it will wrap.
@@ -813,7 +810,7 @@ function server.setPopupScreen(peer_id, ui_id, name, is_show, text, horizontal_o
 
 --- Will remove popups that have been assigned to a player
 --- @param peer_id number The peer id of the affected player. -1 affects all players
---- @param ui_id SWUI_ID The unique ui id to use
+--- @param ui_id integer The unique ui id to use
 function server.removePopup(peer_id, ui_id) end
 
 
