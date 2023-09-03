@@ -17,7 +17,6 @@
 ---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_screen_properties
----@field name string The name of this UI
 ---@field x number -1 to 1
 ---@field y number -1 to 1
 ---@field text string The text shown in the UI
@@ -31,7 +30,6 @@
 ---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_map_label_properties
----@field name string The name of this UI
 ---@field pos SWMatrix The position where this UI is shown on the map
 ---@field text string The text shown in the UI
 ---@field visible boolean Whether or not this UI is visible
@@ -45,7 +43,6 @@
 ---@field remove fun(self: self) Remove this UI
 
 ---@class af_services_ui_map_line_properties
----@field name string The name of this UI
 ---@field startPoint SWMatrix The position where this UI starts on the map
 ---@field endPoint SWMatrix The position where this UI ends on the map
 ---@field visible boolean Whether or not this UI is visible
@@ -64,7 +61,6 @@
 ---@field attach fun(self: self, positionType: integer, objectOrVehicleID: integer) Make this map object follow a vehicle/object
 
 ---@class af_services_ui_map_object_properties
----@field name string The name of this UI
 ---@field pos SWMatrix The position where this UI is shown on the map
 ---@field title string The title
 ---@field subtitle string The subtitle
