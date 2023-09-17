@@ -1878,6 +1878,11 @@ end
 ---@param id integer
 AuroraFramework.services.UIService.removeScreenUI = function(id)
 	local data = AuroraFramework.services.UIService.UI.screen[id]
+
+	if not data then
+		return
+	end
+
 	data.properties.visible = false
 	data:refresh() -- hide ui
 
@@ -1937,6 +1942,11 @@ end
 ---@param id integer
 AuroraFramework.services.UIService.removeMapLabel = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
+
+	if not data then
+		return
+	end
+
 	data.properties.visible = false
 	data:refresh() -- hide ui
 
@@ -2006,6 +2016,11 @@ end
 ---@param id integer
 AuroraFramework.services.UIService.removeMapLine = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapLines[id]
+
+	if not data then
+		return
+	end
+
 	data.properties.visible = false
 	data:refresh() -- hide ui
 
@@ -2106,6 +2121,11 @@ end
 ---@param id integer
 AuroraFramework.services.UIService.removeMapObject = function(id)
 	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
+
+	if not data then
+		return
+	end
+
 	data.properties.visible = false
 	data:refresh() -- hide ui
 
