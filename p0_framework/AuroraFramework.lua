@@ -1286,7 +1286,7 @@ end
 
 -- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
 -- Useful for encoding strings (eg: JSON strings) in a URL.
-AuroraFramework.services.HTTPService.Base64= {
+AuroraFramework.services.HTTPService.Base64 = {
 	conversion = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 }
 
