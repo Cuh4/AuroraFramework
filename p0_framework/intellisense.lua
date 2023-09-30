@@ -118,7 +118,7 @@
 ---@class af_services_vehicle_vehicle
 ---@field properties af_services_vehicle_vehicle_properties The properties of this vehicle
 ---@field despawn fun(self: self) Despawn this vehicle
----@field explode fun(self: self, magnitude: number|nil) Explode this vehicle. Second param is optional magnitude (0-1). Weapons DLC required
+---@field explode fun(self: self, magnitude: number|nil, despawn: boolean|nil) Explode this vehicle. Second param is optional magnitude (0-1). Weapons DLC required. Despawns if "despawn" is true
 ---@field teleport fun(self: self, position: SWMatrix) Teleport this vehicle to a position
 ---@field getPosition fun(self: self, voxelX: number|nil, voxelY: number|nil, voxelZ: number|nil): SWMatrix Get the position of this vehicle
 ---@field getLoadedVehicleData fun(self: self): SWVehicleData|nil Raw vehicle data that can be retrieved when this vehicle is loaded
