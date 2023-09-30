@@ -58,7 +58,7 @@
 ---@field properties af_services_ui_map_object_properties The properties of this UI
 ---@field refresh fun(self: self) Refreshes the UI
 ---@field remove fun(self: self) Remove this UI
----@field attach fun(self: self, positionType: integer, objectOrVehicleID: integer) Make this map object follow a vehicle/object
+---@field attach fun(self: self, positionType: SWPositionTypeEnum, objectOrVehicleID: integer) Make this map object follow a vehicle/object
 
 ---@class af_services_ui_map_object_properties
 ---@field pos SWMatrix The position where this UI is shown on the map
