@@ -980,7 +980,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		},
 
 		setItem = function(self, slot, to, active, int, float)
-			server.setCharacterItem(self:getCharacter(), slot, to, active, int, float)
+			server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float or 0)
 		end,
 
 		removeItem = function(self, slot)
@@ -1681,7 +1681,7 @@ end
 -- Clear chat for everyone/a player
 ---@param player af_services_player_player|nil
 AuroraFramework.services.chatService.clear = function(player)
-	for _ = 1, 11 do
+	for _ = 1, 129 do
 		AuroraFramework.services.chatService.sendMessage(" ", " ", player)
 	end
 end
