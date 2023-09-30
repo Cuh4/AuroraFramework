@@ -161,7 +161,6 @@
 ---@field auth boolean Whether or not this player has auth
 ---@field isHost boolean Whether or not this player is the host
 ---@field storage af_libs_storage_storage The storage for this player
----@field characterLoaded boolean Whether or not this player's character has been recognised as loaded
 
 -------------------------------------------------
 -------------------------- Libraries

@@ -907,7 +907,6 @@ AuroraFramework.services.playerService = {
 				return
 			end
 
-			player.properties.characterLoaded = true
 			AuroraFramework.services.playerService.events.onCharacterLoad:fire(player)
 		end)
 
@@ -921,8 +920,7 @@ AuroraFramework.services.playerService = {
 
 			-- Activate character load events
 			local players = AuroraFramework.services.playerService.getAllPlayers()
-			for i, v in pairs(players) do
-				players[i].properties.characterLoaded = true -- set character loaded to true on script reload n shit (v.properties.characterLoaded = true didn't work previously)
+			for _, v in pairs(players) do
 				AuroraFramework.services.playerService.events.onCharacterLoad:fire(v)
 			end
 
@@ -964,7 +962,7 @@ AuroraFramework.services.playerService = {
 }
 
 -- Give player data to a player
-AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth, characterLoaded)
+AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
 	if steam_id == 0 and AuroraFramework.services.playerService.isDedicatedServer then
 		return
 	end
@@ -977,8 +975,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			admin = admin,
 			auth = auth,
 			isHost = peer_id == 0,
-			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage"),
-			characterLoaded = characterLoaded or false
+			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage")
 		},
 
 		setItem = function(self, slot, to, active, int, float)
