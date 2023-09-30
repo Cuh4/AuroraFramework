@@ -919,8 +919,10 @@ AuroraFramework.services.playerService = {
 				AuroraFramework.game.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
 			end
 
-			for _, v in pairs(AuroraFramework.services.playerService.getAllPlayers()) do
-				v.properties.characterLoaded = true -- set character loaded to true on script reload n shit
+			-- Activate character load events
+			local players = AuroraFramework.services.playerService.getAllPlayers()
+			for i, v in pairs(players) do
+				players[i].properties.characterLoaded = true -- set character loaded to true on script reload n shit (v.properties.characterLoaded = true didn't work previously)
 				AuroraFramework.services.playerService.events.onCharacterLoad:fire(v)
 			end
 
@@ -980,7 +982,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		},
 
 		setItem = function(self, slot, to, active, int, float)
-			server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float or 0)
+			server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float) ---@diagnostic disable-line
 		end,
 
 		removeItem = function(self, slot)
