@@ -328,62 +328,6 @@ AuroraFramework.libraries.miscellaneous.upperStringValuesInTable = function(tbl)
 	return tbl
 end
 
----------------- Storage
-AuroraFramework.libraries.storage = {
-	---@type table<string, af_libs_storage_storage>
-	createdStorages = {}
-}
-
--- Create a storage container
----@param name string
-AuroraFramework.libraries.storage.create = function(name)
-	AuroraFramework.libraries.storage.createdStorages[name] = {
-		name = name,
-		data = {},
-
-		---@param self af_libs_storage_storage
-		save = function(self, index, value)
-			self = AuroraFramework.libraries.storage.get(self.name) -- prevent modifying a "cached" version of this storage instead of the actual storage
-
-			self.data[index] = value
-			return self
-		end,
-
-		---@param self af_libs_storage_storage
-		get = function(self, index)
-			self = AuroraFramework.libraries.storage.get(self.name)
-			return self.data[index]
-		end,
-
-		---@param self af_libs_storage_storage
-		destroy = function(self, index)
-			self = AuroraFramework.libraries.storage.get(self.name)
-
-			self.data[index] = nil
-			return self
-		end,
-
-		---@param self af_libs_storage_storage
-		remove = function(self)
-			return AuroraFramework.libraries.storage.remove(self.name)
-		end
-	}
-
-	return AuroraFramework.libraries.storage.createdStorages[name]
-end
-
--- Get a storage container
----@param name string
-AuroraFramework.libraries.storage.get = function(name)
-	return AuroraFramework.libraries.storage.createdStorages[name]
-end
-
--- Remove a storage container
----@param name string
-AuroraFramework.libraries.storage.remove = function(name)
-	AuroraFramework.libraries.storage.createdStorages[name] = nil
-end
-
 ---------------- Events
 AuroraFramework.libraries.events = {
 	---@type table<string, af_libs_event_event>
@@ -402,14 +346,11 @@ AuroraFramework.libraries.events.create = function(name)
 			for i, v in pairs(self.connections) do
 				v(...)
 			end
-
-			return self
 		end,
 
 		---@param self af_libs_event_event
 		clear = function(self)
 			self.connections = {}
-			return self
 		end,
 
 		---@param self af_libs_event_event
@@ -420,7 +361,6 @@ AuroraFramework.libraries.events.create = function(name)
 		---@param self af_libs_event_event
 		connect = function(self, toConnect)
 			table.insert(self.connections, toConnect)
-			return self
 		end
 	}
 
@@ -683,7 +623,6 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			vehicle_id = vehicle_id,
 			spawnPos = matrix.translation(x, y, z),
 			cost = cost,
-			storage = AuroraFramework.libraries.storage.create("vehicle_"..vehicle_id.."_storage"),
 			loaded = false
 		},
 
@@ -995,8 +934,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			peer_id = peer_id,
 			admin = admin,
 			auth = auth,
-			isHost = peer_id == 0,
-			storage = AuroraFramework.libraries.storage.create("player_"..peer_id.."_storage")
+			isHost = peer_id == 0
 		},
 
 		setItem = function(self, slot, to, active, int, float)
