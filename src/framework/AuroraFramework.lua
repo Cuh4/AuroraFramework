@@ -89,6 +89,49 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Create a class
+---@param name string|nil
+---@param methods table|nil
+---@param properties table|nil
+---@param events table|nil
+---@return af_libs_miscellaneous_class
+AuroraFramework.libraries.miscellaneous.class = function(name, methods, properties, events)
+	-- assign properties and events to the class
+	local class = {
+		__name__ = name,
+		properties = properties or {},
+		events = events or {}
+	}
+
+	-- assign methods to the class
+	class = AuroraFramework.libraries.miscellaneous.combineTables(
+		class,
+		methods
+	)
+
+	-- return
+	return class
+end
+
+-- Combine tables together
+---@param ... table
+---@return table
+AuroraFramework.libraries.miscellaneous.combineTables = function(...)
+	-- create vars
+	local tables = {...}
+	local main = tables[1] or {}
+
+	-- combine tables
+	for _, tbl in pairs(tables) do
+		for _, value in pairs(tbl) do
+			table.insert(main, value)
+		end
+	end
+
+	-- return
+	return main
+end
+
 -- Create a PID object (from https://steamcommunity.com/sharedfiles/filedetails/?id=1800568163)
 ---@param proportional number
 ---@param integral number
