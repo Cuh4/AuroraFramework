@@ -24,6 +24,30 @@ setupSaveData() -- to allow addon to setup g_savedata first
 --------------------------------------------------------------------------------
 AuroraFramework.internal = {}
 
+-- Create a class
+---@param name string|nil
+---@param methods table|nil
+---@param properties table|nil
+---@param events table|nil
+---@return af_libs_miscellaneous_class
+AuroraFramework.internal.class = function(name, methods, properties, events)
+	-- assign properties and events to the class
+	local class = {
+		__name__ = name,
+		properties = properties or {},
+		events = events or {}
+	}
+
+	-- assign methods to the class
+	class = AuroraFramework.libraries.miscellaneous.combineTables(
+		class,
+		methods
+	)
+
+	-- return
+	return class
+end
+
 -- Save a value to g_savedata.AuroraFramework
 ---@param index string
 ---@param value any
@@ -88,30 +112,6 @@ end
 
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
-
--- Create a class
----@param name string|nil
----@param methods table|nil
----@param properties table|nil
----@param events table|nil
----@return af_libs_miscellaneous_class
-AuroraFramework.libraries.miscellaneous.class = function(name, methods, properties, events)
-	-- assign properties and events to the class
-	local class = {
-		__name__ = name,
-		properties = properties or {},
-		events = events or {}
-	}
-
-	-- assign methods to the class
-	class = AuroraFramework.libraries.miscellaneous.combineTables(
-		class,
-		methods
-	)
-
-	-- return
-	return class
-end
 
 -- Combine tables together
 ---@param ... table
