@@ -207,13 +207,30 @@
 ---@field connect fun(self: self, callback: function): self Connect a function to this event
 
 ---------------- Miscellaneous
----@class af_libs_miscellaneous_pid
----@field proportional number The P in PID
----@field integral number The I in PID
----@field derivative number The D in PID
----
----@field _E number internal
----@field _D number internal
----@field _I number internal
----
----@field run fun(self: self, setPoint: number, processVariable: number): number Run this PID
+---@class af_libs_miscellaneous_class
+_ = {
+    __name__ = "",
+    properties = {},
+    events = {}
+}
+
+---@class af_libs_miscellaneous_pid: af_libs_miscellaneous_class
+_ = {
+    __name__ = "pid",
+
+    properties = {
+        proportional = 0,
+        integral = 0,
+        derivative = 0,
+
+        _E = 0,
+        _D = 0,
+        _I = 0
+    },
+
+    ---@param self self
+    ---@param setPoint number
+    ---@param processVariable number
+    ---@return number
+    run = function(self, setPoint, processVariable) end
+}
