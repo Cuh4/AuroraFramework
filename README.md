@@ -43,7 +43,7 @@ Now, for actually using the framework, you can either:
         -- use the framework like so:
         AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
         ```
-    - 3) Build your addon using the `F7` key.
+    3) Build your addon using the `F7` key.
 
 - Take the all-in-one route:
     1) Copy the contents of your addon's `framework/AuroraFramework.lua`.
