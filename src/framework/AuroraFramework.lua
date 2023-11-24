@@ -119,7 +119,14 @@ AuroraFramework.libraries.miscellaneous = {}
 AuroraFramework.libraries.miscellaneous.combineTables = function(...)
 	-- create vars
 	local tables = {...}
-	local main = tables[1] or {}
+
+	-- length check
+	if #tables <= 1 then
+		return tables[1] or {} -- there might be one table or zero tables, hence the "or"
+	end
+
+	-- get the main table. all other tables will be added to this table
+	local main = tables[1]
 
 	-- combine tables
 	for _, tbl in pairs(tables) do
