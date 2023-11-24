@@ -38,6 +38,7 @@ Now, for actually using the framework, you can either:
     1) Install the [Stormworks Lua Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi).
     2) Use the extension's `require("path.to.file")` support feature with your addon's framework file.
         ```lua
+        -- file: script.lua
         -- merges everything in framework/AuroraFramework.lua with your script.lua file once you build your addon using the extension
         require("framework.AuroraFramework")
 
@@ -50,6 +51,7 @@ Now, for actually using the framework, you can either:
     1) Copy the contents of your addon's `framework/AuroraFramework.lua`.
     2) Paste it into your addon's `script.lua` file. Be sure to paste it above all of your addon code, not below it.
         ```lua
+        -- file: script.lua
         -- the entirety of the framework
         AuroraFramework = {...} -- it won't look *exactly* like this fyi
 
