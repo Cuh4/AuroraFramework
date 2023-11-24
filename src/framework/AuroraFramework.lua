@@ -669,7 +669,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 		end,
 
 		---@param self af_services_vehicle_vehicle
-		setInvulnerability = function(self, state)
+		setInvulnerable = function(self, state)
 			server.setVehicleInvulnerable(self.properties.vehicle_id, state)
 		end,
 
@@ -1994,7 +1994,7 @@ end
 ---@param title string
 ---@param subtitle string
 ---@param pos SWMatrix
----@param objectType SWMarkerTypeEnum
+---@param markerType SWMarkerTypeEnum
 ---@param player af_services_player_player|nil
 ---@param radius number
 ---@param r integer|nil 0-255
@@ -2002,7 +2002,7 @@ end
 ---@param b integer|nil 0-255
 ---@param a integer|nil 0-255
 ---@return af_services_ui_map_object
-AuroraFramework.services.UIService.createMapObject = function(id, title, subtitle, pos, objectType, player, radius, r, g, b, a)
+AuroraFramework.services.UIService.createMapObject = function(id, title, subtitle, pos, markerType, player, radius, r, g, b, a)
 	AuroraFramework.services.UIService.UI.mapObjects[id] = {
 		properties = {
 			pos = pos,
@@ -2011,7 +2011,7 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 			visible = true,
 			player = player,
 			id = id,
-			objectType = objectType,
+			markerType = markerType,
 			positionType = 0,
 			attachID = 0,
 
