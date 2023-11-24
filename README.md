@@ -28,16 +28,35 @@ local pos = vehicle:getPosition()
 - **Intellisense Support** - This framework utilizes [Lua LSP's](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) annotations feature to provide full intellisense (auto-completion, etc) support. Please note that you'll need to have the [Lua LSP extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) and the [Stormworks Lua extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi) for intellisense.
 
 ### **Installation**
-To use this framework within your addon, you can either:
-- 1) Use [Stormworks Lua extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi)'s `require("path.to.file")` feature, and simply require `p0_framework/AuroraFramework.lua`. Be sure to place `p0_framework/intellisense.lua` into your addon's workspace for intellisense support.
-- 2) Place `p0_framework/AuroraFramework.lua` into your addon's `script.lua` file to use the framework, and place `p0_framework/intellisense.lua` into your addon's workspace for intellisense support.
+Before doing anything, place `src/framework` into your addon's folder.
 
-### **Examples**
-These examples may help you understand how to use the framework, and how it works. Note that all of these examples are made by me, and some are publicly available in Stormworks: Build and Rescue's Steam workshop.
-- [**All Creatures Hate You**](https://github.com/Cuh4/AllCreaturesHateYou)
-- [**No More Oil Spills**](https://github.com/Cuh4/NoMoreOilSpills)
-- [**Nextbot Addon**](https://github.com/Cuh4/NextbotAddon)
-- [**Proximity Text Chat**](https://github.com/Cuh4/ProximityTextChat)
+![Example](imgs/addon_folder_example.png)
+
+Now, for actually using the framework, you can either:
+- Take the  `require()` route:
+    1) Install the [Stormworks Lua Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi).
+    2) Use the extension's `require("path.to.file")` support feature with your addon's framework file.
+        ```lua
+        -- merges everything in framework/AuroraFramework.lua with your script.lua file once you build your addon using the extension
+        require("framework.AuroraFramework")
+
+        -- use the framework like so:
+        AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
+        ```
+    - 3) Build your addon using the `F7` key.
+
+- Take the all-in-one route:
+    1) Copy the contents of your addon's `framework/AuroraFramework.lua`.
+    2) Paste it into your addon's `script.lua` file. Be sure to paste it above all of your addon code, not below it.
+        ```lua
+        -- the entirety of the framework
+        AuroraFramework = {...} -- it won't look *exactly* like this fyi
+
+        -- your addon code
+        AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
+        ```
+
+    3) Keep `framework/intellisense.lua` in your addon's workspace for intellisense support.
 
 ### **Warnings**
-- **This framework contains little to no documentation because this was made purely for myself. There are function parameter and return annotations throughout the framework file though.**
+- This framework contains little to no documentation because this was made purely for myself. The framework does utilize typehinting and basic annotations though.
