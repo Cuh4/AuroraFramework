@@ -24,6 +24,7 @@ setupSaveData() -- to allow addon to setup g_savedata first
 --------------------------------------------------------------------------------
 AuroraFramework.internal = {}
 
+-- Save a value to g_savedata.AuroraFramework
 ---@param index string
 ---@param value any
 AuroraFramework.internal.save = function(index, value)
@@ -34,11 +35,13 @@ AuroraFramework.internal.save = function(index, value)
 	g_savedata.AuroraFramework[index] = value
 end
 
+-- Remove a value from g_savedata.AuroraFramework
 ---@param index string
 AuroraFramework.internal.remove = function(index)
 	g_savedata.AuroraFramework[index] = nil
 end
 
+-- Get a value from AuroraFramework.AuroraFramework
 ---@param index string
 AuroraFramework.internal.get = function(index)
 	if not g_savedata.AuroraFramework then
@@ -2634,6 +2637,7 @@ end
 --------------------------------------------------------------------------------
 --// Inits \\--
 --------------------------------------------------------------------------------
+-- // Initialize services
 AuroraFramework.services.playerService.initialize()
 AuroraFramework.services.vehicleService.initialize()
 AuroraFramework.services.chatService.initialize()
@@ -2642,4 +2646,5 @@ AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.UIService.initialize()
 AuroraFramework.services.TPSService.initialize()
 
+-- // Initialize libraries
 AuroraFramework.libraries.timer.handler()
