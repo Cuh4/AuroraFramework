@@ -16,7 +16,7 @@
 -------------------------------------------------
 
 ---------------- UI
----@class af_services_ui_screen
+---@class af_services_ui_screen: af_libs_miscellaneous_class
 _ = {
     __name__ = "UIScreen",
 
@@ -34,15 +34,15 @@ _ = {
     },
 
     -- Refreshes this UI
-    ---@param self self
+    ---@param self af_services_ui_screen
     refresh = function(self) end,
 
     -- Removes this UI
-    ---@param self self
+    ---@param self af_services_ui_screen
     remove = function(self) end,
 }
 
----@class af_services_ui_map_label
+---@class af_services_ui_map_label: af_libs_miscellaneous_class
 _ = {
     __name__ = "UIMapLabel",
 
@@ -63,11 +63,11 @@ _ = {
     },
 
     -- Refreshes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_label
     refresh = function(self) end,
 
     -- Removes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_label
     remove = function(self) end,
 }
 
@@ -97,11 +97,11 @@ _ = {
     },
 
     -- Refreshes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_line
     refresh = function(self) end,
 
     -- Removes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_line
     remove = function(self) end
 }
 
@@ -137,15 +137,15 @@ _ = {
     },
 
     -- Refreshes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_object
     refresh = function(self) end,
 
     -- Removes this UI
-    ---@param self self
+    ---@param self af_services_ui_map_object
     remove = function(self) end,
 
     -- Make this UI follow a vehicle or object
-    ---@param self self
+    ---@param self af_services_ui_map_object
     ---@param positionType SWPositionTypeEnum
     ---@param objectOrVehicleID integer
     attach = function(self, positionType, objectOrVehicleID) end
@@ -167,7 +167,7 @@ _ = {
     },
 
     -- Cancel this HTTP request
-    ---@param self self
+    ---@param self af_services_http_request
     cancel = function(self) end
 }
 
@@ -185,12 +185,12 @@ _ = {
     },
 
     -- Delete this message for everyone or just a specific player
-    ---@param self self
+    ---@param self af_services_chat_message
     ---@param player af_services_player_player|nil
     delete = function(self, player) end,
 
     -- Edit this message for everyone or just a specific player
-    ---@param self self
+    ---@param self af_services_chat_message
     ---@param newContent string
     ---@param player af_services_player_player|nil
     edit = function(self, newContent, player) end
@@ -218,7 +218,7 @@ _ = {
     },
 
     -- Remove this command
-    ---@param self self
+    ---@param self af_services_commands_command
     remove = function(self) end
 }
 
@@ -242,42 +242,42 @@ _ = {
     },
 
     -- Despawn this vehicle
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     despawn = function(self) end,
 
     -- Explode this vehicle
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@param magnitude number|nil
     ---@param despawn boolean|nil
     explode = function(self, magnitude, despawn) end,
 
     -- Teleport this vehicle somewhere
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@param position SWMatrix
     teleport = function(self, position) end,
 
     -- Get the position of this vehicle
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@return SWMatrix
     getPosition = function(self) end,
 
     -- Sets whether or not the vehicle is invulnerable to damage
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@param isInvulnerable boolean
     setInvulnerable = function(self, isInvulnerable) end,
 
     -- Sets whether or not the vehicle is editable (can be brought to workbench)
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@param isEditable boolean
     setEditable = function(self, isEditable) end,
 
     -- Sets the tooltip of this vehicle
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     ---@param text string
     setTooltip = function(self, text) end,
 
     -- Repairs this vehicle
-    ---@param self self
+    ---@param self af_services_vehicle_vehicle
     repair = function(self) end
 }
 
@@ -296,7 +296,7 @@ _ = {
     },
 
     -- Give this player an item
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param slot SWSlotNumberEnum
     ---@param type SWEquipmentTypeEnum
     ---@param active boolean|nil
@@ -305,55 +305,55 @@ _ = {
     setItem = function(self, slot, type, active, int, float) end,
 
     -- Remove an item from this player
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param slot SWSlotNumberEnum
     removeItem = function(self, slot) end,
 
     -- Get an item this player has equipped
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param slot SWSlotNumberEnum
     ---@return integer
     getItem = function(self, slot) end,
 
     -- Kick this player
-    ---@param self self
+    ---@param self af_services_player_player
     kick = function(self) end,
 
     -- Ban this player
-    ---@param self self
+    ---@param self af_services_player_player
     ban = function(self) end,
 
     -- Teleport this player somewhere
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param position SWMatrix
     teleport = function(self, position) end,
 
     -- Get the position of this player
-    ---@param self self
+    ---@param self af_services_player_player
     ---@return SWMatrix
     getPosition = function(self) end,
 
     -- Get this player's character ID
-    ---@param self self
+    ---@param self af_services_player_player
     ---@return integer
     getCharacter = function(self) end,
 
     -- Damage this player. Supply a negative number to heal the player
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param damageToDeal number
     damage = function(self, damageToDeal) end,
 
     -- Kill this player
-    ---@param self self
+    ---@param self af_services_player_player
     kill = function(self) end,
 
     -- Give or removes admin to/from the player
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param shouldGive boolean
     setAdmin = function(self, shouldGive) end,
 
     -- Give or removes auth to/from the player
-    ---@param self self
+    ---@param self af_services_player_player
     ---@param shouldGive boolean
     setAuth = function(self, shouldGive) end
 }
@@ -378,10 +378,10 @@ _ = {
         completion = nil -- The event that is fired when the loop is completed
     },
 
-    ---@param self self
+    ---@param self af_libs_timer_loop
     remove = function(self) end, -- Remove this loop
 
-    ---@param self self
+    ---@param self af_libs_timer_loop
     ---@param duration number
     setDuration = function(self, duration) end -- Sets the duration of this loop
 }
@@ -401,10 +401,10 @@ _ = {
         completion = nil -- The event that is fired when the delay is completed
     },
 
-    ---@param self self
+    ---@param self af_libs_timer_delay
     remove = function(self) end, -- Remove this delay
 
-    ---@param self self
+    ---@param self af_libs_timer_delay
     ---@param duration number
     setDuration = function(self, duration) end -- Sets the duration of this delay
 }
@@ -421,20 +421,20 @@ _ = {
     },
 
     -- Fire this event by calling all functions
-    ---@param self s
+    ---@param self af_libs_event_event
     ---@param ... any
     fire = function(self, ...) end,
 
     -- Remove all connections to this event
-    ---@param self self
+    ---@param self af_libs_event_event
     clear = function(self) end,
 
     -- Remove this event from the saved events
-    ---@param self self
+    ---@param self af_libs_event_event
     remove = function(self) end,
 
     -- Connect a function to this event
-    ---@param self self
+    ---@param self af_libs_event_event
     ---@param callback function
     connect = function(self, callback) end
 }
@@ -467,7 +467,7 @@ _ = {
     },
 
     -- Run the PID
-    ---@param self self
+    ---@param self af_libs_miscellaneous_pid
     ---@param setPoint number
     ---@param processVariable number
     ---@return number
