@@ -12,11 +12,27 @@
 ---@field main af_libs_event_event To be used by your addon
 
 -------------------------------------------------
+-------------------------- Internal
+-------------------------------------------------
+
+---@class af_internal_class
+_ = {
+    -- The name of this class
+    __name__ = "",
+
+    -- The properties of this class
+    properties = {},
+
+    -- The events of this class
+    events = {}
+}
+
+-------------------------------------------------
 -------------------------- Services
 -------------------------------------------------
 
 ---------------- UI
----@class af_services_ui_screen: af_libs_miscellaneous_class
+---@class af_services_ui_screen: af_internal_class
 _ = {
     __name__ = "UIScreen",
 
@@ -42,7 +58,7 @@ _ = {
     remove = function(self) end,
 }
 
----@class af_services_ui_map_label: af_libs_miscellaneous_class
+---@class af_services_ui_map_label: af_internal_class
 _ = {
     __name__ = "UIMapLabel",
 
@@ -71,7 +87,7 @@ _ = {
     remove = function(self) end,
 }
 
----@class af_services_ui_map_line: af_libs_miscellaneous_class
+---@class af_services_ui_map_line: af_internal_class
 _ = {
     __name__ = "UIMapLine",
 
@@ -105,7 +121,7 @@ _ = {
     remove = function(self) end
 }
 
----@class af_services_ui_map_object: af_libs_miscellaneous_class
+---@class af_services_ui_map_object: af_internal_class
 _ = {
     __name__ = "UIMapObject",
 
@@ -152,7 +168,7 @@ _ = {
 }
 
 ---------------- HTTP
----@class af_services_http_request: af_libs_miscellaneous_class
+---@class af_services_http_request: af_internal_class
 _ = {
     __name__ = "httpRequest",
 
@@ -172,7 +188,7 @@ _ = {
 }
 
 ---------------- Messages
----@class af_services_chat_message: af_libs_miscellaneous_class
+---@class af_services_chat_message: af_internal_class
 _ = {
     __name__ = "chatMessage",
 
@@ -197,7 +213,7 @@ _ = {
 }
 
 ---------------- Commands
----@class af_services_commands_command: af_libs_miscellaneous_class
+---@class af_services_commands_command: af_internal_class
 _ = {
     __name__ = "command",
 
@@ -223,7 +239,7 @@ _ = {
 }
 
 ---------------- Vehicles
----@class af_services_vehicle_vehicle: af_libs_miscellaneous_class
+---@class af_services_vehicle_vehicle: af_internal_class
 _ = {
     __name__ = "vehicle",
 
@@ -256,10 +272,22 @@ _ = {
     ---@param position SWMatrix
     teleport = function(self, position) end,
 
+    -- Repairs this vehicle
+    ---@param self af_services_vehicle_vehicle
+    repair = function(self) end,
+
     -- Get the position of this vehicle
     ---@param self af_services_vehicle_vehicle
+    ---@param voxelX number|nil
+    ---@param voxelY number|nil
+    ---@param voxelZ number|nil
     ---@return SWMatrix
-    getPosition = function(self) end,
+    getPosition = function(self, voxelX, voxelY, voxelZ) end,
+
+    -- Get the vehicle's loaded data
+    ---@param self af_services_vehicle_vehicle
+    ---@return SWVehicleData
+    getLoadedVehicleData = function(self) end,
 
     -- Sets whether or not the vehicle is invulnerable to damage
     ---@param self af_services_vehicle_vehicle
@@ -274,15 +302,11 @@ _ = {
     -- Sets the tooltip of this vehicle
     ---@param self af_services_vehicle_vehicle
     ---@param text string
-    setTooltip = function(self, text) end,
-
-    -- Repairs this vehicle
-    ---@param self af_services_vehicle_vehicle
-    repair = function(self) end
+    setTooltip = function(self, text) end
 }
 
 ---------------- Players
----@class af_services_player_player: af_libs_miscellaneous_class
+---@class af_services_player_player: af_internal_class
 _ = {
     __name__ = "player",
 
@@ -363,7 +387,7 @@ _ = {
 -------------------------------------------------
 
 ---------------- Timer
----@class af_libs_timer_loop: af_libs_miscellaneous_class
+---@class af_libs_timer_loop: af_internal_class
 _ = {
     __name__ = "loop",
 
@@ -386,7 +410,7 @@ _ = {
     setDuration = function(self, duration) end -- Sets the duration of this loop
 }
 
----@class af_libs_timer_delay: af_libs_miscellaneous_class
+---@class af_libs_timer_delay: af_internal_class
 _ = {
     __name__ = "delay",
 
@@ -410,7 +434,7 @@ _ = {
 }
 
 ---------------- Events
----@class af_libs_event_event: af_libs_miscellaneous_class
+---@class af_libs_event_event: af_internal_class
 _ = {
     __name__ = "event",
     name = "", -- The name of this event
@@ -440,21 +464,9 @@ _ = {
 }
 
 ---------------- Miscellaneous
----@class af_libs_miscellaneous_class
+---@class af_libs_miscellaneous_pid: af_internal_class
 _ = {
-    -- The name of this class
-    __name__ = "",
-
-    -- The properties of this class
-    properties = {},
-
-    -- The events of this class
-    events = {}
-}
-
----@class af_libs_miscellaneous_pid: af_libs_miscellaneous_class
-_ = {
-    __name__ = "pid",
+    __name__ = "PID",
 
     properties = {
         proportional = 0,
