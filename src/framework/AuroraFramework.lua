@@ -5,6 +5,11 @@
 ------------------------------------------------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
+--// Lua LSP Diagnostics \\--
+--------------------------------------------------------------------------------
+---@diagnostic disable assign-type-mismatch
+
+--------------------------------------------------------------------------------
 --// Framework \\--
 --------------------------------------------------------------------------------
 AuroraFramework = {
@@ -31,7 +36,7 @@ AuroraFramework.internal = {}
 ---@param events table|nil
 ---@param parentTo table|nil
 ---@param parentToIndex any
----@return af_libs_miscellaneous_class
+---@return af_internal_class
 AuroraFramework.internal.class = function(name, methods, properties, events, parentTo, parentToIndex)
 	-- assign properties and events to the class
 	local class = {
@@ -143,8 +148,12 @@ AuroraFramework.libraries.miscellaneous.combineTables = function(...)
 
 	-- combine tables
 	for _, tbl in pairs(tables) do
-		for _, value in pairs(tbl) do
-			table.insert(main, value)
+		for index, value in pairs(tbl) do
+			if main[index] then
+				table.insert(main, value)
+			else
+				main[index] = value
+			end
 		end
 	end
 
@@ -158,28 +167,39 @@ end
 ---@param derivative number
 ---@return af_libs_miscellaneous_pid
 AuroraFramework.libraries.miscellaneous.pid = function(proportional, integral, derivative)
-    return {
-		proportional = proportional,
-		integral = integral,
-		derivative = derivative,
+    ---@type af_libs_miscellaneous_pid
+	local pid = AuroraFramework.internal.class(
+		"PID",
 
-		_E = 0,
-		_D = 0,
-		_I = 0,
+		{
+			---@param self af_libs_miscellaneous_pid
+			---@param setPoint number
+			---@param processVariable number
+			run = function(self, setPoint, processVariable)
+				local E = setPoint - processVariable
+				local D = E - self.properties._E
+				local absolute = math.abs(D - self.properties._D)
 
-		---@param self af_libs_miscellaneous_pid
-		run = function(self, setPoint, processVariable)
-			local E = setPoint - processVariable
-			local D = E - self._E
-			local absolute = math.abs(D - self._D)
+				self.properties._E = E
+				self.properties._D = D
+				self.properties._I = absolute < E and self.properties._I + E * self.properties.integral or self.properties._I * 0.5
 
-			self._E = E
-			self._D = D
-			self._I = absolute < E and self._I + E * self.integral or self._I * 0.5
+				return E * self.properties.proportional + (absolute < E and self.properties._I or 0) + D * self.properties.derivative
+			end
+		},
 
-			return E * self.proportional + (absolute < E and self._I or 0) + D * self.derivative
-		end
-	}
+		{
+			proportional = proportional,
+			integral = integral,
+			derivative = derivative,
+
+			_E = 0,
+			_D = 0,
+			_I = 0,
+		}
+	)
+
+	return pid
 end
 
 -- Clamp a number between min and max
@@ -423,29 +443,42 @@ AuroraFramework.libraries.timer.loop.create = function(duration, callback)
 	af_timerID = af_timerID + 1
 
 	-- store loop
-	AuroraFramework.libraries.timer.loop.ongoing[af_timerID] = {
-		duration = duration,
-		creationTime = server.getTimeMillisec(),
-		event = AuroraFramework.libraries.events.create(af_timerID.."_af_loop"),
-		id = af_timerID,
+	---@type af_libs_timer_loop
+	local loop = AuroraFramework.internal.class(
+		"loop",
+		
+		{
+			---@param self af_libs_timer_loop
+			remove = function(self)
+				AuroraFramework.libraries.timer.loop.remove(self.id)
+			end,
 
-		---@param self af_libs_timer_loop
-		remove = function(self)
-			AuroraFramework.libraries.timer.loop.remove(self.id)
-		end,
+			---@param self af_libs_timer_loop
+			---@param new number
+			setDuration = function(self, new)
+				self.duration = new
+			end
+		},
 
-		---@param self af_libs_timer_loop
-		setDuration = function(self, new)
-			self.duration = new
-		end
-	}
+		{
+			duration = duration,
+			creationTime = server.getTimeMillisec(),
+			id = af_timerID
+		},
+
+		{
+			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
+		},
+
+		AuroraFramework.libraries.timer.loop.ongoing,
+		af_timerID
+	)
 
 	-- attach callback
-	local data = AuroraFramework.libraries.timer.loop.ongoing[af_timerID]
-	data.event:connect(callback)
+	loop.events.completion:connect(callback)
 
 	-- return
-	return data
+	return loop
 end
 
 -- Remove a loop
@@ -462,29 +495,42 @@ AuroraFramework.libraries.timer.delay.create = function(duration, callback)
 	af_timerID = af_timerID + 1
 
 	-- store delay
-	AuroraFramework.libraries.timer.delay.ongoing[af_timerID] = {
-		duration = duration,
-		creationTime = server.getTimeMillisec(),
-		event = AuroraFramework.libraries.events.create(af_timerID.."_af_loop"),
-		id = af_timerID,
+	---@type af_libs_timer_delay
+	local delay = AuroraFramework.internal.class(
+		"delay",
 
-		---@param self af_libs_timer_delay
-		remove = function(self)
-			AuroraFramework.libraries.timer.delay.remove(self.id)
-		end,
+		{
+			---@param self af_libs_timer_delay
+			remove = function(self)
+				AuroraFramework.libraries.timer.delay.remove(self.id)
+			end,
 
-		---@param self af_libs_timer_delay
-		setDuration = function(self, new)
-			self.duration = new
-		end
-	}
+			---@param self af_libs_timer_delay
+			---@param new number
+			setDuration = function(self, new)
+				self.duration = new
+			end
+		},
+
+		{
+			duration = duration,
+			creationTime = server.getTimeMillisec(),
+			id = af_timerID
+		},
+
+		{
+			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
+		},
+
+		AuroraFramework.libraries.timer.delay.ongoing,
+		af_timerID
+	)
 
 	-- attach callback
-	local data = AuroraFramework.libraries.timer.delay.ongoing[af_timerID]
-	data.event:connect(callback)
+	delay.events.completion:connect(callback)
 
 	-- return
-	return data
+	return delay
 end
 
 -- Remove a delay
@@ -499,18 +545,18 @@ AuroraFramework.libraries.timer.handler = function()
 		local current = server.getTimeMillisec()
 
 		-- Handle loops
-		for i, v in pairs(AuroraFramework.libraries.timer.loop.ongoing) do
-			if current > v.creationTime + (v.duration * 1000) then
-				v.event:fire(v)
-				v.creationTime = current
+		for _, loop in pairs(AuroraFramework.libraries.timer.loop.ongoing) do
+			if current > loop.properties.creationTime + (loop.properties.duration * 1000) then
+				loop.events.completion:fire(v)
+				loop.properties.creationTime = current
 			end
 		end
 
 		-- Handle delays
-		for i, v in pairs(AuroraFramework.libraries.timer.delay.ongoing) do
-			if current > v.creationTime + (v.duration * 1000) then
-				v.event:fire(v)
-				v:remove()
+		for _, delay in pairs(AuroraFramework.libraries.timer.delay.ongoing) do
+			if current > delay.properties.creationTime + (delay.properties.duration * 1000) then
+				delay.events.completion:fire(v)
+				delay:remove()
 			end
 		end
 	end)
@@ -628,83 +674,103 @@ AuroraFramework.services.vehicleService = {
 }
 
 -- Give vehicle data to a vehicle
+---@param vehicle_id any
+---@param peer_id any
+---@param x any
+---@param y any
+---@param z any
+---@param cost any
 AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, cost)
-	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
-		return
-	end
+	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
 
-	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if nil, because of the addonSpawned property
+	---@type af_services_vehicle_vehicle
+	local vehicle = AuroraFramework.internal.class(
+		"vehicle",
 
-	AuroraFramework.services.vehicleService.vehicles[vehicle_id] = {
-		properties = {
+		{
+			---@param self af_services_vehicle_vehicle
+			despawn = function(self)
+				server.despawnVehicle(self.properties.vehicle_id, true)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param magnitude number|nil
+			---@param despawn boolean|nil
+			explode = function(self, magnitude, despawn)
+				if server.dlcWeapons() then
+					server.spawnExplosion(self:getPosition(), magnitude or 0.1)
+				end
+
+				if not despawn then
+					return
+				end
+
+				self:despawn()
+			end,
+
+			---@param self af_services_vehicle_vehicle
+    		---@param position SWMatrix
+			teleport = function(self, position)
+				server.setVehiclePos(self.properties.vehicle_id, position)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			repair = function(self)
+				server.resetVehicleState(self.properties.vehicle_id)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param voxelX number|nil
+			---@param voxelY number|nil
+			---@param voxelZ number|nil
+			getPosition = function(self, voxelX, voxelY, voxelZ)
+				return (server.getVehiclePos(self.properties.vehicle_id, voxelX, voxelY, voxelZ)) -- in brackets to only get pos, not success
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			getLoadedVehicleData = function(self)
+				if not self.properties.loaded then
+					return
+				end
+
+				return (server.getVehicleData(self.properties.vehicle_id))
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param isInvulnerable boolean
+			setInvulnerable = function(self, isInvulnerable)
+				server.setVehicleInvulnerable(self.properties.vehicle_id, isInvulnerable)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param isEditable boolean
+			setEditable = function(self, isEditable)
+				server.setVehicleEditable(self.properties.vehicle_id, isEditable)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param text string
+			setTooltip = function(self, text)
+				server.setVehicleTooltip(self.properties.vehicle_id, text)
+			end
+		},
+
+		{
 			owner = player,
 			addonSpawned = peer_id == -1,
-			name = (server.getVehicleName(vehicle_id)),
 			vehicle_id = vehicle_id,
 			spawnPos = matrix.translation(x, y, z),
 			cost = cost,
 			loaded = false
 		},
 
-		---@param self af_services_vehicle_vehicle
-		despawn = function(self)
-			server.despawnVehicle(self.properties.vehicle_id, true)
-		end,
+		nil,
 
-		---@param self af_services_vehicle_vehicle
-		explode = function(self, magnitude, despawn)
-			if server.dlcWeapons() then
-				server.spawnExplosion(self:getPosition(), magnitude or 0.1)
-			end
+		AuroraFramework.services.vehicleService.vehicles,
+		vehicle_id
+	)
 
-			if not despawn then
-				return
-			end
-
-			self:despawn()
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		teleport = function(self, pos)
-			server.setVehiclePos(self.properties.vehicle_id, pos)
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		repair = function(self)
-			server.resetVehicleState(self.properties.vehicle_id)
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		getPosition = function(self, voxelX, voxelY, voxelZ)
-			return (server.getVehiclePos(self.properties.vehicle_id, voxelX, voxelY, voxelZ)) -- in brackets to only get pos, not success
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		getLoadedVehicleData = function(self)
-			if not self.properties.loaded then
-				return
-			end
-
-			return (server.getVehicleData(self.properties.vehicle_id))
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		setInvulnerable = function(self, state)
-			server.setVehicleInvulnerable(self.properties.vehicle_id, state)
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		setEditable = function(self, state)
-			server.setVehicleEditable(self.properties.vehicle_id, state)
-		end,
-
-		---@param self af_services_vehicle_vehicle
-		setTooltip = function(self, text)
-			server.setVehicleTooltip(self.properties.vehicle_id, text)
-		end
-	}
-
-	return AuroraFramework.services.vehicleService.vehicles[vehicle_id]
+	return vehicle
 end
 
 -- Remove vehicle data from a vehicle
@@ -942,13 +1008,116 @@ AuroraFramework.services.playerService = {
 }
 
 -- Give player data to a player
+---@param steam_id integer|string
+---@param name string
+---@param peer_id integer
+---@param admin boolean
+---@param auth boolean
+---@return af_services_player_player
 AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
-	if steam_id == 0 and AuroraFramework.services.playerService.isDedicatedServer then
+	if tonumber(steam_id) == 0 and AuroraFramework.services.playerService.isDedicatedServer then
 		return
 	end
 
-	AuroraFramework.services.playerService.players[peer_id] = {
-		properties = {
+	---@type af_services_player_player
+	local player = AuroraFramework.internal.class(
+		"player",
+
+		{
+			---@param self af_services_player_player
+			---@param slot SWSlotNumberEnum
+			---@param type SWEquipmentTypeEnum
+			---@param active boolean|nil
+			---@param int integer|nil
+			---@param float number|nil
+			setItem = function(self, slot, to, active, int, float)
+				server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float) ---@diagnostic disable-line
+			end,
+	
+			---@param self af_services_player_player
+    		---@param slot SWSlotNumberEnum
+			removeItem = function(self, slot)
+				server.setCharacterItem(self:getCharacter(), slot, 0, false)
+			end,
+	
+			---@param self af_services_player_player
+    		---@param slot SWSlotNumberEnum
+			getItem = function(self, slot)
+				return server.getCharacterItem(self:getCharacter(), slot) ---@diagnostic disable-line
+			end,
+	
+			---@param self af_services_player_player
+			kick = function(self)
+				server.kickPlayer(self.properties.peer_id)
+			end,
+	
+			---@param self af_services_player_player
+			ban = function(self)
+				server.banPlayer(self.properties.peer_id)
+			end,
+	
+			---@param self af_services_player_player
+			---@param position SWMatrix
+			teleport = function(self, position)
+				server.setPlayerPos(self.properties.peer_id, position)
+			end,
+	
+			---@param self af_services_player_player
+			getPosition = function(self)
+				return (server.getPlayerPos(self.properties.peer_id)) -- in brackets to only get pos, not success
+			end,
+	
+			---@param self af_services_player_player
+			getCharacter = function(self)
+				return (server.getPlayerCharacterID(self.properties.peer_id))
+			end,
+	
+			---@param self af_services_player_player
+			---@param damageToDeal number
+			damage = function(self, damageToDeal)
+				local character = self:getCharacter()
+				local data = server.getCharacterData(character)
+	
+				if not data then
+					return
+				end
+	
+				return server.setCharacterData(character, data.hp - damageToDeal, data.interactible, data.ai)
+			end,
+	
+			---@param self af_services_player_player
+			kill = function(self)
+				local character = self:getCharacter()
+	
+				if not character then
+					return
+				end
+	
+				server.killCharacter(character)
+			end,
+	
+			---@param self af_services_player_player
+			---@param shouldGive boolean
+			setAdmin = function(selfshouldGive, give)
+				if shouldGive then
+					server.addAdmin(self.properties.peer_id)
+				else
+					server.removeAdmin(self.properties.peer_id)
+				end
+			end,
+	
+			---@param self af_services_player_player
+			---@param shouldGive boolean
+			setAuth = function(self, shouldGive)
+				if shouldGive then
+					server.addAuth(self.properties.peer_id)
+				else
+					server.removeAuth(self.properties.peer_id)
+				end
+			end
+		},
+
+		{
 			steam_id = tostring(steam_id),
 			name = name,
 			peer_id = peer_id,
@@ -957,86 +1126,13 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			isHost = peer_id == 0
 		},
 
-		setItem = function(self, slot, to, active, int, float)
-			server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float) ---@diagnostic disable-line
-		end,
+		nil,
 
-		removeItem = function(self, slot)
-			server.setCharacterItem(self:getCharacter(), slot, 0, false)
-		end,
+		AuroraFramework.services.playerService.players,
+		peer_id
+	)
 
-		getItem = function(self, slot)
-			return server.getCharacterItem(self:getCharacter(), slot) ---@diagnostic disable-line
-		end,
-
-		---@param self af_services_player_player
-		kick = function(self)
-			server.kickPlayer(self.properties.peer_id)
-		end,
-
-		---@param self af_services_player_player
-		ban = function(self)
-			server.banPlayer(self.properties.peer_id)
-		end,
-
-		---@param self af_services_player_player
-		teleport = function(self, pos)
-			server.setPlayerPos(self.properties.peer_id, pos)
-		end,
-
-		---@param self af_services_player_player
-		getPosition = function(self)
-			return (server.getPlayerPos(self.properties.peer_id)) -- in brackets to only get pos, not success
-		end,
-
-		---@param self af_services_player_player
-		getCharacter = function(self)
-			return (server.getPlayerCharacterID(self.properties.peer_id))
-		end,
-
-		---@param self af_services_player_player
-		damage = function(self, amount)
-			local character = self:getCharacter()
-			local data = server.getCharacterData(character)
-
-			if not data then
-				return
-			end
-
-			return server.setCharacterData(character, data.hp - amount, data.interactible, data.ai)
-		end,
-
-		---@param self af_services_player_player
-		kill = function(self)
-			local character = self:getCharacter()
-
-			if not character then
-				return
-			end
-
-			server.killCharacter(character)
-		end,
-
-		---@param self af_services_player_player
-		setAdmin = function(self, give)
-			if give then
-				server.addAdmin(self.properties.peer_id)
-			else
-				server.removeAdmin(self.properties.peer_id)
-			end
-		end,
-
-		---@param self af_services_player_player
-		setAuth = function(self, give)
-			if give then
-				server.addAuth(self.properties.peer_id)
-			else
-				server.removeAuth(self.properties.peer_id)
-			end
-		end
-	}
-
-	return AuroraFramework.services.playerService.players[peer_id]
+	return player
 end
 
 -- Remove player data from a player
@@ -1129,7 +1225,7 @@ AuroraFramework.services.HTTPService = {
 			local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
 
 			if data then
-				data.properties.event:fire(tostring(reply)) -- reply callback
+				data.events.reply:fire(tostring(reply)) -- reply callback
 				data:cancel() -- remove the request
 			end
 		end)
@@ -1157,28 +1253,38 @@ AuroraFramework.services.HTTPService.request = function(port, url, callback)
 		return ongoingRequest
 	end
 
-	AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url] = {
-		properties = {
+	---@type af_services_http_request
+	local httpRequest = AuroraFramework.internal.class(
+		"httpRequest",
+
+		{
+			---@param self af_services_http_request
+			cancel = function(self)
+				AuroraFramework.services.HTTPService.cancel(self.properties.port, self.properties.url)
+			end
+		},
+
+		{
 			port = port,
 			url = url,
 			event = AuroraFramework.libraries.events.create("auroraFramework_HTTPRequest_"..port.."|"..url)
 		},
 
-		---@param self af_services_http_request
-		cancel = function(self)
-			AuroraFramework.services.HTTPService.cancel(self.properties.port, self.properties.url)
-		end
-	}
+		{
+			reply = AuroraFramework.libraries.events.create("auroraFramework_HTTPRequest_"..port.."|"..url)
+		},
 
-	local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
+		AuroraFramework.services.HTTPService.ongoingRequests,
+		port.."|"..url
+	)
 
 	if callback then
-		data.properties.event:connect(callback) -- attach callback to reply event
+		httpRequest.events.reply:connect(callback) -- attach callback to reply event
 	end
 
 	server.httpGet(port, url)
 
-	return data
+	return httpRequest
 end
 
 -- Convert a table of args into URL parameters
@@ -1532,30 +1638,38 @@ AuroraFramework.services.chatService = {
 }
 
 -- Construct a message
----@param _player af_services_player_player
+---@param author af_services_player_player
 ---@return af_services_chat_message
-AuroraFramework.services.chatService.internal.construct = function(_player, messageContent)
+AuroraFramework.services.chatService.internal.construct = function(author, messageContent)
 	AuroraFramework.services.chatService.internal.message_id = AuroraFramework.services.chatService.internal.message_id + 1
 
-	return {
-		properties = {
-			author = _player,
-			content = messageContent,
-			id = AuroraFramework.services.chatService.internal.message_id
+	---@type af_services_chat_message
+	local message = AuroraFramework.internal.class(
+		"chatMessage",
+
+		{
+			---@param self af_services_chat_message
+			---@param player af_services_player_player
+			delete = function(self, player)
+				return AuroraFramework.services.chatService.deleteMessage(self, player)
+			end,
+
+			---@param self af_services_chat_message
+			---@param newContent string
+			---@param player af_services_player_player
+			edit = function(self, newContent, player)
+				return AuroraFramework.services.chatService.editMessage(self, newContent, player)
+			end
 		},
 
-		---@param self af_services_chat_message
-		---@param player af_services_player_player
-		delete = function(self, player)
-			return AuroraFramework.services.chatService.deleteMessage(self, player)
-		end,
+		{
+			author = author,
+			content = messageContent,
+			id = AuroraFramework.services.chatService.internal.message_id
+		}
+	)
 
-		---@param self af_services_chat_message
-		---@param player af_services_player_player
-		edit = function(self, newContent, player)
-			return AuroraFramework.services.chatService.editMessage(self, newContent, player)
-		end
-	}
+	return message
 end
 
 -- Get all messages sent by a player
@@ -1685,28 +1799,34 @@ AuroraFramework.services.commandService = {
 
 			-- go through all commands
 			for _, cmd in pairs(AuroraFramework.services.commandService.commands) do
+				-- check admin permissions
 				if cmd.properties.requiresAdmin and not admin then
 					goto continue
 				end
 
+				-- check auth permissions
 				if cmd.properties.requiresAuth and not auth then
 					goto continue
 				end
 
+				-- command name pattern matching
 				if cmd.properties.capsSensitive then
-					if cmd.properties.name == command or AuroraFramework.libraries.miscellaneous.isValueInTable(command, cmd.properties.shorthands) then
-						cmd.events.onActivation:fire(cmd, args, player)
-						AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
-						return -- no need to go through the rest of the commands
+					-- caps sensitive
+					if cmd.properties.name ~= command or not AuroraFramework.libraries.miscellaneous.isValueInTable(command, cmd.properties.shorthands) then
+						goto continue
 					end
 				else
-					if cmd.properties.name:lower() == loweredCommand or AuroraFramework.libraries.miscellaneous.isValueInTable(loweredCommand, AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable(cmd.properties.shorthands)) then
-						cmd.events.onActivation:fire(cmd, args, player)
-						AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
-						return -- no need to go through the rest of the commands 2
+					-- not caps sensitive
+					if cmd.properties.name:lower() ~= loweredCommand or not AuroraFramework.libraries.miscellaneous.isValueInTable(loweredCommand, AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable(cmd.properties.shorthands)) then
+						goto continue
 					end
 				end
 
+				-- command found, so fire events
+				cmd.events.activation:fire(cmd, args, player)
+				AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
+
+				-- continue
 			    ::continue::
 			end
 		end)
@@ -1715,7 +1835,7 @@ AuroraFramework.services.commandService = {
 	---@type table<string, af_services_commands_command>
 	commands = {},
 	events = {
-		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_onCommandActivated") -- command, args, player
+		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_commandActivated") -- command, args, player
 	},
 
 	internal = {}
@@ -1731,8 +1851,18 @@ AuroraFramework.services.commandService = {
 ---@param requiresAdmin boolean|nil
 AuroraFramework.services.commandService.create = function(callback, name, shorthands, capsSensitive, description, requiresAuth, requiresAdmin)
 	-- create the command
-	AuroraFramework.services.commandService.commands[name] = {
-		properties = {
+	---@type af_services_commands_command
+	local command = AuroraFramework.internal.class(
+		"command",
+
+		{
+			---@param self af_services_commands_command
+			remove = function(self)
+				return AuroraFramework.services.commandService.remove(self.properties.name)
+			end
+		},
+
+		{
 			name = name,
 			requiresAdmin = requiresAdmin or false,
 			requiresAuth = requiresAuth or false,
@@ -1741,22 +1871,19 @@ AuroraFramework.services.commandService.create = function(callback, name, shorth
 			capsSensitive = capsSensitive or false
 		},
 
-		events = {
-			onActivation = AuroraFramework.libraries.events.create("commandService_command_"..name),
+		{
+			activation = AuroraFramework.libraries.events.create("commandService_command_"..name.."_activation"),
 		},
 
-		---@param self af_services_commands_command
-		remove = function(self)
-			return AuroraFramework.services.commandService.remove(self.properties.name)
-		end
-	}
+		AuroraFramework.services.commandService.commands,
+		name
+	)
 
 	-- attach callback
-	local data = AuroraFramework.services.commandService.commands[name]
-	data.events.onActivation:connect(callback)
+	command.events.activation:connect(callback)
 
 	-- return
-	return data
+	return command
 end
 
 -- Remove a command
@@ -1821,8 +1948,24 @@ AuroraFramework.services.UIService = {
 ---@param player af_services_player_player|nil
 ---@return af_services_ui_screen
 AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, player)
-	AuroraFramework.services.UIService.UI.screen[id] = {
-		properties = {
+	---@type af_services_ui_screen
+	local ui = AuroraFramework.internal.class(
+		"UIScreen",
+
+		{
+			---@param self af_services_ui_screen
+			refresh = function(self)
+				local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+				server.setPopupScreen(peerID, self.properties.id, "", self.properties.visible, self.properties.text, self.properties.x, self.properties.y)
+			end,
+
+			---@param self af_services_ui_screen
+			remove = function(self)
+				return AuroraFramework.services.UIService.removeScreenUI(self.properties.id)
+			end
+		},
+
+		{
 			x = x,
 			y = y,
 			text = text,
@@ -1831,22 +1974,14 @@ AuroraFramework.services.UIService.createScreenUI = function(id, text, x, y, pla
 			id = id
 		},
 
-		---@param self af_services_ui_screen
-		refresh = function(self)
-			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.setPopupScreen(peerID, self.properties.id, "", self.properties.visible, self.properties.text, self.properties.x, self.properties.y)
-		end,
+		nil,
 
-		---@param self af_services_ui_screen
-		remove = function(self)
-			return AuroraFramework.services.UIService.removeScreenUI(self.properties.id)
-		end,
-	}
+		AuroraFramework.services.UIService.UI.screen,
+		id
+	)
 
-	local data = AuroraFramework.services.UIService.UI.screen[id]
-	data:refresh() -- show
-
-	return data
+	ui:refresh() -- show
+	return ui
 end
 
 -- Get a Screen UI object
@@ -1879,8 +2014,30 @@ end
 ---@param player af_services_player_player|nil
 ---@return af_services_ui_map_label
 AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labelType, player)
-	AuroraFramework.services.UIService.UI.mapLabels[id] = {
-		properties = {
+	---@type af_services_ui_map_label
+	local ui = AuroraFramework.internal.class(
+		"UIMapLabel",
+
+		{
+			---@param self af_services_ui_map_label
+			refresh = function(self)
+				local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+				server.removeMapLabel(peerID, self.properties.id)
+
+				if not self.properties.visible then -- if not visible, dont add the label back
+					return
+				end
+
+				server.addMapLabel(peerID, self.properties.id, self.properties.labelType, self.properties.text, self.properties.pos[13], self.properties.pos[15])
+			end,
+
+			---@param self af_services_ui_map_label
+			remove = function(self)
+				return AuroraFramework.services.UIService.removeMapLabel(self.properties.id)
+			end
+		},
+
+		{
 			pos = pos,
 			text = text,
 			visible = true,
@@ -1889,28 +2046,14 @@ AuroraFramework.services.UIService.createMapLabel = function(id, text, pos, labe
 			labelType = labelType
 		},
 
-		---@param self af_services_ui_map_label
-		refresh = function(self)
-			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapLabel(peerID, self.properties.id)
+		nil,
 
-			if not self.properties.visible then -- if not visible, dont add the label back
-				return
-			end
+		AuroraFramework.services.UIService.UI.mapLabels,
+		id
+	)
 
-			server.addMapLabel(peerID, self.properties.id, self.properties.labelType, self.properties.text, self.properties.pos[13], self.properties.pos[15])
-		end,
-
-		---@param self af_services_ui_map_label
-		remove = function(self)
-			return AuroraFramework.services.UIService.removeMapLabel(self.properties.id)
-		end,
-	}
-
-	local data = AuroraFramework.services.UIService.UI.mapLabels[id]
-	data:refresh() -- show
-
-	return data
+	ui:refresh() -- show
+	return ui
 end
 
 -- Get a Map Label
@@ -1947,8 +2090,30 @@ end
 ---@param a integer|nil 0-255
 ---@return af_services_ui_map_line
 AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endPoint, thickness, r, g, b, a, player)
-	AuroraFramework.services.UIService.UI.mapLines[id] = {
-		properties = {
+	---@type af_services_ui_map_line
+	local ui = AuroraFramework.internal.class(
+		"UIMapLine",
+
+		{
+			---@param self af_services_ui_map_line
+			refresh = function(self)
+				local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+				server.removeMapLine(peerID, self.properties.id)
+
+				if not self.properties.visible then -- if not visible, dont add the line back
+					return
+				end
+
+				server.addMapLine(peerID, self.properties.id, self.properties.startPoint, self.properties.endPoint, self.properties.thickness, self.properties.r, self.properties.g, self.properties.b, self.properties.a)
+			end,
+
+			---@param self af_services_ui_map_line
+			remove = function(self)
+				return AuroraFramework.services.UIService.removeMapLine(self.properties.id)
+			end
+		},
+
+		{
 			startPoint = startPoint,
 			endPoint = endPoint,
 			visible = true,
@@ -1963,28 +2128,14 @@ AuroraFramework.services.UIService.createMapLine = function(id, startPoint, endP
 			thickness = thickness
 		},
 
-		---@param self af_services_ui_map_line
-		refresh = function(self)
-			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapLine(peerID, self.properties.id)
+		nil,
 
-			if not self.properties.visible then -- if not visible, dont add the line back
-				return
-			end
+		AuroraFramework.services.UIService.UI.mapLines,
+		id
+	)
 
-			server.addMapLine(peerID, self.properties.id, self.properties.startPoint, self.properties.endPoint, self.properties.thickness, self.properties.r, self.properties.g, self.properties.b, self.properties.a)
-		end,
-
-		---@param self af_services_ui_map_line
-		remove = function(self)
-			return AuroraFramework.services.UIService.removeMapLine(self.properties.id)
-		end,
-	}
-
-	local data = AuroraFramework.services.UIService.UI.mapLines[id]
-	data:refresh() -- show
-
-	return data
+	ui:refresh() -- show
+	return ui
 end
 
 -- Get a Map Line
@@ -2023,7 +2174,8 @@ end
 ---@param a integer|nil 0-255
 ---@return af_services_ui_map_object
 AuroraFramework.services.UIService.createMapObject = function(id, title, subtitle, pos, markerType, player, radius, r, g, b, a)
-	AuroraFramework.internal.class(
+	---@type af_services_ui_map_object
+	local ui = AuroraFramework.internal.class(
 		"UIMapObject",
 
 		{
@@ -2063,9 +2215,11 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 			end,
 
 			---@param self af_services_ui_map_object
-			attach = function(self, positionType, attach)
+			---@param positionType SWPositionTypeEnum
+			---@param objectOrVehicleID integer
+			attach = function(self, positionType, objectOrVehicleID)
 				self.properties.positionType = positionType
-				self.properties.attachID = attach
+				self.properties.attachID = objectOrVehicleID
 				self:refresh()
 			end
 		},
@@ -2087,13 +2241,16 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 			a = a or 255,
 
 			radius = radius
-		}
+		},
+
+		nil,
+
+		AuroraFramework.services.UIService.UI.mapObjects,
+		id
 	)
 
-	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
-	data:refresh() -- show
-
-	return data
+	ui:refresh() -- show
+	return ui
 end
 
 -- Get a Map Object
