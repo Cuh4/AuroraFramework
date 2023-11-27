@@ -1,4 +1,9 @@
 -------------------------------------------------
+-------------------------- Lua LSP Diagnostics
+-------------------------------------------------
+---@diagnostic disable missing-return
+
+-------------------------------------------------
 -------------------------- Game Callbacks
 -------------------------------------------------
 
@@ -296,7 +301,7 @@ _ = {
     ---@param type SWEquipmentTypeEnum
     ---@param active boolean|nil
     ---@param int integer|nil
-    ---@param float float|nil
+    ---@param float number|nil
     setItem = function(self, slot, type, active, int, float) end,
 
     -- Remove an item from this player
