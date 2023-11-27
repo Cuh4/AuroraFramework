@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------------------------------------------------
-    -- Aurora Framework || A reliable addon creation framework designed for future cuhHub addons.
-	-- 		Created by @cuh5_ on Discord
-	--		cuhHub: https://discord.gg/zTQxaZjwDr
+    -- Aurora Framework | A reliable addon creation framework designed to make addon creation easier.
+	-- 		Created by @cuh6_ on Discord
+	--		My Discord: https://discord.gg/CymKaDE2pj
 ------------------------------------------------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
