@@ -29,8 +29,10 @@ AuroraFramework.internal = {}
 ---@param methods table|nil
 ---@param properties table|nil
 ---@param events table|nil
+---@param parentTo table|nil
+---@param parentToIndex any
 ---@return af_libs_miscellaneous_class
-AuroraFramework.internal.class = function(name, methods, properties, events)
+AuroraFramework.internal.class = function(name, methods, properties, events, parentTo, parentToIndex)
 	-- assign properties and events to the class
 	local class = {
 		__name__ = name,
@@ -43,6 +45,17 @@ AuroraFramework.internal.class = function(name, methods, properties, events)
 		class,
 		methods
 	)
+
+	-- parent the class to a table if needed
+	if parentTo then
+		if parentToIndex then
+			-- use custom index
+			parentTo[parentToIndex] = class
+		else
+			-- use lua-determined integer index
+			table.insert(parentTo, class)
+		end
+	end
 
 	-- return
 	return class
@@ -2010,8 +2023,54 @@ end
 ---@param a integer|nil 0-255
 ---@return af_services_ui_map_object
 AuroraFramework.services.UIService.createMapObject = function(id, title, subtitle, pos, markerType, player, radius, r, g, b, a)
-	AuroraFramework.services.UIService.UI.mapObjects[id] = {
-		properties = {
+	AuroraFramework.internal.class(
+		"UIMapObject",
+
+		{
+			---@param self af_services_ui_map_object
+			refresh = function(self)
+				local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+				server.removeMapObject(peerID, self.properties.id)
+
+				if not self.properties.visible then -- if not visible, dont add the object back
+					return
+				end
+
+				server.addMapObject( -- what the FUCK
+					peerID,
+					self.properties.id,
+					self.properties.positionType,
+					self.properties.objectType,
+					self.properties.pos[13],
+					self.properties.pos[15],
+					self.properties.pos[13],
+					self.properties.pos[15],
+					self.properties.attachID,
+					self.properties.attachID,
+					self.properties.title,
+					self.properties.radius,
+					self.properties.subtitle,
+					self.properties.r,
+					self.properties.g,
+					self.properties.b,
+					self.properties.a
+				)
+			end,
+
+			---@param self af_services_ui_map_object
+			remove = function(self)
+				return AuroraFramework.services.UIService.removeMapObject(self.properties.id)
+			end,
+
+			---@param self af_services_ui_map_object
+			attach = function(self, positionType, attach)
+				self.properties.positionType = positionType
+				self.properties.attachID = attach
+				self:refresh()
+			end
+		},
+
+		{
 			pos = pos,
 			title = title,
 			subtitle = subtitle,
@@ -2028,50 +2087,8 @@ AuroraFramework.services.UIService.createMapObject = function(id, title, subtitl
 			a = a or 255,
 
 			radius = radius
-		},
-
-		---@param self af_services_ui_map_object
-		refresh = function(self)
-			local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
-			server.removeMapObject(peerID, self.properties.id)
-
-			if not self.properties.visible then -- if not visible, dont add the object back
-				return
-			end
-
-			server.addMapObject( -- what the FUCK
-				peerID,
-				self.properties.id,
-				self.properties.positionType,
-				self.properties.objectType,
-				self.properties.pos[13],
-				self.properties.pos[15],
-				self.properties.pos[13],
-				self.properties.pos[15],
-				self.properties.attachID,
-				self.properties.attachID,
-				self.properties.title,
-				self.properties.radius,
-				self.properties.subtitle,
-				self.properties.r,
-				self.properties.g,
-				self.properties.b,
-				self.properties.a
-			)
-		end,
-
-		---@param self af_services_ui_map_object
-		remove = function(self)
-			return AuroraFramework.services.UIService.removeMapObject(self.properties.id)
-		end,
-
-		---@param self af_services_ui_map_object
-		attach = function(self, positionType, attach)
-			self.properties.positionType = positionType
-			self.properties.attachID = attach
-			self:refresh()
-		end
-	}
+		}
+	)
 
 	local data = AuroraFramework.services.UIService.UI.mapObjects[id]
 	data:refresh() -- show
