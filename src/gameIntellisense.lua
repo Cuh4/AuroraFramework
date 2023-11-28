@@ -1,20 +1,33 @@
--- Created by @toastery on Discord
--- Updated by @cuh6_ on Discord
--- TODO: update
+--------------------------------------------------------------------------------
+-- Intellisense File
+--------------------------------------------------------------------------------
+---- // Info
+-- This file contains every Addon Lua function, callback, and type.
+-- Last updated for game version: v1.9.6
 
+---- // Credit (Discord Usernames)
+-- Created by: @toastery
+-- Updated by: @cuh6_
+
+-------------------------
+-- LUA LSP DIAGNOSTICS SETTINGS
+-------------------------
 --- @diagnostic disable: lowercase-global
 --- @diagnostic disable: missing-return
 --- @diagnostic disable: duplicate-set-field
 
+-------------------------
+-- DEFINITIONS
+-------------------------
 server = {}
 property = {}
 matrix = {}
 debug = {}
 g_savedata = {}
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- MATRICES
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- @class SWMatrix
 --- @field [1] number 
@@ -98,15 +111,15 @@ function matrix.multiplyXYZW(matrix1, x, y, z, w) end
 
 --- Returns the rotation required to face an X Z vector
 --- @param x number 
---- @param z number 
---- @return SWMatrix matrix 
+--- @param z number
+--- @return number required_rotation
 function matrix.rotationToFaceXZ(x, z) end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- CALLBACKS
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- called every game tick
 --- @param game_ticks number the number of ticks since the last onTick call (normally 1, while sleeping 400.)
@@ -231,8 +244,18 @@ function onPlayerDie(steam_id, name, peer_id, is_admin, is_auth) end
 --- @param x number The x coordinate of the vehicle's spawn location relative to world space.
 --- @param y number The y coordinate of the vehicle's spawn location relative to world space.
 --- @param z number The z coordinate of the vehicle's spawn location relative to world space.
---- @param cost number The cost of the vehicle. Only calculated for player spawned vehicles.
-function onVehicleSpawn(vehicle_id, peer_id, x, y, z, cost) end
+--- @param group_cost number The cost of the group this vehicle belongs to.
+--- @param group_id number The ID of the group this vehicle belongs to
+function onVehicleSpawn(vehicle_id, peer_id, x, y, z, group_cost, group_id) end
+
+--- Called when a group is spawned.
+--- @param group_id number The group_cost ID of the group that was spawned.
+--- @param peer_id number The peer ID of the player who spawned the group, -1 if spawned by the server.
+--- @param x number The x coordinate of the group's spawn location relative to world space.
+--- @param y number The y coordinate of the group's spawn location relative to world space.
+--- @param z number The z coordinate of the group's spawn location relative to world space.
+--- @param group_cost number The cost of the group
+function onGroupSpawn(group_id, peer_id, x, y, z, group_cost) end
 
 --- Called when a vehicle is despawned.
 --- @param vehicle_id number the vehicle ID of the vehicle that was despawned.
@@ -555,6 +578,9 @@ function onOilSpill(tile_x, tile_z, delta, total, vehicle_id) end
 --- @field type                 SWAddonComponentDataTypeEnum The type of the component
 --- @field transform            SWMatrix The location of the component
 --- @field id                   number object_id/vehicle id of spawned item
+--- @field object_id            number The object_id/main_vehicle_id, if this component is an object
+--- @field group_id             number The object_id/group_id, if this component is a group
+--- @field vehicle_ids          table<integer, integer> The IDs of the vehicle belonging to this component if it is a group
 
 --- Get the internal index of an active addon (useful if you want to spawn objects from another script). Omitting the name argument will return this addon's index
 --- @param name string|nil The name of the addon as it appears in xml file. Not the filename
@@ -643,9 +669,9 @@ function server.spawnAddonComponent(matrix, addon_index, location_index, compone
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- UI
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 ---@alias SWLabelTypeEnum
 ---| 0 # none
@@ -827,9 +853,9 @@ function server.removePopup(peer_id, ui_id) end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- Objects
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- @class SWPlayer
 --- @field id number The peer ID of the player (as seen in the server player list)
@@ -1255,9 +1281,9 @@ function server.getCharacterItem(object_id, SLOT_NUMBER) end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- Vehicles
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- @class SWVoxelPos the voxel position of the component (as set in the editor, is not updated with its current position in game)
 --- @field x number voxel_x position
@@ -1323,19 +1349,19 @@ function server.getCharacterItem(object_id, SLOT_NUMBER) end
 --- @field hoppers table<integer, SWVehicleHopperData>
 --- @field guns table<integer, SWVehicleWeaponData>
 --- @field rope_hooks table<integer, SWVehicleRopeHookData>
+--- @field mass number The mass of the vehicle
+--- @field voxels number The voxel count of the vehicle
+--- @field characters table<integer, integer> The IDs of characters sitting in this vehicle 
 
 --- @class SWVehicleData
 --- @field tags_full string The tags as a string (ex. "tag1,tag2,tag3")
 --- @field tags table<number, string> The tags of the vehicle
---- @field filename string The file name of the vehicle
+--- @field group_id integer The ID of the group this vehicle belongs to
 --- @field transform SWMatrix The position of the vehicle
 --- @field simulating boolean Whether the vehicle is simulating (loaded) or not
---- @field mass number The mass of the vehicle
---- @field voxels number The voxel count of the vehicle
 --- @field editable boolean Is the vehicle editable at workbenches
 --- @field invulnerable boolean Is the vehicle invulnerable
 --- @field static boolean Is the vehicle static
---- @field components SWVehicleComponents the vehicle's components
 
 ---@alias SWRopeTypeEnum
 ---| 0 # rope
@@ -1370,14 +1396,15 @@ function server.despawnVehicle(vehicle_id, is_instant) end
 --- @return SWMatrix matrix, boolean is_success
 function server.getVehiclePos(vehicle_id, voxel_x, voxel_y, voxel_z) end
 
---- Teleports a vehicle from it's current location to the new matrix
+--- Teleports a vehicle from it's current locaiton to the new matrix
 --- @param vehicle_id number The unique id of the vehicle
 --- @param matrix SWMatrix The matrix to be applied to the vehicle
 function server.setVehiclePos(vehicle_id, matrix) end
 
---- Teleports a vehicle from it's current location to the new matrix. The vehicle is displaced by other vehicles at the arrival point
+--- Teleports a vehicle from it's current locaiton to the new matrix. The vehicle is displaced by other vehicles at the arrival point
 --- @param vehicle_id number The unique id of the vehicle
 --- @param matrix SWMatrix The matrix to be applied to the vehicle
+--- @return boolean is_success, SWMatrix result_matrix
 function server.setVehiclePosSafe(vehicle_id, matrix) end
 
 --- Reloads the vehicle as if spawning from a workbench - refreshing damage and inventories etc.
@@ -1395,10 +1422,67 @@ function server.cleanVehicles() end
 --- Cleans up fallout zones
 function server.clearRadiation() end
 
---- Returns a vehicle's data (Recommended to use as little as possible, as it can cause massive performance issues, taking up to 12.8ms on some vehicles)
+--- Returns a vehicle's data
 --- @param vehicle_id number The unique id of the vehicle
 --- @return SWVehicleData vehicle_data, boolean is_success
 function server.getVehicleData(vehicle_id) end
+
+--- Returns a vehicle's components
+--- @param vehicle_id number The unique id of the vehicle
+--- @return SWVehicleComponents vehicle_components, boolean is_success
+function server.getVehicleComponents(vehicle_id) end
+
+--- Returns a table of vehicle IDs that belong to the specified group
+--- @param group_id number The unique id of the group
+--- @return table<integer, integer> vehicle_ids
+function server.getVehicleGroup(group_id) end
+
+--- Despawns all vehicles belonging to the specified group
+--- @param group_id number The unique id of the group
+--- @param is_instant boolean If the group should be despawned instantly (true) or when no one is near (false)
+--- @return boolean is_success
+function server.despawnVehicleGroup(group_id, is_instant) end
+
+--- Teleports a group
+--- @param group_id number The unique id of the group
+--- @param transform_matrix SWMatrix The position to teleport the group to
+--- @return boolean is_success
+function server.setGroupPos(group_id, transform_matrix) end
+
+--- Move a group. Doesn't unload then load the group vehicles
+--- @param group_id number The unique id of the group
+--- @param transform_matrix SWMatrix The position to move the group to
+--- @return boolean is_success
+function server.moveGroup(group_id, transform_matrix) end
+
+--- Moves a group, displacing the target position if a vehicle is blocking the destination
+--- @param group_id number The unique id of the group
+--- @param transform_matrix SWMatrix The position to move the group to
+--- @return boolean is_success, SWMatrix result_matrix
+function server.moveGroupSafe(group_id, transform_matrix) end
+
+--- Move a vehicle. Doesn't unload then load the vehicle
+--- @param vehicle_id number The unique id of the vehicle
+--- @param transform_matrix SWMatrix The position to move the vehicle to
+--- @return boolean is_success
+function server.moveVehicle(vehicle_id, transform_matrix) end
+
+--- Moves a vehicle, displacing the target position if a vehicle is blocking the destination
+--- @param vehicle_id number The unique id of the vehicle
+--- @param transform_matrix SWMatrix The position to move the vehicle to
+--- @return boolean is_success, SWMatrix result_matrix
+function server.moveVehicleSafe(vehicle_id, transform_matrix) end
+
+--- Teleports a group, displacing the target position if a vehicle is blocking the destination
+--- @param group_id number The unique id of the group
+--- @param transform_matrix SWMatrix The position to teleport the group to
+--- @return boolean is_success, SWMatrix result_matrix
+function server.setGroupPosSafe(group_id, transform_matrix) end
+
+--- Converts a world transform to an astronomy transform. Useful for navigating in space
+--- @param transform_matrix SWMatrix
+---@return SWMatrix
+function server.getAstroPos(transform_matrix) end
 
 --- Returns the tank data
 --- @overload fun(vehicle_id: number, voxel_x: number, voxel_y: number, voxel_z: number)
@@ -1610,9 +1694,9 @@ function server.setVehicleShowOnMap(vehicle_id, is_show_on_map) end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- AI
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- @class SWTileData
 --- @field name string The name of the tile (ex. ...)
@@ -1665,9 +1749,9 @@ function server.setAITargetVehicle(object_id, target_vehicle_id) end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- GAME
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 --- @class SWGameSettings
 --- @field third_person             boolean 
@@ -1927,9 +2011,9 @@ function server.getOilDeposits() end
 
 
 
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 -- MISC
----------------------------------------------------------------------------------------------------------------------
+-------------------------
 
 ---@alias SWEventIDEnum
 ---| 0 # NONE
