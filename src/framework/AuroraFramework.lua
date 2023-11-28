@@ -957,7 +957,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Update player properties
-		AuroraFramework.libraries.timer.delay.create(0.01, function() -- wait a tick for addon to attach callbacks to player events
+		AuroraFramework.libraries.timer.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
 			-- Activate player join events
 			for _, v in pairs(server.getPlayers()) do
 				AuroraFramework.game.callbacks.onPlayerJoin.main:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
@@ -971,7 +971,7 @@ AuroraFramework.services.playerService = {
 			end
 
 			-- Update player data
-			AuroraFramework.libraries.timer.loop.create(0.01, function()
+			AuroraFramework.game.callbacks.onTick.internal:connect(function()
 				for _, player in pairs(server.getPlayers()) do
 					if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
 						goto continue
