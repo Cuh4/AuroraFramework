@@ -99,6 +99,7 @@ function matrix.multiplyXYZW(matrix1, x, y, z, w) end
 --- Returns the rotation required to face an X Z vector
 --- @param x number 
 --- @param z number 
+--- @return SWMatrix matrix 
 function matrix.rotationToFaceXZ(x, z) end
 
 
@@ -1369,12 +1370,12 @@ function server.despawnVehicle(vehicle_id, is_instant) end
 --- @return SWMatrix matrix, boolean is_success
 function server.getVehiclePos(vehicle_id, voxel_x, voxel_y, voxel_z) end
 
---- Teleports a vehicle from it's current locaiton to the new matrix
+--- Teleports a vehicle from it's current location to the new matrix
 --- @param vehicle_id number The unique id of the vehicle
 --- @param matrix SWMatrix The matrix to be applied to the vehicle
 function server.setVehiclePos(vehicle_id, matrix) end
 
---- Teleports a vehicle from it's current locaiton to the new matrix. The vehicle is displaced by other vehicles at the arrival point
+--- Teleports a vehicle from it's current location to the new matrix. The vehicle is displaced by other vehicles at the arrival point
 --- @param vehicle_id number The unique id of the vehicle
 --- @param matrix SWMatrix The matrix to be applied to the vehicle
 function server.setVehiclePosSafe(vehicle_id, matrix) end
@@ -1549,7 +1550,8 @@ function server.getVehicleFireCount(vehicle_id) end
 --- @return boolean is_success
 function server.setVehicleTooltip(vehicle_id, text) end
 
---- Applies impact damage to a vehicle at the specified voxel location (cannot use negative values, so cannot repair.)
+--- Applies impact damage to a vehicle at the specified voxel location
+--- <br>Negative values repair the vehicles instead of damaging it
 --- @param vehicle_id number The ID of the vehicle to apply damage to
 --- @param amount number The amount of damage to apply (0-100)
 --- @param voxel_x number The voxel's X position to apply damage to
