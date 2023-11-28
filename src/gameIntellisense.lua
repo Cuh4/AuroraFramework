@@ -99,6 +99,7 @@ function matrix.multiplyXYZW(matrix1, x, y, z, w) end
 --- Returns the rotation required to face an X Z vector
 --- @param x number 
 --- @param z number 
+--- @return SWMatrix matrix 
 function matrix.rotationToFaceXZ(x, z) end
 
 
