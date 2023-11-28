@@ -2689,14 +2689,14 @@ end
 
 ----------------
 
-AuroraFramework.game.callbacks.onForestFireExtinguised = {
-	internal = AuroraFramework.libraries.events.create("callback_onForestFireExtinguised_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onForestFireExtinguised_addon")
+AuroraFramework.game.callbacks.onForestFireExtinguished = {
+	internal = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_addon")
 }
 
-function onForestFireExtinguised(...)
-	AuroraFramework.game.callbacks.onForestFireExtinguised.internal:fire(...)
-	AuroraFramework.game.callbacks.onForestFireExtinguised.main:fire(...)
+function onForestFireExtinguished(...)
+	AuroraFramework.game.callbacks.onForestFireExtinguished.internal:fire(...)
+	AuroraFramework.game.callbacks.onForestFireExtinguished.main:fire(...)
 end
 
 ----------------
