@@ -1,4 +1,7 @@
 -- Created by @toastery on Discord
+-- Updated by @cuh6_ on Discord
+-- TODO: update
+
 --- @diagnostic disable: lowercase-global
 --- @diagnostic disable: missing-return
 --- @diagnostic disable: duplicate-set-field
