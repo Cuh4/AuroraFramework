@@ -711,7 +711,9 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 			owner = player,
 			addonSpawned = peer_id == -1,
 			cost = group_cost,
-			group_id = group_id
+			group_id = group_id,
+			spawnPos = matrix.translation(x, y, z),
+			primaryVehicle = nil
 		},
 
 		nil
@@ -742,6 +744,29 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	-- parent group to groups in groupservice, then return group
 	AuroraFramework.services.groupService.groups[group_id] = group
 	return group
+end
+
+-- Calculate primary vehicle
+---@param group af_services_group_group
+---@return af_services_vehicle_vehicle
+AuroraFramework.services.groupService.internal.calculatePrimaryVehicle = function(group)
+	-- set variables
+	local lowest = math.huge
+	local primaryVehicle = nil
+
+	-- find primary vehicle
+	for _, vehicle in pairs(group.properties.vehicles) do
+		-- the primary vehicle is the vehicle that spawns first
+		-- as we know, the vehicle id of a vehicle is 1 higher than the previously spawned vehicle
+		-- therefore the primary vehicle (first vehicle spawned) in this group is the vehicle with the lowest vehicle id in the group
+
+		if vehicle.properties.vehicle_id <= lowest then
+			primaryVehicle = vehicle
+			lowest = vehicle.properties.vehicle_id
+		end
+	end
+
+	return primaryVehicle
 end
 
 -- Remove group data
@@ -994,7 +1019,8 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			spawnPos = matrix.translation(x, y, z),
 			cost = group_cost,
 			loaded = false,
-			group = nil -- gets set up by ongroupspawn in groupservice
+			group = nil, -- gets set up by ongroupspawn in groupservice
+			isPrimaryVehicle = false
 		},
 
 		nil,
