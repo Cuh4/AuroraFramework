@@ -740,6 +740,8 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	end
 
 	group.properties.vehicles = vehicles
+	group.properties.primaryVehicle = AuroraFramework.services.groupService.internal.calculatePrimaryVehicle(group)
+	group.properties.primaryVehicle.properties.isPrimaryVehicle = true
 	
 	-- parent group to groups in groupservice, then return group
 	AuroraFramework.services.groupService.groups[group_id] = group
@@ -766,6 +768,7 @@ AuroraFramework.services.groupService.internal.calculatePrimaryVehicle = functio
 		end
 	end
 
+	-- return it
 	return primaryVehicle
 end
 
