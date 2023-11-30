@@ -1,8 +1,5 @@
 # ***Aurora Framework***
 
-> [!WARNING]\
-This framework is outdated. Support for the new vehicle system in Stormworks has not been added yet.
-
 ### **Overview**
 Aurora Framework is a super reliable framework that makes the creation of Stormworks: Build and Rescue (game) addons much easier.
 
