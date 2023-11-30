@@ -8,7 +8,6 @@
 -- [Example] This example explodes non-primary vehicles (any vehicles that weren't the first to spawn in a group) in a group that just spawned.
 ----------------------------------------
 
--- // Attach a function to Group Service's onSpawn event
 ---@param group af_services_group_group
 AuroraFramework.services.groupService.events.onSpawn:connect(function(group)
     -- Loop through all vehicles in the group
