@@ -247,6 +247,12 @@ _ = {
         ---@type table<integer, af_services_vehicle_vehicle>
         vehicles = {}, -- The vehicles that belong to this group
 
+        ---@type SWMatrix
+        spawnPos = nil,
+
+        ---@type af_services_vehicle_vehicle
+        primaryVehicle = nil,
+
         ---@type af_services_player_player
         owner = nil, -- The owner of this group
 
@@ -281,6 +287,7 @@ _ = {
 
         ---@type af_services_group_group
         group = nil, -- The group this vehicle belongs to
+        isPrimaryVehicle = false, -- Whether or not this is the main vehicle in a group
 
         addonSpawned = false, -- Whether or not an addon spawned this vehicle
         vehicle_id = 0, -- The ID of this vehicle
