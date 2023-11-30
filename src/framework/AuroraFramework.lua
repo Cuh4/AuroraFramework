@@ -450,7 +450,7 @@ AuroraFramework.libraries.timer.loop.create = function(duration, callback)
 		{
 			---@param self af_libs_timer_loop
 			remove = function(self)
-				AuroraFramework.libraries.timer.loop.remove(self.id)
+				AuroraFramework.libraries.timer.loop.remove(self.properties.id)
 			end,
 
 			---@param self af_libs_timer_loop
@@ -502,7 +502,7 @@ AuroraFramework.libraries.timer.delay.create = function(duration, callback)
 		{
 			---@param self af_libs_timer_delay
 			remove = function(self)
-				AuroraFramework.libraries.timer.delay.remove(self.id)
+				AuroraFramework.libraries.timer.delay.remove(self.properties.id)
 			end,
 
 			---@param self af_libs_timer_delay
@@ -2009,9 +2009,7 @@ AuroraFramework.services.commandService = {
 			end
 
 			local args = {...}
-
 			command = command:sub(2, -1)
-			local loweredCommand = command:lower()
 
 			-- go through all commands
 			for _, cmd in pairs(AuroraFramework.services.commandService.commands) do
@@ -2028,12 +2026,12 @@ AuroraFramework.services.commandService = {
 				-- command name pattern matching
 				if cmd.properties.capsSensitive then
 					-- caps sensitive
-					if cmd.properties.name ~= command or not AuroraFramework.libraries.miscellaneous.isValueInTable(command, cmd.properties.shorthands) then
+					if cmd.properties.name ~= command and not AuroraFramework.libraries.miscellaneous.isValueInTable(command, cmd.properties.shorthands) then
 						goto continue
 					end
 				else
 					-- not caps sensitive
-					if cmd.properties.name:lower() ~= loweredCommand or not AuroraFramework.libraries.miscellaneous.isValueInTable(loweredCommand, AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable(cmd.properties.shorthands)) then
+					if cmd.properties.name:lower() ~= command:lower() and not AuroraFramework.libraries.miscellaneous.isValueInTable(command:lower(), AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable(cmd.properties.shorthands)) then
 						goto continue
 					end
 				end
