@@ -350,6 +350,11 @@ _ = {
     ---@param isEditable boolean
     setEditable = function(self, isEditable) end,
 
+    -- Sets whether or not the vehicle is visible on the map
+    ---@param self af_services_vehicle_vehicle
+    ---@param isVisible boolean
+    setMapVisibility = function(self, isVisible) end,
+
     -- Sets the tooltip of this vehicle
     ---@param self af_services_vehicle_vehicle
     ---@param text string

@@ -1033,6 +1033,12 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			end,
 
 			---@param self af_services_vehicle_vehicle
+			---@param isVisible boolean
+			setMapVisibility = function(self, isVisible)
+				server.setVehicleShowOnMap(self.properties.vehicle_id, isVisible)
+			end,
+
+			---@param self af_services_vehicle_vehicle
 			---@param text string
 			setTooltip = function(self, text)
 				server.setVehicleTooltip(self.properties.vehicle_id, text)
