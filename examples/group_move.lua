@@ -21,11 +21,10 @@ AuroraFramework.services.groupService.events.onSpawn:connect(function(group)
 
             -- This is a non-primary vehicle, so move the vehicle in a random direction
             local currentPos = vehicle:getPosition()
-            local newPos = AuroraFramework.libraries.matrix.offset(
-                currentPos,
-                math.random(-10, 10), -- x
-                0, -- y
-                math.random(-10, 10) -- z
+            local newPos = AuroraFramework.libraries.matrix.randomOffset(
+                currentPos, -- position to offset
+                10, -- offset amount
+                false -- prevent changing the y (altitude)
             )
 
             vehicle:move(newPos)
