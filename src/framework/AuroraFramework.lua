@@ -830,7 +830,7 @@ AuroraFramework.services.groupService.getAllGroupsSpawnedByAPlayer = function(pl
 		end
 
 		if AuroraFramework.services.playerService.isSamePlayer(player, group.properties.owner) then
-			table.insert(list, vehicle)
+			table.insert(list, group)
 		end
 
 	    ::continue::
