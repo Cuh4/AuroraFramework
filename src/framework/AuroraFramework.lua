@@ -778,6 +778,30 @@ AuroraFramework.services.groupService.internal.removeGroupData = function(group_
 	AuroraFramework.services.groupService.groups[group_id] = nil
 end
 
+-- Spawn a group (server.spawnAddonVehicle behind the hood)
+---@param position SWMatrix
+---@param playlist_id integer
+---@param addonIndex integer|nil
+---@return af_services_group_group
+AuroraFramework.services.groupService.spawnGroup = function(position, playlist_id, addonIndex)
+	-- spawn the group
+	local group_id, successful = server.spawnAddonVehicle(position, addonIndex or server.getAddonIndex(), playlist_id)
+	
+	if not successful then
+		return
+	end
+
+	-- setup group data, then return it
+	local x, y, z = matrix.position(position)
+
+	return AuroraFramework.services.groupService.internal.giveGroupData(
+		group_id,
+		-1,
+		x, y, z,
+		0
+	)
+end
+
 -- Get a group
 ---@param group_id integer
 AuroraFramework.services.groupService.getGroup = function(group_id)
