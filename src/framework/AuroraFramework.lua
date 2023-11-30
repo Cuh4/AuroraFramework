@@ -1030,9 +1030,9 @@ AuroraFramework.services.vehicleService.isSameVehicle = function(vehicle1, vehic
 end
 
 -- Despawn a vehicle
----@param vehicle af_services_vehicle_vehicle
-AuroraFramework.services.vehicleService.despawnVehicle = function(vehicle)
-	server.despawnVehicle(vehicle.properties.vehicle_id, true)
+---@param vehicle_id integer
+AuroraFramework.services.vehicleService.despawnVehicle = function(vehicle_id)
+	server.despawnVehicle(vehicle_id, true)
 end
 
 --------------------------------------------------------------------------------
