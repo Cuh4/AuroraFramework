@@ -627,6 +627,10 @@ AuroraFramework.services.groupService = {
 			-- give group data
 			local data = AuroraFramework.services.groupService.internal.giveGroupData(...)
 
+			if not data then
+				return
+			end
+
 			-- fire onspawn event
 			AuroraFramework.services.groupService.events.onSpawn:fire(data)
 		end)
@@ -760,8 +764,52 @@ AuroraFramework.services.groupService.getGroup = function(group_id)
 	return AuroraFramework.services.groupService.groups[group_id]
 end
 
+-- Get all groups
+AuroraFramework.services.groupService.getAllGroups = function()
+	return AuroraFramework.services.groupService.groups
+end
+
+-- Get the amount of spawned and recognised groups
+AuroraFramework.services.groupService.getGlobalGroupCount = function()
+	return AuroraFramework.libraries.miscellaneous.getTableLength(AuroraFramework.services.groupService.groups)
+end
+
+-- Get a list of groups spawned by a player
+---@param player af_services_player_player
+---@return table<integer, af_services_group_group>
+AuroraFramework.services.groupService.getAllGroupsSpawnedByAPlayer = function(player)
+	local list = {}
+
+	for _, group in pairs(AuroraFramework.services.groupService.groups) do
+		if group.properties.addonSpawned then
+			goto continue
+		end
+
+		if AuroraFramework.services.playerService.isSamePlayer(player, group.properties.owner) then
+			table.insert(list, vehicle)
+		end
+
+	    ::continue::
+	end
+
+	return list
+end
+
+-- Get the amount of vehicles spawned by a player
+---@param player af_services_player_player
+AuroraFramework.services.groupService.getGroupCountOfPlayer = function(player)
+	return #AuroraFramework.services.groupService.getAllGroupsSpawnedByAPlayer(player)
+end
+
+-- Returns whether or not two groups are the same
+---@param group1 af_services_group_group
+---@param group2 af_services_group_group
+AuroraFramework.services.groupService.isSameGroup = function(group1, group2)
+	return group1.properties.group_id == group2.properties.group_id
+end
+
 -- Despawn a group
----@param group af_services_group_group
+---@param group_id integer
 AuroraFramework.services.groupService.despawnGroup = function(group_id)
 	-- get group
 	local group = AuroraFramework.services.groupService.getGroup(group_id)
@@ -780,7 +828,7 @@ AuroraFramework.services.groupService.despawnGroup = function(group_id)
 	server.despawnVehicleGroup(group_id, true)
 
 	-- remove data
-	AuroraFramework.services.groupService.groups[group_id] = nil
+	AuroraFramework.services.groupService.internal.removeGroupData(group_id)
 end
 
 --------------------------------------------------------------------------------
@@ -984,26 +1032,6 @@ AuroraFramework.services.vehicleService.getVehicleByVehicleID = function(vehicle
 	return AuroraFramework.services.vehicleService.vehicles[vehicle_id]
 end
 
--- Get a vehicle by its name
----@param input string
-AuroraFramework.services.vehicleService.getVehicleByName = function(input)
-	for i, v in pairs(AuroraFramework.services.vehicleService.getAllVehicles()) do
-		if v.properties.name == input then
-			return v
-		end
-	end
-end
-
--- Search for a vehicle by name
----@param input string
-AuroraFramework.services.vehicleService.getVehicleByNameSearch = function(input)
-	for i, v in pairs(AuroraFramework.services.vehicleService.getAllVehicles()) do
-		if v.properties.name:lower():find(input:lower()) then
-			return v
-		end
-	end
-end
-
 -- Get the amount of spawned and recognised vehicles
 AuroraFramework.services.vehicleService.getGlobalVehicleCount = function()
 	return AuroraFramework.libraries.miscellaneous.getTableLength(AuroraFramework.services.vehicleService.vehicles)
@@ -1016,9 +1044,15 @@ AuroraFramework.services.vehicleService.getAllVehiclesSpawnedByAPlayer = functio
 	local list = {}
 
 	for _, vehicle in pairs(AuroraFramework.services.vehicleService.vehicles) do
+		if vehicle.properties.addonSpawned then
+			goto continue
+		end
+
 		if AuroraFramework.services.playerService.isSamePlayer(player, vehicle.properties.owner) then
 			table.insert(list, vehicle)
 		end
+
+	    ::continue::
 	end
 
 	return list
