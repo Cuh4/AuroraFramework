@@ -484,6 +484,10 @@ end
 -- Remove a loop
 ---@param id integer
 AuroraFramework.libraries.timer.loop.remove = function(id)
+	if not AuroraFramework.libraries.timer.loop.ongoing[id] then
+		return
+	end
+
 	AuroraFramework.libraries.timer.loop.ongoing[id] = nil
 end
 
@@ -536,6 +540,10 @@ end
 -- Remove a delay
 ---@param id integer
 AuroraFramework.libraries.timer.delay.remove = function(id)
+	if not AuroraFramework.libraries.timer.delay.ongoing[id] then
+		return
+	end
+
 	AuroraFramework.libraries.timer.delay.ongoing[id] = nil
 end
 
