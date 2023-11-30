@@ -213,7 +213,7 @@ _ = {
 }
 
 ---------------- Commands
----@class af_services_commands_command: af_internal_class
+---@class af_services_command_command: af_internal_class
 _ = {
     __name__ = "command",
 
@@ -234,7 +234,7 @@ _ = {
     },
 
     -- Remove this command
-    ---@param self af_services_commands_command
+    ---@param self af_services_command_command
     remove = function(self) end
 }
 

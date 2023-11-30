@@ -2105,7 +2105,7 @@ AuroraFramework.services.commandService = {
 		end)
 	end,
 
-	---@type table<string, af_services_commands_command>
+	---@type table<string, af_services_command_command>
 	commands = {},
 	events = {
 		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_commandActivated") -- command, args, player
@@ -2124,12 +2124,12 @@ AuroraFramework.services.commandService = {
 ---@param requiresAdmin boolean|nil
 AuroraFramework.services.commandService.create = function(callback, name, shorthands, capsSensitive, description, requiresAuth, requiresAdmin)
 	-- create the command
-	---@type af_services_commands_command
+	---@type af_services_command_command
 	local command = AuroraFramework.internal.class(
 		"command",
 
 		{
-			---@param self af_services_commands_command
+			---@param self af_services_command_command
 			remove = function(self)
 				return AuroraFramework.services.commandService.remove(self.properties.name)
 			end
