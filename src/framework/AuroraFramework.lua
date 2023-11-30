@@ -2509,6 +2509,18 @@ end
 
 ----------------
 
+AuroraFramework.game.callbacks.onGroupSpawn = {
+	internal = AuroraFramework.libraries.events.create("callback_onGroupSpawn_frameworkInternal"),
+	main = AuroraFramework.libraries.events.create("callback_onGroupSpawn_addon")
+}
+
+function onGroupSpawn(...)
+	AuroraFramework.game.callbacks.onGroupSpawn.internal:fire(...)
+	AuroraFramework.game.callbacks.onGroupSpawn.main:fire(...)
+end
+
+----------------
+
 AuroraFramework.game.callbacks.onVehicleDespawn = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_addon")
@@ -2777,6 +2789,7 @@ end
 -- // Initialize services
 AuroraFramework.services.playerService.initialize()
 AuroraFramework.services.vehicleService.initialize()
+AuroraFramework.services.groupService.initialize()
 AuroraFramework.services.chatService.initialize()
 AuroraFramework.services.commandService.initialize()
 AuroraFramework.services.HTTPService.initialize()
