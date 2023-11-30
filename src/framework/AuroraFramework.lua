@@ -610,6 +610,172 @@ AuroraFramework.services.TPSService.getTPSData = function()
 end
 
 --------------------------------------------------------------------------------
+--// Groups \\--
+--------------------------------------------------------------------------------
+AuroraFramework.services.groupService = {
+	initialize = function()
+		-- Give group data whenever a group is spawned
+		AuroraFramework.game.callbacks.onGroupSpawn.internal:connect(function(...)
+			-- give group data
+			local data = AuroraFramework.services.groupService.internal.giveGroupData(...)
+
+			-- fire onspawn event
+			AuroraFramework.services.groupService.events.onSpawn:fire(data)
+		end)
+
+		-- Remove vehicle from group when it despawns
+		---@param vehicle af_services_vehicle_vehicle
+		AuroraFramework.services.vehicleService.events.onDespawn:connect(function(vehicle)
+			-- get group
+			local group = vehicle.properties.group
+
+			-- remove vehicle from group
+			group.properties.vehicles[vehicle.properties.vehicle_id] = nil
+		end)
+
+		-- Remove group when all vehicles in a group despawn
+		---@param vehicle af_services_vehicle_vehicle
+		AuroraFramework.services.vehicleService.events.onDespawn:connect(function(vehicle)
+			local group = vehicle.properties.group
+
+			-- wait a tick to make sure the vehicle is removed from the group
+			AuroraFramework.libraries.timer.delay.create(0, function()
+				-- check group length
+				if AuroraFramework.libraries.miscellaneous.getTableLength(group.properties.vehicles) >= 1 then
+					return
+				end
+
+				-- no more vehicles remain in the group, so despawn it
+				group:despawn()
+			end)
+		end)
+	end,
+
+	---@type table<integer, af_services_group_group>
+	groups = {},
+
+	events = {
+		onSpawn = AuroraFramework.libraries.events.create("auroraFramework_onGroupSpawn"),
+		onDespawn = AuroraFramework.libraries.events.create("auroraFramework_onGroupDespawn")
+	},
+
+	internal = {}
+}
+
+-- Give group data to a group
+---@param group_id integer
+---@param peer_id integer
+---@param x number
+---@param y number
+---@param z number
+---@param group_cost number
+AuroraFramework.services.groupService.internal.giveGroupData = function(group_id, peer_id, x, y, z, group_cost)
+	-- ignore if already exists
+	if AuroraFramework.services.groupService.getGroup(group_id) then
+		return
+	end
+	
+	-- get player
+	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
+
+	-- create group
+	---@type af_services_group_group
+	local group = AuroraFramework.internal.class(
+		"group",
+
+		{
+			---@param self af_services_group_group
+			---@param position SWMatrix
+			teleport = function(self, position)
+				server.setGroupPos(self.properties.group_id, position)
+			end,
+
+			---@param self af_services_group_group
+			---@param position SWMatrix
+			move = function(self, position)
+				server.moveGroup(self.properties.group_id, position)
+			end,
+
+			---@param self af_services_group_group
+			despawn = function(self)
+				return AuroraFramework.services.groupService.despawnGroup(self.properties.group_id)
+			end
+		},
+
+		{
+			vehicles = {},
+			owner = player,
+			addonSpawned = peer_id == -1,
+			cost = group_cost,
+			group_id = group_id
+		},
+
+		nil
+	)
+
+	-- set up vehicles belonging to the group
+	local vehicle_ids = server.getVehicleGroup(group_id)
+	local vehicles = {}
+
+	for _, vehicle_id in pairs(vehicle_ids) do
+		local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+
+		if not vehicle then
+			goto continue
+		end
+
+		-- set group attribute
+		vehicle.properties.group = group
+
+		-- insert into vehicles table
+		vehicles[vehicle_id] = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+
+		::continue::
+	end
+
+	group.properties.vehicles = vehicles
+	
+	-- parent group to groups in groupservice, then return group
+	AuroraFramework.services.groupService.groups[group_id] = group
+	return group
+end
+
+-- Remove group data
+---@param group_id integer
+AuroraFramework.services.groupService.internal.removeGroupData = function(group_id)
+	AuroraFramework.services.groupService.groups[group_id] = nil
+end
+
+-- Get a group
+---@param group_id integer
+AuroraFramework.services.groupService.getGroup = function(group_id)
+	return AuroraFramework.services.groupService.groups[group_id]
+end
+
+-- Despawn a group
+---@param group af_services_group_group
+AuroraFramework.services.groupService.despawnGroup = function(group_id)
+	-- get group
+	local group = AuroraFramework.services.groupService.getGroup(group_id)
+
+	if group then
+		-- despawn all vehicles in the group to trigger events
+		for _, vehicle in pairs(group.properties.vehicles) do
+			vehicle:despawn()
+		end
+
+		-- fire events
+		AuroraFramework.services.groupService.events.onDespawn:fire(group)
+	end
+
+	-- actually despawn the group
+	server.despawnVehicleGroup(group_id, true)
+
+	-- remove data
+	AuroraFramework.services.groupService.groups[group_id] = nil
+end
+
+--------------------------------------------------------------------------------
 --// Vehicles \\--
 --------------------------------------------------------------------------------
 AuroraFramework.services.vehicleService = {
@@ -674,15 +840,22 @@ AuroraFramework.services.vehicleService = {
 }
 
 -- Give vehicle data to a vehicle
----@param vehicle_id any
----@param peer_id any
----@param x any
----@param y any
----@param z any
----@param cost any
-AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, cost)
+---@param vehicle_id integer
+---@param peer_id integer
+---@param x number
+---@param y number
+---@param z number
+---@param group_cost number
+AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, group_cost, group_id)
+	-- ignore if data already exists
+	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
+		return
+	end
+
+	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
 
+	-- create vehicle
 	---@type af_services_vehicle_vehicle
 	local vehicle = AuroraFramework.internal.class(
 		"vehicle",
@@ -690,7 +863,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 		{
 			---@param self af_services_vehicle_vehicle
 			despawn = function(self)
-				server.despawnVehicle(self.properties.vehicle_id, true)
+				AuroraFramework.services.vehicleService.despawnVehicle(self.properties.vehicle_id)
 			end,
 
 			---@param self af_services_vehicle_vehicle
@@ -706,6 +879,12 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 				end
 
 				self:despawn()
+			end,
+			
+			---@param self af_services_vehicle_vehicle
+    		---@param position SWMatrix
+			move = function(self, position)
+				server.moveVehicle(self.properties.vehicle_id, position)
 			end,
 
 			---@param self af_services_vehicle_vehicle
@@ -728,12 +907,17 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			end,
 
 			---@param self af_services_vehicle_vehicle
-			getLoadedVehicleData = function(self)
+			getVehicleData = function(self)
+				return (server.getVehicleData(self.properties.vehicle_id))
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			getVehicleComponents = function(self)
 				if not self.properties.loaded then
 					return
 				end
 
-				return (server.getVehicleData(self.properties.vehicle_id))
+				return (server.getVehicleComponents(self.properties.vehicle_id))
 			end,
 
 			---@param self af_services_vehicle_vehicle
@@ -760,8 +944,9 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			addonSpawned = peer_id == -1,
 			vehicle_id = vehicle_id,
 			spawnPos = matrix.translation(x, y, z),
-			cost = cost,
-			loaded = false
+			cost = group_cost,
+			loaded = false,
+			group = nil -- gets set up by ongroupspawn in groupservice
 		},
 
 		nil,
@@ -783,15 +968,6 @@ end
 ---@return table<integer, af_services_vehicle_vehicle>
 AuroraFramework.services.vehicleService.getAllVehicles = function()
 	return AuroraFramework.services.vehicleService.vehicles
-end
-
--- Spawn an addon vehicle
----@param componentID integer Found in the playlist.xml of your addon folder and in the addon editor
----@param position SWMatrix
----@return af_services_vehicle_vehicle
-AuroraFramework.services.vehicleService.spawnAddonVehicle = function(componentID, position)
-	local vehicleID = server.spawnAddonVehicle(position, (server.getAddonIndex()), componentID)
-	return AuroraFramework.services.vehicleService.internal.giveVehicleData(vehicleID, -1, position[13], position[14], position[15], 0) ---@diagnostic disable-line return-type-mismatch
 end
 
 -- Get a vehicle by its ID
@@ -851,6 +1027,12 @@ end
 ---@param vehicle2 af_services_vehicle_vehicle
 AuroraFramework.services.vehicleService.isSameVehicle = function(vehicle1, vehicle2)
 	return vehicle1.properties.vehicle_id == vehicle2.properties.vehicle_id
+end
+
+-- Despawn a vehicle
+---@param vehicle af_services_vehicle_vehicle
+AuroraFramework.services.vehicleService.despawnVehicle = function(vehicle)
+	server.despawnVehicle(vehicle.properties.vehicle_id, true)
 end
 
 --------------------------------------------------------------------------------

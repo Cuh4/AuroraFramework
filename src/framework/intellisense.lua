@@ -238,6 +238,38 @@ _ = {
     remove = function(self) end
 }
 
+---------------- Groups
+---@class af_services_group_group: af_internal_class
+_ = {
+    __name__ = "group",
+
+    properties = {
+        ---@type table<integer, af_services_vehicle_vehicle>
+        vehicles = {}, -- The vehicles that belong to this group
+
+        ---@type af_services_player_player
+        owner = nil, -- The owner of this group
+
+        addonSpawned = false, -- Whether or not this group was spawned by the server
+        cost = 0, -- The cost of this vehicle
+        group_id = 0 -- The ID of this group
+    },
+
+    -- Teleport this group
+    ---@param self af_services_group_group
+    ---@param position SWMatrix
+    teleport = function(self, position) end,
+
+    -- Move this group, basically teleporting it without reloading the vehicle
+    ---@param self af_services_group_group
+    ---@param position SWMatrix
+    move = function(self, position) end,
+
+    -- Despawn all vehicles in the group, despawning the group itself
+    ---@param self af_services_group_group
+    despawn = function(self) end
+}
+
 ---------------- Vehicles
 ---@class af_services_vehicle_vehicle: af_internal_class
 _ = {
@@ -247,14 +279,16 @@ _ = {
         ---@type af_services_player_player
         owner = nil, -- The owner of this vehicle
 
+        ---@type af_services_group_group
+        group = nil, -- The group this vehicle belongs to
+
         addonSpawned = false, -- Whether or not an addon spawned this vehicle
         vehicle_id = 0, -- The ID of this vehicle
 
         ---@type SWMatrix
         spawnPos = nil, -- The position this vehicle was spawned at
 
-        cost = 0, -- The cost of this vehicle. 0 if infinite_money is enabled
-        loaded = false -- Whether or not the vehicle is loaded
+        cost = 0 -- The cost of this vehicle. 0 if infinite_money is enabled
     },
 
     -- Despawn this vehicle
@@ -266,6 +300,11 @@ _ = {
     ---@param magnitude number|nil
     ---@param despawn boolean|nil
     explode = function(self, magnitude, despawn) end,
+
+    -- Move this vehicle somewhere, keeping the vehicle's velocity and not reloading the vehicle
+    ---@param self af_services_vehicle_vehicle
+    ---@param position SWMatrix
+    move = function(self, position) end,
 
     -- Teleport this vehicle somewhere
     ---@param self af_services_vehicle_vehicle
@@ -284,10 +323,15 @@ _ = {
     ---@return SWMatrix
     getPosition = function(self, voxelX, voxelY, voxelZ) end,
 
-    -- Get the vehicle's loaded data
+    -- Get the vehicle's data
     ---@param self af_services_vehicle_vehicle
     ---@return SWVehicleData
-    getLoadedVehicleData = function(self) end,
+    getVehicleData = function(self) end,
+
+    -- Get the vehicle's components
+    ---@param self af_services_vehicle_vehicle
+    ---@return SWVehicleComponents
+    getVehicleComponents = function(self) end,
 
     -- Sets whether or not the vehicle is invulnerable to damage
     ---@param self af_services_vehicle_vehicle
