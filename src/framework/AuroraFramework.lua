@@ -1370,6 +1370,17 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 	
 				server.killCharacter(character)
 			end,
+
+			---@param self af_services_player_player
+			revive = function(self)
+				local character = self:getCharacter()
+
+				if not character then
+					return
+				end
+
+				server.killCharacter(character)
+			end,
 	
 			---@param self af_services_player_player
 			---@param shouldGive boolean

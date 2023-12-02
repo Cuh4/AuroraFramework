@@ -427,6 +427,10 @@ _ = {
     ---@param self af_services_player_player
     kill = function(self) end,
 
+    -- Revive this player
+    ---@param self af_services_player_player
+    revive = function(self) end,
+
     -- Give or removes admin to/from the player
     ---@param self af_services_player_player
     ---@param shouldGive boolean
