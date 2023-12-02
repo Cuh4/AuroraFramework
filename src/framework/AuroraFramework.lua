@@ -1379,7 +1379,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 					return
 				end
 
-				server.killCharacter(character)
+				server.reviveCharacter(character)
 			end,
 	
 			---@param self af_services_player_player
