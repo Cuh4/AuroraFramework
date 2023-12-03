@@ -273,7 +273,11 @@ _ = {
 
     -- Despawn all vehicles in the group, despawning the group itself
     ---@param self af_services_group_group
-    despawn = function(self) end
+    despawn = function(self) end,
+
+    -- Get the position of this group
+    ---@param self af_services_group_group
+    getPosition = function(self) end
 }
 
 ---------------- Vehicles
