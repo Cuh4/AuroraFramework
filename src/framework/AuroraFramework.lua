@@ -30,7 +30,7 @@ setupSaveData() -- to allow addon to setup g_savedata first
 AuroraFramework.internal = {}
 
 -- Create a class
----@param name string|nil
+---@param name string
 ---@param methods table|nil
 ---@param properties table|nil
 ---@param events table|nil
