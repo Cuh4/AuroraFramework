@@ -708,6 +708,12 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 			---@param self af_services_group_group
 			getPosition = function(self)
 				return self.properties.primaryVehicle:getPosition()
+			end,
+
+			---@param self af_services_group_group
+			---@param vehicle_id integer
+			getVehicle = function(self, vehicle_id)
+				return self.properties.vehicles[vehicle_id]
 			end
 		},
 

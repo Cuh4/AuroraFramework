@@ -277,7 +277,12 @@ _ = {
 
     -- Get the position of this group
     ---@param self af_services_group_group
-    getPosition = function(self) end
+    getPosition = function(self) end,
+
+    -- Get a vehicle that is apart of this group
+    ---@param self af_services_group_group
+    ---@param vehicle_id integer
+    getVehicle = function(self, vehicle_id) end
 }
 
 ---------------- Vehicles
