@@ -603,8 +603,8 @@ AuroraFramework.services.TPSService = {
 	end,
 
 	tpsData = {
-		tps = 62,
-		average = 62
+		tps = 62, -- The current server TPS
+		average = 62 -- The average server TPS, calculated over 10 ticks
 	},
 
 	internal = {
