@@ -235,7 +235,31 @@ _ = {
 
     -- Remove this command
     ---@param self af_services_command_command
-    remove = function(self) end
+    remove = function(self) end,
+
+    -- Sends a success notification to the player using the command
+    ---@param self af_services_command_command
+    ---@param message string
+    ---@param player af_services_player_player
+    successNotification = function(self, message, player) end,
+
+    -- Sends a warning notification to the player using the command
+    ---@param self af_services_command_command
+    ---@param message string
+    ---@param player af_services_player_player
+    warningNotification = function(self, message, player) end,
+
+    -- Sends a failure notification to the player using the command
+    ---@param self af_services_command_command
+    ---@param message string
+    ---@param player af_services_player_player
+    failureNotification = function(self, message, player) end,
+
+    -- Sends an info notification to the player using the command
+    ---@param self af_services_command_command
+    ---@param message string
+    ---@param player af_services_player_player
+    infoNotification = function(self, message, player) end
 }
 
 ---------------- Groups

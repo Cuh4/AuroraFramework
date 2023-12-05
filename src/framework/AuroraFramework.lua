@@ -2210,6 +2210,50 @@ AuroraFramework.services.commandService.create = function(callback, name, shorth
 			---@param self af_services_command_command
 			remove = function(self)
 				return AuroraFramework.services.commandService.remove(self.properties.name)
+			end,
+
+			---@param self af_services_command_command
+			---@param message string
+			---@param player af_services_player_player
+			successNotification = function(self, message, player)
+				AuroraFramework.services.notificationService.success(
+					"Command",
+					message,
+					player
+				)
+			end,
+
+			---@param self af_services_command_command
+			---@param message string
+			---@param player af_services_player_player
+			warningNotification = function(self, message, player)
+				AuroraFramework.services.notificationService.warning(
+					"Command",
+					message,
+					player
+				)
+			end,
+
+			---@param self af_services_command_command
+			---@param message string
+			---@param player af_services_player_player
+			failureNotification = function(self, message, player)
+				AuroraFramework.services.notificationService.failure(
+					"Command",
+					message,
+					player
+				)
+			end,
+
+			---@param self af_services_command_command
+			---@param message string
+			---@param player af_services_player_player
+			infoNotification = function(self, message, player)
+				AuroraFramework.services.notificationService.info(
+					"Command",
+					message,
+					player
+				)
 			end
 		},
 
