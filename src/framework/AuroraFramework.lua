@@ -1142,7 +1142,23 @@ end
 --------------------------------------------------------------------------------
 --// Notification \\--
 --------------------------------------------------------------------------------
-AuroraFramework.services.notificationService = {}
+AuroraFramework.services.notificationService = {
+	---@type table<string, SWNotifiationTypeEnum>
+	notificationTypes = {
+		newMission = 0,
+		newMissionCritical = 1,
+		failedMission = 2,
+		failedMissionCritical = 3,
+		completeMission = 4,
+		networkConnect = 5,
+		networkDisconnect = 6,
+		networkInfo = 7,
+		chatMessage = 8,
+		star = 9,
+		networkDisconnectCritical = 10,
+		scienceFlask = 11
+	}
+}
 
 -- Send a success notification
 ---@param title string "[Success] - title"
