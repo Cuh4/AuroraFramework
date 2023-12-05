@@ -131,6 +131,14 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Returns whether or not if a number is between two numbers
+---@param number number
+---@param thresholdMin number
+---@param thresholdMax number
+AuroraFramework.libraries.miscellaneous.threshold = function(number, thresholdMin, thresholdMax)
+	return number >= thresholdMin and number <= thresholdMax
+end
+
 -- Combine tables together
 ---@param ... table
 ---@return table
