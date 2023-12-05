@@ -601,8 +601,8 @@ AuroraFramework.services.TPSService = {
 	end,
 
 	tpsData = {
-		tps = 64,
-		avg = 64
+		tps = 62,
+		avg = 62
 	},
 
 	internal = {
