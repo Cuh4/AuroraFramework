@@ -575,31 +575,28 @@ end
 --------------------------------------------------------------------------------
 AuroraFramework.services.TPSService = {
 	initialize = function() -- from: https://github.com/Dangleworks/Antilag/blob/master/script.lua
-		local ticks = 0
-		local ticksTime = 0
+		local previous = server.getTimeMillisec()
 
 		-- update tps n stuff
 		AuroraFramework.game.callbacks.onTick.internal:connect(function()
-			ticks = ticks + 1
+			local now = server.getTimeMillisec()
+			local tps = 1000 / (now - previous)
 
-			if server.getTimeMillisec() - ticksTime >= 500 then
-				-- update tps
-				AuroraFramework.services.TPSService.tpsData.tps = ticks * 2
+			-- update tps
+			AuroraFramework.services.TPSService.tpsData.tps = tps
 
-				-- calculate avg tps
-				if #AuroraFramework.services.TPSService.internal.avgTicksTbl > 5 then
-					-- calculate average tps
-					AuroraFramework.services.TPSService.tpsData.avg = AuroraFramework.libraries.miscellaneous.average(AuroraFramework.services.TPSService.internal.avgTicksTbl)
-					AuroraFramework.services.TPSService.internal.avgTicksTbl = {}
-				else
-					-- add tps to avg tps table
-					table.insert(AuroraFramework.services.TPSService.internal.avgTicksTbl, AuroraFramework.services.TPSService.tpsData.tps)
-				end
-
-				-- ready for next tps update stuff
-				ticks = 0
-				ticksTime = server.getTimeMillisec()
+			-- calculate avg tps
+			if #AuroraFramework.services.TPSService.internal.avgTicksTbl > 10 then
+				-- calculate average tps
+				AuroraFramework.services.TPSService.tpsData.avg = AuroraFramework.libraries.miscellaneous.average(AuroraFramework.services.TPSService.internal.avgTicksTbl)
+				AuroraFramework.services.TPSService.internal.avgTicksTbl = {}
+			else
+				-- add tps to avg tps table
+				table.insert(AuroraFramework.services.TPSService.internal.avgTicksTbl, tps)
 			end
+
+			-- prepare for next tick
+			previous = now
 		end)
 	end,
 
@@ -613,6 +610,7 @@ AuroraFramework.services.TPSService = {
 	}
 }
 
+-- Returns a table containing the server TPS, and the average server TPS
 AuroraFramework.services.TPSService.getTPSData = function()
 	return AuroraFramework.services.TPSService.tpsData
 end
