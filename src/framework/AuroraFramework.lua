@@ -1143,7 +1143,6 @@ end
 --// Notification \\--
 --------------------------------------------------------------------------------
 AuroraFramework.services.notificationService = {
-	---@type table<string, SWNotifiationTypeEnum>
 	notificationTypes = {
 		newMission = 0,
 		newMissionCritical = 1,
@@ -1162,35 +1161,68 @@ AuroraFramework.services.notificationService = {
 
 -- Send a success notification
 ---@param title string "[Success] - title"
----@param message string "message"
+---@param message string
 ---@param player af_services_player_player|nil If nil, everyone will see the notification
 AuroraFramework.services.notificationService.success = function(title, message, player)
-	server.notify(AuroraFramework.libraries.miscellaneous.getPeerID(player), "[Success] "..title, message, 4)
+	AuroraFramework.services.notificationService.custom(
+		"[Success] "..title,
+		message,
+		player,
+		AuroraFramework.services.notificationService.notificationTypes.completeMission
+	)
 end
 
 -- Send a warning notification
 ---@param title string "[Warning] - title"
----@param message string "message"
+---@param message string
 ---@param player af_services_player_player|nil If nil, everyone will see the notification
 AuroraFramework.services.notificationService.warning = function(title, message, player)
-	server.notify(AuroraFramework.libraries.miscellaneous.getPeerID(player), "[Warning] "..title, message, 1)
+	AuroraFramework.services.notificationService.custom(
+		"[Warning] "..title,
+		message,
+		AuroraFramework.services.notificationService.notificationTypes.newMissionCritical,
+		player
+	)
 end
 
 -- Send a failure notification
 ---@param title string "[Failure] - title"
----@param message string "message"
+---@param message string
 ---@param player af_services_player_player|nil If nil, everyone will see the notification
 AuroraFramework.services.notificationService.failure = function(title, message, player)
-	server.notify(AuroraFramework.libraries.miscellaneous.getPeerID(player), "[Failure] "..title, message, 3)
+	AuroraFramework.services.notificationService.custom(
+		"[Failure] "..title,
+		message,
+		AuroraFramework.services.notificationService.notificationTypes.failedMissionCritical,
+		player
+	)
+end
+
+-- Send an info notification
+---@param title string "[Info] - title"
+---@param message string
+---@param player af_services_player_player|nil If nil, everyone will see the notification
+AuroraFramework.services.notificationService.info = function(title, message, player)
+	AuroraFramework.services.notificationService.custom(
+		"[Info] "..title,
+		message,
+		AuroraFramework.services.notificationService.notificationTypes.networkInfo,
+		player
+	)
 end
 
 -- Send a custom notification
----@param title string "title"
----@param message string "message"
+---@param title string
+---@param message string
 ---@param player af_services_player_player|nil If nil, everyone will see the notification
 ---@param notificationType SWNotifiationTypeEnum
-AuroraFramework.services.notificationService.custom = function(title, message, player, notificationType)
-	server.notify(AuroraFramework.libraries.miscellaneous.getPeerID(player), title, message, notificationType)
+AuroraFramework.services.notificationService.custom = function(title, message, notificationType, player)
+	server.notify(
+		AuroraFramework.libraries.miscellaneous.getPeerID(player),
+		title,
+		message,
+		notificationType
+	)
 end
 
 --------------------------------------------------------------------------------
