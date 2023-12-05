@@ -574,25 +574,27 @@ end
 --// TPS \\--
 --------------------------------------------------------------------------------
 AuroraFramework.services.TPSService = {
-	initialize = function() -- from: https://github.com/Dangleworks/Antilag/blob/master/script.lua
+	initialize = function()
 		local previous = server.getTimeMillisec()
 
-		-- update tps n stuff
 		AuroraFramework.game.callbacks.onTick.internal:connect(function()
+			-- calculate tps
 			local now = server.getTimeMillisec()
 			local tps = 1000 / (now - previous)
 
 			-- update tps
 			AuroraFramework.services.TPSService.tpsData.tps = tps
 
-			-- calculate avg tps
-			if #AuroraFramework.services.TPSService.internal.avgTicksTbl > 10 then
+			-- calculate average tps
+			local averageTPSTable = AuroraFramework.services.TPSService.internal.averageTPSTable
+
+			if #averageTPSTable > 10 then
 				-- calculate average tps
-				AuroraFramework.services.TPSService.tpsData.avg = AuroraFramework.libraries.miscellaneous.average(AuroraFramework.services.TPSService.internal.avgTicksTbl)
-				AuroraFramework.services.TPSService.internal.avgTicksTbl = {}
+				AuroraFramework.services.TPSService.tpsData.average = AuroraFramework.libraries.miscellaneous.average(averageTPSTable)
+				AuroraFramework.services.TPSService.internal.averageTPSTable = {}
 			else
-				-- add tps to avg tps table
-				table.insert(AuroraFramework.services.TPSService.internal.avgTicksTbl, tps)
+				-- add tps to average tps table otherwise
+				table.insert(averageTPSTable, tps)
 			end
 
 			-- prepare for next tick
@@ -602,11 +604,11 @@ AuroraFramework.services.TPSService = {
 
 	tpsData = {
 		tps = 62,
-		avg = 62
+		average = 62
 	},
 
 	internal = {
-		avgTicksTbl = {}
+		averageTPSTable = {}
 	}
 }
 
