@@ -3315,6 +3315,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Initialize services
+AuroraFramework.services.communicationService.initialize()
 AuroraFramework.services.playerService.initialize()
 AuroraFramework.services.vehicleService.initialize()
 AuroraFramework.services.groupService.initialize()
