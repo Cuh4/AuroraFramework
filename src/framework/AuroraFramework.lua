@@ -236,7 +236,7 @@ AuroraFramework.libraries.miscellaneous.profiler = function()
 			---@param self af_libs_miscellaneous_profiler
 			stop = function(self)
 				self.stopTime = server.getTimeMillisec()
-				self.difference = self.startTime - self.stopTime
+				self.difference = self.stopTime - self.startTime
 
 				return self.difference
 			end,
