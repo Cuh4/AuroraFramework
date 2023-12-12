@@ -37,18 +37,27 @@ _ = {
     __name__ = "communicationChannel",
 
     properties = {
-        name = "" -- The name of this channel
+        name = "" -- The name of this channel. Cannot include any spaces
     },
 
     events = {
         ---@type af_libs_event_event
-        message = nil -- This event is called when the channel receives a message with one arg of table type
+        message = nil -- This event is called when the channel receives a message with one arg of any type
     },
 
-    -- Sends data across to other addons listening on this channel
+    -- Send data across to other addons listening on this channel
     ---@param self af_services_communication_channel
-    ---@param data table
-    send = function(self, data) end
+    ---@param data any
+    send = function(self, data) end,
+
+    -- Listen for messages from other addons on a specific channel
+    ---@param self af_services_communication_channel
+    ---@param callback function
+    listen = function(self, data) end,
+
+    -- Remove this channel
+    ---@param self af_services_communication_channel
+    remove = function(self) end
 }
 
 ---------------- UI

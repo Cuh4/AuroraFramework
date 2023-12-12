@@ -597,7 +597,30 @@ end
 ---------------- Addon Communication
 AuroraFramework.services.communicationService = {
 	initialize = function()
+		-- listen for messages
+		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, data)
+			-- check if the message was sent by an addon
+			if peer_id ~= -1 then
+				return
+			end
 
+			-- check if the indicator is valid. if its not, then its a different addon communication system is likely being used by the
+			-- source addon, and therefore we should ignore it to prevent any errors (like json decoding invalid data)
+			if AuroraFramework.services.communicationService.internal.communicationIndicatorName ~= indicator then
+				return
+			end
+
+			-- find channel
+			local channel = AuroraFramework.services.communicationService.getChannel(channelName)
+
+			if not channel then
+				return
+			end
+
+			-- fire event
+			local decoded = AuroraFramework.services.communicationService.internal.decode(data)
+			channel.events.message:fire(decoded)
+		end)
 	end,
 
 	---@type table<string, af_libs_communication_channel>
@@ -608,39 +631,104 @@ AuroraFramework.services.communicationService = {
 	}
 }
 
+-- Encode data (Data --> JSON --> Base64)
+---@param data any
+---@return string
+AuroraFramework.services.communicationService.internal.encode = function(data)
+	return AuroraFramework.services.HTTPService.Base64.encode(
+		AuroraFramework.services.HTTPService.JSON.encode(data)
+	)
+end
+
+-- Decode data (Base64 --> JSON --> Data)
+---@param data string
+---@return any
+AuroraFramework.services.communicationService.internal.decode = function(data)
+	return AuroraFramework.services.HTTPService.JSON.decode(
+		AuroraFramework.services.HTTPService.Base64.decode(data)
+	)
+end
+
+-- Create a channel, which then you can send messages or listen for messages
 ---@param name string
 AuroraFramework.services.communicationService.createChannel = function(name)
+	-- correct parameters
+	name = name:gsub(" ", "")
+
 	-- create channel
 	local channel = AuroraFramework.internal.class(
 		"communicationChannel",
 
 		{
+			---@param self af_services_communication_channel
+			---@param data any
+			send = function(self, data)
+				AuroraFramework.services.communicationService.send(self, data)
+			end,
 
+			---@param self af_services_communication_channel
+			---@param callback function
+			listen = function(self, callback)
+				AuroraFramework.services.communicationService.listen(self, callback)
+			end,
+
+			---@param self af_services_communication_channel
+			remove = function(self)
+				AuroraFramework.services.communicationService.removeChannel(self.properties.name)
+			end
 		},
 
 		{
-			name:gsub(" ", "")
+			name = name
 		},
 
 		{
-			message = AuroraFramework.libraries.events.create("auroraFramework_onCommunicationMessage")
-		}
+			message = AuroraFramework.libraries.events.create("auroraFramework_communicationService_onMessage_"..name)
+		},
+
+		AuroraFramework.services.communicationService.channels,
+		name
 	)
+
+	return channel
 end
 
+-- Get a channel by its name
+---@param name string
+---@return af_services_communication_channel
+AuroraFramework.services.communicationService.getChannel = function(name)
+	return AuroraFramework.services.communicationService.channels[name]
+end
+
+-- Remove a channel
+---@param name string
+AuroraFramework.services.communicationService.removeChannel = function(name)
+	AuroraFramework.services.communicationService.channels[name] = nil
+end
+
+-- Send a message to other addons on a specific channel
 ---@param channel af_services_communication_channel
----@param data table
+---@param data any
 AuroraFramework.services.communicationService.send = function(channel, data)
-	-- quick check
-	if type(data) ~= "table" then
-		return
-	end
+	-- encode data (probably hurts performance especially with larger tables)
+	local encodedData = AuroraFramework.services.communicationService.internal.encode(data)
 
-	-- send over data (probably hurts performance especially with larger tables)
-	local encodedData = AuroraFramework.services.HTTPService.JSON.encode(data)
-	encodedData = AuroraFramework.services.HTTPService.Base64.encode(encodedData)
+	-- send over to addons that are listening on this channel
+	local command = ("?%s %s %s"):format(
+		AuroraFramework.services.communicationService.internal.communicationIndicatorName,
+		channel.properties.name,
+		encodedData
+	)
 
-	server.command() -- can't use command service here
+	server.command(command) -- can't use command service here
+end
+
+-- Listen for messages from other addons on a specific channel
+---@param channel af_services_communication_channel
+---@param callback function
+AuroraFramework.services.communicationService.listen = function(channel, callback)
+	-- attach function to channel's reply event
+	channel.events.message:connect(callback)
 end
 
 ---------------- TPS
