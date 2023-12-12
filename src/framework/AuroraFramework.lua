@@ -13,7 +13,7 @@
 --// Framework \\--
 --------------------------------------------------------------------------------
 AuroraFramework = {
-	---@type table<string, af_game_callbacks_callback>
+	---@type table<string, af_callbacks_callback>
 	callbacks = {},
 
 	attributes = {},
@@ -395,34 +395,45 @@ AuroraFramework.libraries.events = {
 -- Create an event
 ---@param name string
 AuroraFramework.libraries.events.create = function(name)
-	AuroraFramework.libraries.events.createdEvents[name] = {
-		name = name,
-		connections = {},
+	local event = AuroraFramework.internal.class(
+		"event",
 
-		---@param self af_libs_event_event
-		fire = function(self, ...)
-			for i, v in pairs(self.connections) do
-				v(...)
+		{
+			---@param self af_libs_event_event
+			fire = function(self, ...)
+				for i, v in pairs(self.properties.connections) do
+					v(...)
+				end
+			end,
+
+			---@param self af_libs_event_event
+			clear = function(self)
+				self.properties.connections = {}
+			end,
+
+			---@param self af_libs_event_event
+			remove = function(self)
+				return AuroraFramework.libraries.events.remove(self.properties.name)
+			end,
+
+			---@param self af_libs_event_event
+			---@param toConnect function
+			connect = function(self, toConnect)
+				table.insert(self.properties.connections, toConnect)
 			end
-		end,
+		},
 
-		---@param self af_libs_event_event
-		clear = function(self)
-			self.connections = {}
-		end,
+		{
+			name = name,
+			connections = {}
+		},
 
-		---@param self af_libs_event_event
-		remove = function(self)
-			return AuroraFramework.libraries.events.remove(self.name)
-		end,
+		nil,
 
-		---@param self af_libs_event_event
-		connect = function(self, toConnect)
-			table.insert(self.connections, toConnect)
-		end
-	}
+		AuroraFramework.libraries.events.createdEvents,
+		name
+	)
 
-	local event = AuroraFramework.libraries.events.createdEvents[name]
 	return event
 end
 
@@ -583,6 +594,55 @@ end
 --------------------------------------------------------------------------------
 --// Services \\--
 --------------------------------------------------------------------------------
+---------------- Addon Communication
+AuroraFramework.services.communicationService = {
+	initialize = function()
+
+	end,
+
+	---@type table<string, af_libs_communication_channel>
+	channels = {},
+
+	internal = {
+		communicationIndicatorName = "auroraframework_addoncommunication"
+	}
+}
+
+---@param name string
+AuroraFramework.services.communicationService.createChannel = function(name)
+	-- create channel
+	local channel = AuroraFramework.internal.class(
+		"communicationChannel",
+
+		{
+
+		},
+
+		{
+			name:gsub(" ", "")
+		},
+
+		{
+			message = AuroraFramework.libraries.events.create("auroraFramework_onCommunicationMessage")
+		}
+	)
+end
+
+---@param channel af_services_communication_channel
+---@param data table
+AuroraFramework.services.communicationService.send = function(channel, data)
+	-- quick check
+	if type(data) ~= "table" then
+		return
+	end
+
+	-- send over data (probably hurts performance especially with larger tables)
+	local encodedData = AuroraFramework.services.HTTPService.JSON.encode(data)
+	encodedData = AuroraFramework.services.HTTPService.Base64.encode(encodedData)
+
+	server.command() -- can't use command service here
+end
+
 ---------------- TPS
 AuroraFramework.services.TPSService = {
 	initialize = function()
@@ -1614,7 +1674,7 @@ AuroraFramework.services.HTTPService.request = function(port, url, callback)
 
 	---@type af_services_http_request
 	local httpRequest = AuroraFramework.internal.class(
-		"httpRequest",
+		"HTTPRequest",
 
 		{
 			---@param self af_services_http_request
@@ -1818,7 +1878,7 @@ AuroraFramework.services.HTTPService.JSON.parse_num_val = function(str, pos)
 end
 
 -- Encode a Lua object into a JSON string
----@param obj any The thing to encode
+---@param obj any The data to encode
 ---@param as_key boolean|nil
 ---@return string|nil
 AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key)
