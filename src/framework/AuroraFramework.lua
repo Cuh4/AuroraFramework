@@ -598,7 +598,14 @@ end
 AuroraFramework.services.communicationService = {
 	initialize = function()
 		-- listen for messages
+		---@param peer_id integer
+		---@param indicator string
+		---@param channelName string
+		---@param data string
 		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, data)
+			-- remove sw command indicator from communication indicator
+			indicator = indicator:sub(2)
+
 			-- check if the message was sent by an addon
 			if peer_id ~= -1 then
 				return
@@ -2289,7 +2296,7 @@ AuroraFramework.services.commandService = {
 			end
 
 			local args = {...}
-			command = command:sub(2, -1)
+			command = command:sub(2)
 
 			-- go through all commands
 			for _, cmd in pairs(AuroraFramework.services.commandService.commands) do
