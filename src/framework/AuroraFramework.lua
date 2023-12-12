@@ -13,9 +13,13 @@
 --// Framework \\--
 --------------------------------------------------------------------------------
 AuroraFramework = {
-	game = {},
+	---@type table<string, af_game_callbacks_callback>
+	callbacks = {},
+
+	attributes = {},
 	libraries = {},
-	services = {}
+	services = {},
+	internal = {}
 }
 
 local function setupSaveData()
@@ -27,8 +31,6 @@ setupSaveData() -- to allow addon to setup g_savedata first
 --------------------------------------------------------------------------------
 --// Internal \\--
 --------------------------------------------------------------------------------
-AuroraFramework.internal = {}
-
 -- Create a class
 ---@param name string
 ---@param methods table|nil
@@ -83,7 +85,7 @@ AuroraFramework.internal.remove = function(index)
 	g_savedata.AuroraFramework[index] = nil
 end
 
--- Get a value from AuroraFramework.AuroraFramework
+-- Get a value from g_savedata.AuroraFramework
 ---@param index string
 AuroraFramework.internal.get = function(index)
 	if not g_savedata.AuroraFramework then
@@ -92,6 +94,14 @@ AuroraFramework.internal.get = function(index)
 
 	return g_savedata.AuroraFramework[index]
 end
+
+--------------------------------------------------------------------------------
+--// Attributes \\--
+--------------------------------------------------------------------------------
+AuroraFramework.attributes.WeaponsEnabled = server.dlcWeapons()
+AuroraFramework.attributes.AridEnabled = server.dlcArid()
+AuroraFramework.attributes.SpaceEnabled = server.dlcSpace()
+AuroraFramework.attributes.AddonIndex = (server.getAddonIndex())
 
 --------------------------------------------------------------------------------
 --// Libraries \\--
@@ -428,7 +438,7 @@ AuroraFramework.libraries.events.remove = function(name)
 	AuroraFramework.libraries.events.createdEvents[name] = nil
 end
 
----------------- Loops and Delays
+---------------- Timer
 local af_timerID = 0
 
 AuroraFramework.libraries.timer = {
@@ -454,7 +464,7 @@ AuroraFramework.libraries.timer.loop.create = function(duration, callback)
 	---@type af_libs_timer_loop
 	local loop = AuroraFramework.internal.class(
 		"loop",
-		
+
 		{
 			---@param self af_libs_timer_loop
 			remove = function(self)
@@ -549,7 +559,7 @@ end
 
 -- Handler
 AuroraFramework.libraries.timer.handler = function()
-	AuroraFramework.game.callbacks.onTick.internal:connect(function()
+	AuroraFramework.callbacks.onTick.internal:connect(function()
 		local current = server.getTimeMillisec()
 
 		-- Handle loops
@@ -571,13 +581,14 @@ AuroraFramework.libraries.timer.handler = function()
 end
 
 --------------------------------------------------------------------------------
---// TPS \\--
+--// Services \\--
 --------------------------------------------------------------------------------
+---------------- TPS
 AuroraFramework.services.TPSService = {
 	initialize = function()
 		local previous = server.getTimeMillisec()
 
-		AuroraFramework.game.callbacks.onTick.internal:connect(function()
+		AuroraFramework.callbacks.onTick.internal:connect(function()
 			-- calculate tps
 			local now = server.getTimeMillisec()
 			local tps = 1000 / (now - previous)
@@ -617,13 +628,11 @@ AuroraFramework.services.TPSService.getTPSData = function()
 	return AuroraFramework.services.TPSService.tpsData
 end
 
---------------------------------------------------------------------------------
---// Groups \\--
---------------------------------------------------------------------------------
+---------------- Groups
 AuroraFramework.services.groupService = {
 	initialize = function()
 		-- Give group data whenever a group is spawned
-		AuroraFramework.game.callbacks.onGroupSpawn.internal:connect(function(...)
+		AuroraFramework.callbacks.onGroupSpawn.internal:connect(function(...)
 			-- give group data
 			local data = AuroraFramework.services.groupService.internal.giveGroupData(...)
 
@@ -686,7 +695,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	if AuroraFramework.services.groupService.getGroup(group_id) then
 		return
 	end
-	
+
 	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
 
@@ -761,7 +770,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	group.properties.vehicles = vehicles
 	group.properties.primaryVehicle = AuroraFramework.services.groupService.internal.calculatePrimaryVehicle(group)
 	group.properties.primaryVehicle.properties.isPrimaryVehicle = true
-	
+
 	-- parent group to groups in groupservice, then return group
 	AuroraFramework.services.groupService.groups[group_id] = group
 	return group
@@ -805,7 +814,7 @@ end
 AuroraFramework.services.groupService.spawnGroup = function(position, playlist_id, addonIndex)
 	-- spawn the group
 	local group_id, successful = server.spawnAddonVehicle(position, addonIndex or server.getAddonIndex(), playlist_id)
-	
+
 	if not successful then
 		return
 	end
@@ -894,13 +903,11 @@ AuroraFramework.services.groupService.despawnGroup = function(group_id)
 	AuroraFramework.services.groupService.internal.removeGroupData(group_id)
 end
 
---------------------------------------------------------------------------------
---// Vehicles \\--
---------------------------------------------------------------------------------
+---------------- Vehicles
 AuroraFramework.services.vehicleService = {
 	initialize = function()
 		-- Give vehicle data whenever a vehicle is spawned
-		AuroraFramework.game.callbacks.onVehicleSpawn.internal:connect(function(...)
+		AuroraFramework.callbacks.onVehicleSpawn.internal:connect(function(...)
 			-- give vehicle data
 			local vehicle = AuroraFramework.services.vehicleService.internal.giveVehicleData(...)
 
@@ -913,7 +920,7 @@ AuroraFramework.services.vehicleService = {
 		end)
 
 		-- Update vehicle data on load
-		AuroraFramework.game.callbacks.onVehicleLoad.internal:connect(function(vehicle_id)
+		AuroraFramework.callbacks.onVehicleLoad.internal:connect(function(vehicle_id)
 			-- set vehicle loaded
 			local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
@@ -928,7 +935,7 @@ AuroraFramework.services.vehicleService = {
 		end)
 
 		-- Remove vehicle data whenever a vehicle is despawned
-		AuroraFramework.game.callbacks.onVehicleDespawn.internal:connect(function(vehicle_id)
+		AuroraFramework.callbacks.onVehicleDespawn.internal:connect(function(vehicle_id)
 			AuroraFramework.libraries.timer.delay.create(0.05, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away
 				-- fire events
 				local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
@@ -989,7 +996,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			---@param magnitude number|nil
 			---@param despawn boolean|nil
 			explode = function(self, magnitude, despawn)
-				if server.dlcWeapons() then
+				if AuroraFramework.attributes.WeaponsEnabled then
 					server.spawnExplosion(self:getPosition(), magnitude or 0.1)
 				end
 
@@ -999,7 +1006,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 
 				self:despawn()
 			end,
-			
+
 			---@param self af_services_vehicle_vehicle
     		---@param position SWMatrix
 			move = function(self, position)
@@ -1147,9 +1154,7 @@ AuroraFramework.services.vehicleService.despawnVehicle = function(vehicle_id)
 	server.despawnVehicle(vehicle_id, true)
 end
 
---------------------------------------------------------------------------------
---// Notification \\--
---------------------------------------------------------------------------------
+---------------- Notifications
 AuroraFramework.services.notificationService = {
 	notificationTypes = {
 		newMission = 0,
@@ -1233,13 +1238,11 @@ AuroraFramework.services.notificationService.custom = function(title, message, n
 	)
 end
 
---------------------------------------------------------------------------------
---// Players \\--
---------------------------------------------------------------------------------
+---------------- Players
 AuroraFramework.services.playerService = {
 	initialize = function()
 		-- Give player data whenever a player joins
-		AuroraFramework.game.callbacks.onPlayerJoin.internal:connect(function(...)
+		AuroraFramework.callbacks.onPlayerJoin.internal:connect(function(...)
 			-- give data and fire join event
 			local player = AuroraFramework.services.playerService.internal.givePlayerData(...)
 
@@ -1251,7 +1254,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Remove player data whenever a player leaves
-		AuroraFramework.game.callbacks.onPlayerLeave.internal:connect(function(_, _, peer_id)
+		AuroraFramework.callbacks.onPlayerLeave.internal:connect(function(_, _, peer_id)
 			-- fire leave event
 			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
@@ -1266,7 +1269,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Die event
-		AuroraFramework.game.callbacks.onPlayerDie.internal:connect(function(_, _, peer_id)
+		AuroraFramework.callbacks.onPlayerDie.internal:connect(function(_, _, peer_id)
 			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
 			if not player then
@@ -1277,7 +1280,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Respawn event
-		AuroraFramework.game.callbacks.onPlayerRespawn.internal:connect(function(peer_id)
+		AuroraFramework.callbacks.onPlayerRespawn.internal:connect(function(peer_id)
 			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
 			if not player then
@@ -1288,7 +1291,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Character load event
-		AuroraFramework.game.callbacks.onObjectLoad.internal:connect(function(object_id)
+		AuroraFramework.callbacks.onObjectLoad.internal:connect(function(object_id)
 			local player = AuroraFramework.services.playerService.getPlayerByObjectID(object_id)
 
 			if not player then
@@ -1302,8 +1305,8 @@ AuroraFramework.services.playerService = {
 		AuroraFramework.libraries.timer.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
 			-- Activate player join events
 			for _, v in pairs(server.getPlayers()) do
-				AuroraFramework.game.callbacks.onPlayerJoin.main:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
-				AuroraFramework.game.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
+				AuroraFramework.callbacks.onPlayerJoin.main:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
+				AuroraFramework.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
 			end
 
 			-- Activate character load events
@@ -1313,7 +1316,7 @@ AuroraFramework.services.playerService = {
 			end
 
 			-- Update player data
-			AuroraFramework.game.callbacks.onTick.internal:connect(function()
+			AuroraFramework.callbacks.onTick.internal:connect(function()
 				for _, player in pairs(server.getPlayers()) do
 					if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
 						goto continue
@@ -1357,10 +1360,12 @@ AuroraFramework.services.playerService = {
 ---@param auth boolean
 ---@return af_services_player_player
 AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
+	-- check if the player is the server itself in a dedicated server
 	if tonumber(steam_id) == 0 and AuroraFramework.services.playerService.isDedicatedServer then
 		return
 	end
 
+	-- create player class
 	---@type af_services_player_player
 	local player = AuroraFramework.internal.class(
 		"player",
@@ -1375,66 +1380,66 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			setItem = function(self, slot, to, active, int, float)
 				server.setCharacterItem(self:getCharacter(), slot, to, active or false, int or 0, float) ---@diagnostic disable-line
 			end,
-	
+
 			---@param self af_services_player_player
     		---@param slot SWSlotNumberEnum
 			removeItem = function(self, slot)
 				server.setCharacterItem(self:getCharacter(), slot, 0, false)
 			end,
-	
+
 			---@param self af_services_player_player
     		---@param slot SWSlotNumberEnum
 			getItem = function(self, slot)
 				return server.getCharacterItem(self:getCharacter(), slot) ---@diagnostic disable-line
 			end,
-	
+
 			---@param self af_services_player_player
 			kick = function(self)
 				server.kickPlayer(self.properties.peer_id)
 			end,
-	
+
 			---@param self af_services_player_player
 			ban = function(self)
 				server.banPlayer(self.properties.peer_id)
 			end,
-	
+
 			---@param self af_services_player_player
 			---@param position SWMatrix
 			teleport = function(self, position)
 				server.setPlayerPos(self.properties.peer_id, position)
 			end,
-	
+
 			---@param self af_services_player_player
 			getPosition = function(self)
 				return (server.getPlayerPos(self.properties.peer_id)) -- in brackets to only get pos, not success
 			end,
-	
+
 			---@param self af_services_player_player
 			getCharacter = function(self)
 				return (server.getPlayerCharacterID(self.properties.peer_id))
 			end,
-	
+
 			---@param self af_services_player_player
 			---@param damageToDeal number
 			damage = function(self, damageToDeal)
 				local character = self:getCharacter()
 				local data = server.getCharacterData(character)
-	
+
 				if not data then
 					return
 				end
-	
+
 				return server.setCharacterData(character, data.hp - damageToDeal, data.interactible, data.ai)
 			end,
-	
+
 			---@param self af_services_player_player
 			kill = function(self)
 				local character = self:getCharacter()
-	
+
 				if not character then
 					return
 				end
-	
+
 				server.killCharacter(character)
 			end,
 
@@ -1448,7 +1453,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 				server.reviveCharacter(character)
 			end,
-	
+
 			---@param self af_services_player_player
 			---@param shouldGive boolean
 			setAdmin = function(selfshouldGive, give)
@@ -1458,7 +1463,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 					server.removeAdmin(self.properties.peer_id)
 				end
 			end,
-	
+
 			---@param self af_services_player_player
 			---@param shouldGive boolean
 			setAuth = function(self, shouldGive)
@@ -1569,12 +1574,10 @@ AuroraFramework.services.playerService.getPlayerByName = function(name)
 	end
 end
 
---------------------------------------------------------------------------------
---// HTTP \\--
---------------------------------------------------------------------------------
+---------------- HTTP
 AuroraFramework.services.HTTPService = {
 	initialize = function()
-		AuroraFramework.game.callbacks.httpReply.internal:connect(function(port, url, reply)
+		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
 			local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
 
 			if data then
@@ -1586,6 +1589,9 @@ AuroraFramework.services.HTTPService = {
 
 	---@type table<string, af_services_http_request>
 	ongoingRequests = {},
+
+	JSON = {}, -- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
+	Base64 = {}, -- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
 
 	internal = {}
 }
@@ -1725,12 +1731,6 @@ AuroraFramework.services.HTTPService.cancel = function(port, url)
 	AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url] = nil
 end
 
--- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
--- Useful for encoding strings (eg: JSON strings) in a URL.
-AuroraFramework.services.HTTPService.Base64 = {
-	conversion = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-}
-
 -- Convert a string to a Base64 String
 ---@param data string
 ---@return string
@@ -1765,11 +1765,6 @@ AuroraFramework.services.HTTPService.Base64.decode = function(data)
 	end))
 end
 
--- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
--- Encode Lua objects into strings, and decode strings into Lua objects. Handy for transferring/receiving data via HTTP URLs and responses.
-AuroraFramework.services.HTTPService.JSON = {}
-
--- Internal
 AuroraFramework.services.HTTPService.JSON.kind_of = function(obj)
 	if type(obj) ~= "table" then return type(obj) end
 	local i = 1
@@ -1787,7 +1782,6 @@ AuroraFramework.services.HTTPService.JSON.kind_of = function(obj)
 	end
 end
 
--- Internal
 AuroraFramework.services.HTTPService.JSON.escape_str = function(s)
 	local in_char = { '\\', '"', '/', '\b', '\f', '\n', '\r', '\t' }
 	local out_char = { '\\', '"', '/', 'b', 'f', 'n', 'r', 't' }
@@ -1795,7 +1789,6 @@ AuroraFramework.services.HTTPService.JSON.escape_str = function(s)
 	return s
 end
 
--- Internal
 AuroraFramework.services.HTTPService.JSON.skip_delim = function(str, pos, delim)
 	pos = pos + #str:match('^%s*', pos)
 	if str:sub(pos, pos) ~= delim then
@@ -1804,7 +1797,6 @@ AuroraFramework.services.HTTPService.JSON.skip_delim = function(str, pos, delim)
 	return pos + 1, true
 end
 
--- Internal
 AuroraFramework.services.HTTPService.JSON.parse_str_val = function(str, pos, val)
 	val = val or ''
 	if pos > #str then return end
@@ -1818,7 +1810,6 @@ AuroraFramework.services.HTTPService.JSON.parse_str_val = function(str, pos, val
 	return AuroraFramework.services.HTTPService.JSON.parse_str_val(str, pos + 2, val .. (esc_map[nextc] or nextc))
 end
 
--- Internal
 AuroraFramework.services.HTTPService.JSON.parse_num_val = function(str, pos)
 	local num_str = str:match('^-?%d+%.?%d*[eE]?[+-]?%d*', pos)
 	local val = tonumber(num_str)
@@ -1882,7 +1873,7 @@ end
 ---@param str string
 ---@param pos number|nil
 ---@param end_delim string|nil
----@return any|nil, number|nil decodedResult nil = failed
+---@return any|nil decodedResult, number|nil nil = failed
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 
@@ -1945,12 +1936,10 @@ AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	end
 end
 
---------------------------------------------------------------------------------
---// Messages \\--
---------------------------------------------------------------------------------
+---------------- Chat
 AuroraFramework.services.chatService = {
 	initialize = function()
-		AuroraFramework.game.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
+		AuroraFramework.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
 			AuroraFramework.libraries.timer.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
 				-- get player
 				local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
@@ -2131,13 +2120,11 @@ AuroraFramework.services.chatService.clear = function(player)
 	end
 end
 
---------------------------------------------------------------------------------
---// Commands \\--
---------------------------------------------------------------------------------
+---------------- Commands
 AuroraFramework.services.commandService = {
 	initialize = function()
 		-- handle commands
-		AuroraFramework.game.callbacks.onCustomCommand.internal:connect(function(message, peer_id, admin, auth, command, ...)
+		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(message, peer_id, admin, auth, command, ...)
 			-- get variables n stuff
 			local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
@@ -2287,9 +2274,7 @@ AuroraFramework.services.commandService.remove = function(name)
 	AuroraFramework.services.commandService.commands[name] = nil
 end
 
---------------------------------------------------------------------------------
---// UI \\--
---------------------------------------------------------------------------------
+---------------- UI
 AuroraFramework.services.UIService = {
 	initialize = function()
 		-- show ui on join
@@ -2671,515 +2656,514 @@ AuroraFramework.services.UIService.removeMapObject = function(id)
 end
 
 --------------------------------------------------------------------------------
---// Callbacks \\--
+--// Game \\--
 --------------------------------------------------------------------------------
----@type table<string, af_game_callbacks_callback>
-AuroraFramework.game.callbacks = {}
 
-AuroraFramework.game.callbacks.onTick = {
+---------------- Callbacks
+AuroraFramework.callbacks.onTick = {
 	internal = AuroraFramework.libraries.events.create("callback_onTick_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onTick_addon")
 }
 
 function onTick(...)
-	AuroraFramework.game.callbacks.onTick.internal:fire(...)
-	AuroraFramework.game.callbacks.onTick.main:fire(...)
+	AuroraFramework.callbacks.onTick.internal:fire(...)
+	AuroraFramework.callbacks.onTick.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCreate = {
+AuroraFramework.callbacks.onCreate = {
 	internal = AuroraFramework.libraries.events.create("callback_onCreate_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCreate_addon")
 }
 
 function onCreate(...)
-	AuroraFramework.game.callbacks.onCreate.internal:fire(...)
-	AuroraFramework.game.callbacks.onCreate.main:fire(...)
+	AuroraFramework.callbacks.onCreate.internal:fire(...)
+	AuroraFramework.callbacks.onCreate.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onDestroy = {
+AuroraFramework.callbacks.onDestroy = {
 	internal = AuroraFramework.libraries.events.create("callback_onDestroy_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onDestroy_addon")
 }
 
 function onDestroy(...)
-	AuroraFramework.game.callbacks.onDestroy.internal:fire(...)
-	AuroraFramework.game.callbacks.onDestroy.main:fire(...)
+	AuroraFramework.callbacks.onDestroy.internal:fire(...)
+	AuroraFramework.callbacks.onDestroy.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCustomCommand = {
+AuroraFramework.callbacks.onCustomCommand = {
 	internal = AuroraFramework.libraries.events.create("callback_onCustomCommand_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCustomCommand_addon")
 }
 
 function onCustomCommand(...)
-	AuroraFramework.game.callbacks.onCustomCommand.internal:fire(...)
-	AuroraFramework.game.callbacks.onCustomCommand.main:fire(...)
+	AuroraFramework.callbacks.onCustomCommand.internal:fire(...)
+	AuroraFramework.callbacks.onCustomCommand.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onChatMessage = {
+AuroraFramework.callbacks.onChatMessage = {
 	internal = AuroraFramework.libraries.events.create("callback_onChatMessage_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onChatMessage_addon")
 }
 
 function onChatMessage(...)
-	AuroraFramework.game.callbacks.onChatMessage.internal:fire(...)
-	AuroraFramework.game.callbacks.onChatMessage.main:fire(...)
+	AuroraFramework.callbacks.onChatMessage.internal:fire(...)
+	AuroraFramework.callbacks.onChatMessage.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerJoin = {
+AuroraFramework.callbacks.onPlayerJoin = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerJoin_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerJoin_addon")
 }
 
 function onPlayerJoin(...)
-	AuroraFramework.game.callbacks.onPlayerJoin.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerJoin.main:fire(...)
+	AuroraFramework.callbacks.onPlayerJoin.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerJoin.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerSit = {
+AuroraFramework.callbacks.onPlayerSit = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerSit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerSit_addon")
 }
 
 function onPlayerSit(...)
-	AuroraFramework.game.callbacks.onPlayerSit.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerSit.main:fire(...)
+	AuroraFramework.callbacks.onPlayerSit.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerSit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerUnsit = {
+AuroraFramework.callbacks.onPlayerUnsit = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerUnsit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerUnsit_addon")
 }
 
 function onPlayerUnsit(...)
-	AuroraFramework.game.callbacks.onPlayerUnsit.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerUnsit.main:fire(...)
+	AuroraFramework.callbacks.onPlayerUnsit.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerUnsit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCharacterSit = {
+AuroraFramework.callbacks.onCharacterSit = {
 	internal = AuroraFramework.libraries.events.create("callback_onCharacterSit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCharacterSit_addon")
 }
 
 function onCharacterSit(...)
-	AuroraFramework.game.callbacks.onCharacterSit.internal:fire(...)
-	AuroraFramework.game.callbacks.onCharacterSit.main:fire(...)
+	AuroraFramework.callbacks.onCharacterSit.internal:fire(...)
+	AuroraFramework.callbacks.onCharacterSit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCharacterUnsit = {
+AuroraFramework.callbacks.onCharacterUnsit = {
 	internal = AuroraFramework.libraries.events.create("callback_onCharacterUnsit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCharacterUnsit_addon")
 }
 
 function onCharacterUnsit(...)
-	AuroraFramework.game.callbacks.onCharacterUnsit.internal:fire(...)
-	AuroraFramework.game.callbacks.onCharacterUnsit.main:fire(...)
+	AuroraFramework.callbacks.onCharacterUnsit.internal:fire(...)
+	AuroraFramework.callbacks.onCharacterUnsit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCharacterPickup = {
+AuroraFramework.callbacks.onCharacterPickup = {
 	internal = AuroraFramework.libraries.events.create("callback_onCharacterPickup_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCharacterPickup_addon")
 }
 
 function onCharacterPickup(...)
-	AuroraFramework.game.callbacks.onCharacterPickup.internal:fire(...)
-	AuroraFramework.game.callbacks.onCharacterPickup.main:fire(...)
+	AuroraFramework.callbacks.onCharacterPickup.internal:fire(...)
+	AuroraFramework.callbacks.onCharacterPickup.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onEquipmentPickup = {
+AuroraFramework.callbacks.onEquipmentPickup = {
 	internal = AuroraFramework.libraries.events.create("callback_onEquipmentPickup_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onEquipmentPickup_addon")
 }
 
 function onEquipmentPickup(...)
-	AuroraFramework.game.callbacks.onEquipmentPickup.internal:fire(...)
-	AuroraFramework.game.callbacks.onEquipmentPickup.main:fire(...)
+	AuroraFramework.callbacks.onEquipmentPickup.internal:fire(...)
+	AuroraFramework.callbacks.onEquipmentPickup.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onEquipmentDrop = {
+AuroraFramework.callbacks.onEquipmentDrop = {
 	internal = AuroraFramework.libraries.events.create("callback_onEquipmentDrop_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onEquipmentDrop_addon")
 }
 
 function onEquipmentDrop(...)
-	AuroraFramework.game.callbacks.onEquipmentDrop.internal:fire(...)
-	AuroraFramework.game.callbacks.onEquipmentDrop.main:fire(...)
+	AuroraFramework.callbacks.onEquipmentDrop.internal:fire(...)
+	AuroraFramework.callbacks.onEquipmentDrop.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCharacterPickup = {
+AuroraFramework.callbacks.onCharacterPickup = {
 	internal = AuroraFramework.libraries.events.create("callback_onCharacterPickup_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCharacterPickup_addon")
 }
 
 function onCharacterPickup(...)
-	AuroraFramework.game.callbacks.onCharacterPickup.internal:fire(...)
-	AuroraFramework.game.callbacks.onCharacterPickup.main:fire(...)
+	AuroraFramework.callbacks.onCharacterPickup.internal:fire(...)
+	AuroraFramework.callbacks.onCharacterPickup.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerRespawn = {
+AuroraFramework.callbacks.onPlayerRespawn = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerRespawn_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerRespawn_addon")
 }
 
 function onPlayerRespawn(...)
-	AuroraFramework.game.callbacks.onPlayerRespawn.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerRespawn.main:fire(...)
+	AuroraFramework.callbacks.onPlayerRespawn.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerRespawn.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerLeave = {
+AuroraFramework.callbacks.onPlayerLeave = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerLeave_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerLeave_addon")
 }
 
 function onPlayerLeave(...)
-	AuroraFramework.game.callbacks.onPlayerLeave.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerLeave.main:fire(...)
+	AuroraFramework.callbacks.onPlayerLeave.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerLeave.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onToggleMap = {
+AuroraFramework.callbacks.onToggleMap = {
 	internal = AuroraFramework.libraries.events.create("callback_onToggleMap_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onToggleMap_addon")
 }
 
 function onToggleMap(...)
-	AuroraFramework.game.callbacks.onToggleMap.internal:fire(...)
-	AuroraFramework.game.callbacks.onToggleMap.main:fire(...)
+	AuroraFramework.callbacks.onToggleMap.internal:fire(...)
+	AuroraFramework.callbacks.onToggleMap.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onPlayerDie = {
+AuroraFramework.callbacks.onPlayerDie = {
 	internal = AuroraFramework.libraries.events.create("callback_onPlayerDie_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onPlayerDie_addon")
 }
 
 function onPlayerDie(...)
-	AuroraFramework.game.callbacks.onPlayerDie.internal:fire(...)
-	AuroraFramework.game.callbacks.onPlayerDie.main:fire(...)
+	AuroraFramework.callbacks.onPlayerDie.internal:fire(...)
+	AuroraFramework.callbacks.onPlayerDie.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleSpawn = {
+AuroraFramework.callbacks.onVehicleSpawn = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleSpawn_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleSpawn_addon")
 }
 
 function onVehicleSpawn(...)
-	AuroraFramework.game.callbacks.onVehicleSpawn.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleSpawn.main:fire(...)
+	AuroraFramework.callbacks.onVehicleSpawn.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleSpawn.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onGroupSpawn = {
+AuroraFramework.callbacks.onGroupSpawn = {
 	internal = AuroraFramework.libraries.events.create("callback_onGroupSpawn_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onGroupSpawn_addon")
 }
 
 function onGroupSpawn(...)
-	AuroraFramework.game.callbacks.onGroupSpawn.internal:fire(...)
-	AuroraFramework.game.callbacks.onGroupSpawn.main:fire(...)
+	AuroraFramework.callbacks.onGroupSpawn.internal:fire(...)
+	AuroraFramework.callbacks.onGroupSpawn.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleDespawn = {
+AuroraFramework.callbacks.onVehicleDespawn = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_addon")
 }
 
 function onVehicleDespawn(...)
-	AuroraFramework.game.callbacks.onVehicleDespawn.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleDespawn.main:fire(...)
+	AuroraFramework.callbacks.onVehicleDespawn.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleDespawn.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleLoad = {
+AuroraFramework.callbacks.onVehicleLoad = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleLoad_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleLoad_addon")
 }
 
 function onVehicleLoad(...)
-	AuroraFramework.game.callbacks.onVehicleLoad.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleLoad.main:fire(...)
+	AuroraFramework.callbacks.onVehicleLoad.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleLoad.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleUnload = {
+AuroraFramework.callbacks.onVehicleUnload = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleUnload_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleUnload_addon")
 }
 
 function onVehicleUnload(...)
-	AuroraFramework.game.callbacks.onVehicleUnload.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleUnload.main:fire(...)
+	AuroraFramework.callbacks.onVehicleUnload.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleUnload.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleTeleport = {
+AuroraFramework.callbacks.onVehicleTeleport = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleTeleport_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleTeleport_addon")
 }
 
 function onVehicleTeleport(...)
-	AuroraFramework.game.callbacks.onVehicleTeleport.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleTeleport.main:fire(...)
+	AuroraFramework.callbacks.onVehicleTeleport.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleTeleport.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onObjectLoad = {
+AuroraFramework.callbacks.onObjectLoad = {
 	internal = AuroraFramework.libraries.events.create("callback_onObjectLoad_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onObjectLoad_addon")
 }
 
 function onObjectLoad(...)
-	AuroraFramework.game.callbacks.onObjectLoad.internal:fire(...)
-	AuroraFramework.game.callbacks.onObjectLoad.main:fire(...)
+	AuroraFramework.callbacks.onObjectLoad.internal:fire(...)
+	AuroraFramework.callbacks.onObjectLoad.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onObjectUnload = {
+AuroraFramework.callbacks.onObjectUnload = {
 	internal = AuroraFramework.libraries.events.create("callback_onObjectUnload_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onObjectUnload_addon")
 }
 
 function onObjectUnload(...)
-	AuroraFramework.game.callbacks.onObjectUnload.internal:fire(...)
-	AuroraFramework.game.callbacks.onObjectUnload.main:fire(...)
+	AuroraFramework.callbacks.onObjectUnload.internal:fire(...)
+	AuroraFramework.callbacks.onObjectUnload.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onButtonPress = {
+AuroraFramework.callbacks.onButtonPress = {
 	internal = AuroraFramework.libraries.events.create("callback_onButtonPress_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onButtonPress_addon")
 }
 
 function onButtonPress(...)
-	AuroraFramework.game.callbacks.onButtonPress.internal:fire(...)
-	AuroraFramework.game.callbacks.onButtonPress.main:fire(...)
+	AuroraFramework.callbacks.onButtonPress.internal:fire(...)
+	AuroraFramework.callbacks.onButtonPress.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCreatureSit = {
+AuroraFramework.callbacks.onCreatureSit = {
 	internal = AuroraFramework.libraries.events.create("callback_onCreatureSit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCreatureSit_addon")
 }
 
 function onCreatureSit(...)
-	AuroraFramework.game.callbacks.onCreatureSit.internal:fire(...)
-	AuroraFramework.game.callbacks.onCreatureSit.main:fire(...)
+	AuroraFramework.callbacks.onCreatureSit.internal:fire(...)
+	AuroraFramework.callbacks.onCreatureSit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCreatureUnsit = {
+AuroraFramework.callbacks.onCreatureUnsit = {
 	internal = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_addon")
 }
 
 function onCreatureUnsit(...)
-	AuroraFramework.game.callbacks.onCreatureUnsit.internal:fire(...)
-	AuroraFramework.game.callbacks.onCreatureUnsit.main:fire(...)
+	AuroraFramework.callbacks.onCreatureUnsit.internal:fire(...)
+	AuroraFramework.callbacks.onCreatureUnsit.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onCreaturePickup = {
+AuroraFramework.callbacks.onCreaturePickup = {
 	internal = AuroraFramework.libraries.events.create("callback_onCreaturePickup_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onCreaturePickup_addon")
 }
 
 function onCreaturePickup(...)
-	AuroraFramework.game.callbacks.onCreaturePickup.internal:fire(...)
-	AuroraFramework.game.callbacks.onCreaturePickup.main:fire(...)
+	AuroraFramework.callbacks.onCreaturePickup.internal:fire(...)
+	AuroraFramework.callbacks.onCreaturePickup.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onSpawnAddonComponent = {
+AuroraFramework.callbacks.onSpawnAddonComponent = {
 	internal = AuroraFramework.libraries.events.create("callback_onSpawnAddonComponent_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onSpawnAddonComponent_addon")
 }
 
 function onSpawnAddonComponent(...)
-	AuroraFramework.game.callbacks.onSpawnAddonComponent.internal:fire(...)
-	AuroraFramework.game.callbacks.onSpawnAddonComponent.main:fire(...)
+	AuroraFramework.callbacks.onSpawnAddonComponent.internal:fire(...)
+	AuroraFramework.callbacks.onSpawnAddonComponent.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVehicleDamaged = {
+AuroraFramework.callbacks.onVehicleDamaged = {
 	internal = AuroraFramework.libraries.events.create("callback_onVehicleDamaged_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVehicleDamaged_addon")
 }
 
 function onVehicleDamaged(...)
-	AuroraFramework.game.callbacks.onVehicleDamaged.internal:fire(...)
-	AuroraFramework.game.callbacks.onVehicleDamaged.main:fire(...)
+	AuroraFramework.callbacks.onVehicleDamaged.internal:fire(...)
+	AuroraFramework.callbacks.onVehicleDamaged.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.httpReply = {
+AuroraFramework.callbacks.httpReply = {
 	internal = AuroraFramework.libraries.events.create("callback_httpReply_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_httpReply_addon")
 }
 
 function httpReply(...)
-	AuroraFramework.game.callbacks.httpReply.internal:fire(...)
-	AuroraFramework.game.callbacks.httpReply.main:fire(...)
+	AuroraFramework.callbacks.httpReply.internal:fire(...)
+	AuroraFramework.callbacks.httpReply.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onFireExtinguished = {
+AuroraFramework.callbacks.onFireExtinguished = {
 	internal = AuroraFramework.libraries.events.create("callback_onFireExtinguished_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onFireExtinguished_addon")
 }
 
 function onFireExtinguished(...)
-	AuroraFramework.game.callbacks.onFireExtinguished.internal:fire(...)
-	AuroraFramework.game.callbacks.onFireExtinguished.main:fire(...)
+	AuroraFramework.callbacks.onFireExtinguished.internal:fire(...)
+	AuroraFramework.callbacks.onFireExtinguished.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onForestFireSpawned = {
+AuroraFramework.callbacks.onForestFireSpawned = {
 	internal = AuroraFramework.libraries.events.create("callback_onForestFireSpawned_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onForestFireSpawned_addon")
 }
 
 function onForestFireSpawned(...)
-	AuroraFramework.game.callbacks.onForestFireSpawned.internal:fire(...)
-	AuroraFramework.game.callbacks.onForestFireSpawned.main:fire(...)
+	AuroraFramework.callbacks.onForestFireSpawned.internal:fire(...)
+	AuroraFramework.callbacks.onForestFireSpawned.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onForestFireExtinguished = {
+AuroraFramework.callbacks.onForestFireExtinguished = {
 	internal = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_addon")
 }
 
 function onForestFireExtinguished(...)
-	AuroraFramework.game.callbacks.onForestFireExtinguished.internal:fire(...)
-	AuroraFramework.game.callbacks.onForestFireExtinguished.main:fire(...)
+	AuroraFramework.callbacks.onForestFireExtinguished.internal:fire(...)
+	AuroraFramework.callbacks.onForestFireExtinguished.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onTornado = {
+AuroraFramework.callbacks.onTornado = {
 	internal = AuroraFramework.libraries.events.create("callback_onTornado_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onTornado_addon")
 }
 
 function onTornado(...)
-	AuroraFramework.game.callbacks.onTornado.internal:fire(...)
-	AuroraFramework.game.callbacks.onTornado.main:fire(...)
+	AuroraFramework.callbacks.onTornado.internal:fire(...)
+	AuroraFramework.callbacks.onTornado.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onMeteor = {
+AuroraFramework.callbacks.onMeteor = {
 	internal = AuroraFramework.libraries.events.create("callback_onMeteor_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onMeteor_addon")
 }
 
 function onMeteor(...)
-	AuroraFramework.game.callbacks.onMeteor.internal:fire(...)
-	AuroraFramework.game.callbacks.onMeteor.main:fire(...)
+	AuroraFramework.callbacks.onMeteor.internal:fire(...)
+	AuroraFramework.callbacks.onMeteor.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onTsunami = {
+AuroraFramework.callbacks.onTsunami = {
 	internal = AuroraFramework.libraries.events.create("callback_onTsunami_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onTsunami_addon")
 }
 
 function onTsunami(...)
-	AuroraFramework.game.callbacks.onTsunami.internal:fire(...)
-	AuroraFramework.game.callbacks.onTsunami.main:fire(...)
+	AuroraFramework.callbacks.onTsunami.internal:fire(...)
+	AuroraFramework.callbacks.onTsunami.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onWhirlpool = {
+AuroraFramework.callbacks.onWhirlpool = {
 	internal = AuroraFramework.libraries.events.create("callback_onWhirlpool_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onWhirlpool_addon")
 }
 
 function onWhirlpool(...)
-	AuroraFramework.game.callbacks.onWhirlpool.internal:fire(...)
-	AuroraFramework.game.callbacks.onWhirlpool.main:fire(...)
+	AuroraFramework.callbacks.onWhirlpool.internal:fire(...)
+	AuroraFramework.callbacks.onWhirlpool.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onVolcano = {
+AuroraFramework.callbacks.onVolcano = {
 	internal = AuroraFramework.libraries.events.create("callback_onVolcano_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onVolcano_addon")
 }
 
 function onVolcano(...)
-	AuroraFramework.game.callbacks.onVolcano.internal:fire(...)
-	AuroraFramework.game.callbacks.onVolcano.main:fire(...)
+	AuroraFramework.callbacks.onVolcano.internal:fire(...)
+	AuroraFramework.callbacks.onVolcano.main:fire(...)
 end
 
 ----------------
 
-AuroraFramework.game.callbacks.onOilSpill = {
+AuroraFramework.callbacks.onOilSpill = {
 	internal = AuroraFramework.libraries.events.create("callback_onOilSpill_frameworkInternal"),
 	main = AuroraFramework.libraries.events.create("callback_onOilSpill_addon")
 }
 
 function onOilSpill(...)
-	AuroraFramework.game.callbacks.onOilSpill.internal:fire(...)
-	AuroraFramework.game.callbacks.onOilSpill.main:fire(...)
+	AuroraFramework.callbacks.onOilSpill.internal:fire(...)
+	AuroraFramework.callbacks.onOilSpill.main:fire(...)
 end
 
 --------------------------------------------------------------------------------
---// Inits \\--
+--// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Initialize services
 AuroraFramework.services.playerService.initialize()
