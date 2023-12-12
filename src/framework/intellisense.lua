@@ -335,7 +335,7 @@ _ = {
     ---@param self af_services_vehicle_vehicle
     despawn = function(self) end,
 
-    -- Explode this vehicle
+    -- Explode this vehicle. Requires Weapons DLC to be enabled, otherwise the vehicle will not be affected or will just despawn depending on the "despawn" parameter
     ---@param self af_services_vehicle_vehicle
     ---@param magnitude number|nil
     ---@param despawn boolean|nil
