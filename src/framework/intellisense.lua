@@ -608,3 +608,23 @@ _ = {
     ---@return number
     run = function(self, setPoint, processVariable) end
 }
+
+---@class af_libs_miscellaneous_profiler: af_internal_class
+_ = {
+    __name__ = "profiler",
+
+    properties = {
+        startTime = 0,
+        stopTime = 0,
+        difference = 0
+    },
+
+    -- Start the profiler
+    ---@param self af_libs_miscellaneous_profiler
+    start = function(self) end,
+
+    -- Stop the profiler, returning the time elapsed between time of start and time of stop
+    ---@param self af_libs_miscellaneous_profiler
+    ---@return number
+    stop = function(self) end
+}
