@@ -220,6 +220,38 @@ AuroraFramework.libraries.miscellaneous.pid = function(proportional, integral, d
 	return pid
 end
 
+-- Create a profiler
+---@return af_libs_miscellaneous_profiler
+AuroraFramework.libraries.miscellaneous.profiler = function()
+    ---@type af_libs_miscellaneous_profiler
+	local profiler = AuroraFramework.internal.class(
+		"profiler",
+
+		{
+			---@param self af_libs_miscellaneous_profiler
+			start = function(self)
+				self.startTime = server.getTimeMillisec()
+			end,
+
+			---@param self af_libs_miscellaneous_profiler
+			stop = function(self)
+				self.stopTime = server.getTimeMillisec()
+				self.difference = self.startTime - self.stopTime
+
+				return self.difference
+			end,
+		},
+
+		{
+			startTime = 0,
+			stopTime = 0,
+			difference = 0
+		}
+	)
+
+	return profiler
+end
+
 -- Clamp a number between min and max
 ---@param num number
 ---@param min number
@@ -250,7 +282,7 @@ end
 -- Get the index of a value in a table
 ---@param tbl table
 ---@param value any
----@return any|nil
+---@return any
 AuroraFramework.libraries.miscellaneous.getIndexOfValueInTable = function(tbl, value)
 	for i, v in pairs(tbl) do
 		if v == value then
@@ -395,6 +427,7 @@ AuroraFramework.libraries.events = {
 -- Create an event
 ---@param name string
 AuroraFramework.libraries.events.create = function(name)
+	---@type af_libs_event_event
 	local event = AuroraFramework.internal.class(
 		"event",
 
@@ -664,6 +697,7 @@ AuroraFramework.services.communicationService.createChannel = function(name)
 	name = name:gsub(" ", "")
 
 	-- create channel
+	---@type af_services_communication_channel
 	local channel = AuroraFramework.internal.class(
 		"communicationChannel",
 
@@ -1092,7 +1126,7 @@ AuroraFramework.services.vehicleService = {
 
 		-- Remove vehicle data whenever a vehicle is despawned
 		AuroraFramework.callbacks.onVehicleDespawn.internal:connect(function(vehicle_id)
-			AuroraFramework.libraries.timer.delay.create(0.05, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away
+			AuroraFramework.libraries.timer.delay.create(0, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away, hence the delay
 				-- fire events
 				local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
