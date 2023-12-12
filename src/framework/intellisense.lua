@@ -4,10 +4,10 @@
 ---@diagnostic disable missing-return
 
 -------------------------------------------------
--- Game Callbacks
+-- Callbacks
 -------------------------------------------------
 
----@class af_game_callbacks_callback
+---@class af_callbacks_callback
 ---@field internal af_libs_event_event To be used by the framework
 ---@field main af_libs_event_event To be used by your addon
 
@@ -30,6 +30,26 @@ _ = {
 -------------------------------------------------
 -- Services
 -------------------------------------------------
+
+---------------- Communication
+---@class af_services_communication_channel: af_internal_class
+_ = {
+    __name__ = "communicationChannel",
+
+    properties = {
+        name = "" -- The name of this channel
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        message = nil -- This event is called when the channel receives a message with one arg of table type
+    },
+
+    -- Sends data across to other addons listening on this channel
+    ---@param self af_services_communication_channel
+    ---@param data table
+    send = function(self, data) end
+}
 
 ---------------- UI
 ---@class af_services_ui_screen: af_internal_class
@@ -170,7 +190,7 @@ _ = {
 ---------------- HTTP
 ---@class af_services_http_request: af_internal_class
 _ = {
-    __name__ = "httpRequest",
+    __name__ = "HTTPRequest",
 
     properties = {
         port = 0, -- The destination port of this request
@@ -530,9 +550,10 @@ _ = {
 ---@class af_libs_event_event: af_internal_class
 _ = {
     __name__ = "event",
-    name = "", -- The name of this event
 
     properties = {
+        name = "", -- The name of this event
+
         ---@type table<integer, function>
         connections = {} -- All functions connected to this event
     },
