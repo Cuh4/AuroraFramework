@@ -18,7 +18,7 @@ mainChannel:listen(function(data)
     AuroraFramework.services.chatService.sendMessage("Server", "I received a message: "..data["message"]) -- this will print in chat: "I received a message: hello world"
 end)
 
--- Send a message to the channel
+-- Send a message through the channel to other addons
 mainChannel:send({ -- note that this can even be a string. it doesn't have to be a table
     message = "hello world",
 
