@@ -651,6 +651,7 @@ end
 
 -- Create a channel, which then you can send messages or listen for messages
 ---@param name string
+---@return af_services_communication_channel
 AuroraFramework.services.communicationService.createChannel = function(name)
 	-- correct parameters
 	name = name:gsub(" ", "")
