@@ -1739,8 +1739,15 @@ AuroraFramework.services.HTTPService = {
 	---@type table<string, af_services_http_request>
 	ongoingRequests = {},
 
-	JSON = {}, -- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
-	Base64 = {}, -- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
+	-- Encodes anything into a JSON string. Useful for encoding data ready to be passed through a HTTP request
+	-- Source: https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
+	JSON = {},
+
+	-- Encodes a string into a Base64 string. Useful for encoding JSON strings in a URL
+	-- Source: https://gist.github.com/To0fan/ca3ebb9c029bb5df381e4afc4d27b4a6
+	Base64 = {
+		conversion = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+	},
 
 	internal = {}
 }
