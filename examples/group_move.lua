@@ -5,7 +5,8 @@
 ------------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------
--- [Example] This example moves non-primary vehicles (any vehicles that weren't the first to spawn in a group) in a group in a random direction every 0.1 seconds.
+-- [Example] Groups
+-- This example moves non-primary vehicles apart of a spawned group around every 0.1 seconds.
 ----------------------------------------
 
 ---@param group af_services_group_group

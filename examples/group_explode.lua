@@ -5,7 +5,8 @@
 ------------------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------
--- [Example] This example explodes non-primary vehicles (any vehicles that weren't the first to spawn in a group) in a group that just spawned.
+-- [Example] Groups
+-- This example explodes non-primary vehicles in a spawned group.
 ----------------------------------------
 
 ---@param group af_services_group_group
@@ -18,7 +19,7 @@ AuroraFramework.services.groupService.events.onSpawn:connect(function(group)
         end
 
         -- This is a non-primary vehicle, so let's explode it
-        vehicle:explode(0.05, false) -- Magnitude of 0.05 / 1, despawn set to false so the vehicle doesn't despawn upon exploding
+        vehicle:explode(0.05, false) -- Magnitude of 0.05 out of 1, despawn is set to false so the vehicle doesn't despawn upon exploding (Stormworks may still despawn it though)
 
         -- Continue to next vehicle
         ::continue::
