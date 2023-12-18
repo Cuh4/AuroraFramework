@@ -144,6 +144,57 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Recursively convert a table to string
+---@param tbl table
+---@param indent number|nil
+AuroraFramework.libraries.miscellaneous.tableToString = function(tbl, indent)
+	-- default indent
+    if not indent then
+        indent = 0
+    end
+
+    -- create a table for later
+    local toConcatenate = {}
+
+    -- convert the table to a string
+    for index, value in pairs(tbl) do
+        -- get value type
+        local valueType = type(value)
+
+        -- format the index for later
+        local formattedIndex = ("%s:"):format(index)
+
+        -- format the value
+        local toAdd = formattedIndex
+
+        if valueType == "table" then
+			-- format table
+			local nextIndent = indent + 2
+            local formattedValue = AuroraFramework.libraries.miscellaneous.tableToString(value, nextIndent)
+
+			-- check if empty table
+			if formattedValue == "" then
+				formattedValue = "{}"
+			else
+				formattedValue = "\n"..formattedValue
+			end
+
+			-- add to string
+            toAdd = toAdd..(" %s"):format(formattedValue)
+        elseif valueType == "number" or valueType == "boolean" then
+            toAdd = toAdd..(" %s"):format(tostring(value))
+        else
+            toAdd = toAdd..(" \"%s\""):format(tostring(value):gsub("\n", "\\n"))
+        end
+
+        -- add to table
+        table.insert(toConcatenate, ("  "):rep(indent)..toAdd)
+    end
+
+    -- return the table as a formatted string
+    return table.concat(toConcatenate, "\n")
+end
+
 -- Returns whether or not if a number is between two numbers
 ---@param number number
 ---@param thresholdMin number
@@ -614,57 +665,6 @@ AuroraFramework.services.debuggerService.internal.findENVVariable = function(var
 	return variableTable, variableIndex, variablePath
 end
 
--- Recursively convert a table to string
----@param tbl table
----@param indent number|nil
-AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, indent)
-	-- default indent
-    if not indent then
-        indent = 0
-    end
-
-    -- create a table for later
-    local toConcatenate = {}
-
-    -- convert the table to a string
-    for index, value in pairs(tbl) do
-        -- get value type
-        local valueType = type(value)
-
-        -- format the index for later
-        local formattedIndex = ("%s:"):format(index)
-
-        -- format the value
-        local toAdd = formattedIndex
-
-        if valueType == "table" then
-			-- format table
-			local nextIndent = indent + 2
-            local formattedValue = AuroraFramework.services.debuggerService.internal.tableToString(value, nextIndent)
-
-			-- check if empty table
-			if formattedValue == "" then
-				formattedValue = "{}"
-			else
-				formattedValue = "\n"..formattedValue
-			end
-
-			-- add to string
-            toAdd = toAdd..(" %s"):format(formattedValue)
-        elseif valueType == "number" or valueType == "boolean" then
-            toAdd = toAdd..(" %s"):format(tostring(value))
-        else
-            toAdd = toAdd..(" \"%s\""):format(tostring(value):gsub("\n", "\\n"))
-        end
-
-        -- add to table
-        table.insert(toConcatenate, ("  "):rep(indent)..toAdd)
-    end
-
-    -- return the table as a formatted string
-    return table.concat(toConcatenate, "\n")
-end
-
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param tbl table
 ---@param logger af_services_debugger_logger
@@ -780,7 +780,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 			send = function(self, message)
 				-- convert message to string
 				if type(message) == "table" then
-					message = "\n"..AuroraFramework.services.debuggerService.internal.tableToString(message)
+					message = "\n"..AuroraFramework.libraries.miscellaneous.tableToString(message)
 				else
 					message = tostring(message)
 				end
