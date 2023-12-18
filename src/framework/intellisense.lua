@@ -55,6 +55,7 @@ _ = {
     __name__ = "debuggerAttachedFunction",
 
     properties = {
+        name = "", -- The name of the function
         targetFunction = function() end, -- The function with debug code attached
 
         functionUsageCount = 0, -- How many times the function has been called

@@ -170,11 +170,7 @@ AuroraFramework.libraries.miscellaneous.combineTables = function(...)
 	-- combine tables
 	for _, tbl in pairs(tables) do
 		for index, value in pairs(tbl) do
-			if main[index] then
-				table.insert(main, value)
-			else
-				main[index] = value
-			end
+			main[index] = value
 		end
 	end
 
@@ -624,6 +620,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		{},
 
 		{
+			name = name,
 			targetFunction = nil,
 
 			functionUsageCount = 0,
@@ -668,7 +665,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		end
 
 		-- send debug message
-		attachedFunction.properties.logger:send(("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(name, executionTime, averageExecutionTime, tostring(returned)))
+		attachedFunction.properties.logger:send(("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(attachedFunction.properties.name, executionTime, averageExecutionTime, tostring(returned)))
 
 		-- fire event
 		attachedFunction.events.functionCall:fire(returned, ...)
