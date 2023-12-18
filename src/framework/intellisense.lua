@@ -46,9 +46,8 @@ _ = {
 
     -- Send a message through this logger
     ---@param self af_services_debugger_logger
-    ---@param separator string|nil
-    ---@param ... any
-    send = function(self, separator, ...) end
+    ---@param message any
+    send = function(self, message) end
 }
 
 ---@class af_services_debugger_attached_function: af_internal_class

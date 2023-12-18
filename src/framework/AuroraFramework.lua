@@ -683,37 +683,24 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 			end,
 
 			---@param self af_services_debugger_logger
-			---@param separator string|nil
-			---@param ... any
-			send = function(self, separator, ...)
-				-- default sep
-				if not separator then
-					separator = ", "
-				end
-
-				-- pack args into table
-				local toPrint = {...}
-
-				-- convert all args to string
-				for index, arg in pairs(toPrint) do
-					local argType = type(arg)
-
-					if argType == "table" then
-						toPrint[index] = AuroraFramework.services.debuggerService.internal.tableToString(arg)
-					else
-						toPrint[index] = tostring(arg)
-					end
+			---@param message any
+			send = function(self, message)
+				-- convert message to string
+				if type(message) == "table" then
+					message = AuroraFramework.services.debuggerService.internal.tableToString(message)
+				else
+					message = tostring(message)
 				end
 
 				-- send the messages
 				if self.properties.sendToChat then
 					AuroraFramework.services.chatService.sendMessage(
 						self.properties.formattedName,
-						table.concat(toPrint, separator)
+						message
 					)
 				else
 					debug.log(
-						("%s %s"):format(self.properties.formattedName, table.concat(toPrint, separator))
+						("%s %s"):format(self.properties.formattedName, message)
 					)
 				end
 			end
