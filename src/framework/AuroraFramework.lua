@@ -1372,7 +1372,7 @@ end
 ---@return af_services_group_group
 AuroraFramework.services.groupService.spawnGroup = function(position, playlist_id, addonIndex)
 	-- spawn the group
-	local group_id, successful = server.spawnAddonVehicle(position, addonIndex or server.getAddonIndex(), playlist_id)
+	local group_id, successful = server.spawnAddonVehicle(position, addonIndex or AuroraFramework.attributes.AddonIndex, playlist_id)
 
 	if not successful then
 		return
