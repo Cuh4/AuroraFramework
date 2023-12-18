@@ -130,7 +130,12 @@ end
 ---@param max number
 ---@param shouldOffsetY boolean|nil
 AuroraFramework.libraries.matrix.randomOffset = function(position, max, shouldOffsetY)
-	return AuroraFramework.libraries.matrix.offset(position, math.random(-max, max), AuroraFramework.libraries.miscellaneous.switchbox(0, math.random(-max, max), shouldOffsetY), math.random(-max, max))
+	return AuroraFramework.libraries.matrix.offset(
+		position,
+		math.random(-max, max),
+		AuroraFramework.libraries.miscellaneous.switchbox(math.random(-max, max), 0, shouldOffsetY),
+		math.random(-max, max)
+	)
 end
 
 ---------------- Miscellaneous
@@ -411,16 +416,15 @@ AuroraFramework.libraries.miscellaneous.name = function(input)
 end
 
 -- Returns on or off depending on whether or not switch is true
----@param off any
----@param on any
----@param switch any
----@return any
-AuroraFramework.libraries.miscellaneous.switchbox = function(off, on, switch)
-	if switch then
-		return on
-	else
-		return off
-	end
+---@generic onValue
+---@generic offValue
+---
+---@param on onValue
+---@param off offValue
+---@param switch any Preferably a boolean, but non-nil can act as a true value here
+---@return onValue|offValue
+AuroraFramework.libraries.miscellaneous.switchbox = function(on, off, switch)
+	return switch and on or off
 end
 
 -- Returns whether or not a value is in a table
