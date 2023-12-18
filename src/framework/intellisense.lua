@@ -216,6 +216,12 @@ _ = {
     cancel = function(self) end
 }
 
+---@class af_services_http_urlarg
+_ = {
+    name = "",
+    value = ""
+}
+
 ---------------- Messages
 ---@class af_services_chat_message: af_internal_class
 _ = {
