@@ -26,7 +26,7 @@ local function setupSaveData()
 	g_savedata = g_savedata or {}
 end
 
-setupSaveData() -- to allow addon to setup g_savedata first
+setupSaveData() -- in a function to allow addon to setup g_savedata first
 
 --------------------------------------------------------------------------------
 --// Internal \\--
@@ -68,36 +68,28 @@ AuroraFramework.internal.class = function(name, methods, properties, events, par
 	return class
 end
 
--- Save a value to g_savedata.AuroraFramework
----@param index string
----@param value any
-AuroraFramework.internal.save = function(index, value)
+-- Perform g_savedata action
+---@param action function
+AuroraFramework.internal.performSaveDataAction = function(action)
 	if not g_savedata.AuroraFramework then
 		g_savedata.AuroraFramework = {}
 	end
 
-	g_savedata.AuroraFramework[index] = value
-end
-
--- Remove a value from g_savedata.AuroraFramework
----@param index string
-AuroraFramework.internal.remove = function(index)
-	g_savedata.AuroraFramework[index] = nil
-end
-
--- Get a value from g_savedata.AuroraFramework
----@param index string
-AuroraFramework.internal.get = function(index)
-	if not g_savedata.AuroraFramework then
-		g_savedata.AuroraFramework = {}
-	end
-
-	return g_savedata.AuroraFramework[index]
+	return action()
 end
 
 --------------------------------------------------------------------------------
 --// Attributes \\--
 --------------------------------------------------------------------------------
+---------------- Save Data
+AuroraFramework.internal.performSaveDataAction(function()
+	---@type table<integer, af_savedata_group>
+	g_savedata.AuroraFramework.groups = {}
+	
+	---@type table<integer, af_savedata_vehicle>
+	g_savedata.AuroraFramework.vehicles = {}
+end)
+
 ---------------- DLCs
 AuroraFramework.attributes.WeaponsEnabled = server.dlcWeapons()
 AuroraFramework.attributes.AridEnabled = server.dlcArid()
@@ -1163,6 +1155,20 @@ end
 ---------------- Groups
 AuroraFramework.services.groupService = {
 	initialize = function()
+		-- Load groups from savedata
+		AuroraFramework.internal.performSaveDataAction(function()
+			for _, group in pairs(g_savedata.AuroraFramework.groups) do
+				AuroraFramework.services.groupService.internal.giveGroupData(
+					group.group_cost,
+					group.peer_id,
+					group.x,
+					groop.y,
+					group.z,
+					group.group_cost
+				)
+			end
+		end)
+
 		-- Give group data whenever a group is spawned
 		AuroraFramework.callbacks.onGroupSpawn.internal:connect(function(...)
 			-- give group data
@@ -1227,6 +1233,21 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	if AuroraFramework.services.groupService.getGroup(group_id) then
 		return
 	end
+
+	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
+	AuroraFramework.internal.performSaveDataAction(function()
+		local data = {
+			group_id = group_id,
+			peer_id = peer_id,
+			x = x,
+			y = y,
+			z = z,
+			group_cost = group_cost,
+			vehicle_ids = server.getVehicleGroup(group_id)
+		}
+
+		g_savedata.AuroraFramework.groups[group_id] = data
+	end)
 
 	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
@@ -1335,6 +1356,12 @@ end
 -- Remove group data
 ---@param group_id integer
 AuroraFramework.services.groupService.internal.removeGroupData = function(group_id)
+	-- remove the group from savedata
+	AuroraFramework.internal.performSaveDataAction(function()
+		g_savedata.AuroraFramework.groups[group_id] = nil
+	end)
+
+	-- remove the group from the framework
 	AuroraFramework.services.groupService.groups[group_id] = nil
 end
 
@@ -1438,6 +1465,21 @@ end
 ---------------- Vehicles
 AuroraFramework.services.vehicleService = {
 	initialize = function()
+		-- Load vehicles from savedata
+		AuroraFramework.internal.performSaveDataAction(function()
+			for _, vehicle in pairs(g_savedata.AuroraFramework.vehicles) do
+				AuroraFramework.services.vehicleService.internal.giveVehicleData(
+					vehicle.vehicle_id,
+					vehicle.peer_id,
+					vehicle.x,
+					vehicle.y,
+					vehicle.z,
+					vehicle.group_cost,
+					vehicle.group_id
+				)
+			end
+		end)
+
 		-- Give vehicle data whenever a vehicle is spawned
 		AuroraFramework.callbacks.onVehicleSpawn.internal:connect(function(...)
 			-- give vehicle data
@@ -1504,11 +1546,27 @@ AuroraFramework.services.vehicleService = {
 ---@param y number
 ---@param z number
 ---@param group_cost number
+---@param group_id integer
 AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, group_cost, group_id)
 	-- ignore if data already exists
 	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
 		return
 	end
+
+	-- save the vehicle to g_savedata for when the addon is reloaded or a save is loaded
+	AuroraFramework.internal.performSaveDataAction(function()
+		local data = {
+			vehicle_id = vehicle_id,
+			peer_id = peer_id,
+			x = x,
+			y = y,
+			z = z,
+			group_cost = group_cost,
+			group_id = group_id
+		}
+
+		g_savedata.AuroraFramework.vehicles[vehicle_id] = data
+	end)
 
 	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
@@ -1626,6 +1684,12 @@ end
 -- Remove vehicle data from a vehicle
 ---@param vehicle_id integer
 AuroraFramework.services.vehicleService.internal.removeVehicleData = function(vehicle_id)
+	-- remove vehicle from savedata
+	AuroraFramework.internal.performSaveDataAction(function()
+		g_savedata.AuroraFramework.vehicles[vehicle_id] = data
+	end)
+
+	-- remove vehicle from framework
 	AuroraFramework.services.vehicleService.vehicles[vehicle_id] = nil
 end
 
@@ -3728,7 +3792,7 @@ AuroraFramework.services.debuggerService.initialize()
 AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
 AuroraFramework.services.playerService.initialize()
-AuroraFramework.services.vehicleService.initialize()
+AuroraFramework.services.vehicleService.initialize() -- important this is initialized before groupservice
 AuroraFramework.services.groupService.initialize()
 AuroraFramework.services.chatService.initialize()
 AuroraFramework.services.commandService.initialize()
