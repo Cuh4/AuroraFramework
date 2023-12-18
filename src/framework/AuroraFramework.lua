@@ -543,7 +543,7 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
 end
 
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
----@param name string
+---@param name string|nil If the name is not provided, then the framework will iterate through _ENV to find the true name of the function
 ---@param tbl table<integer, function>
 ---@param logger af_services_debugger_logger
 AuroraFramework.services.debuggerService.attachMultiple = function(name, tbl, logger)
@@ -555,10 +555,51 @@ AuroraFramework.services.debuggerService.attachMultiple = function(name, tbl, lo
 end
 
 -- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
----@param name string
+---@param name string|nil If the name is not provided, then the framework will iterate through _ENV to find the true name of the function
 ---@param func function
 ---@param logger af_services_debugger_logger
 AuroraFramework.services.debuggerService.attach = function(name, func, logger)
+	-- find name if not provided
+	---@param tbl table
+	---@param path string
+	local function recursiveFind(tbl, path)
+		for index, value in pairs(tbl) do
+			-- stop here if the name has already been found
+			if name then
+				return
+			end
+
+			-- get current path
+			local currentPath = path.."."..index
+
+			-- get value type
+			local valueType = type(value)
+
+			-- do different tasks depending on value type
+			if valueType == "table" then
+				-- iterate through table
+				recursiveFind(value, currentPath)
+			elseif valueType == "function" then
+				-- check if this function is the same as the one provided
+				if value ~= func then
+					goto continue
+				end
+
+				-- found the function, so set the name
+				name = currentPath
+			end
+
+		    ::continue::
+		end
+	end
+
+	recursiveFind(_ENV, "_ENV")
+
+	-- if we still couldnt find the name of the function, then set it to tostring(func)
+	if not name then
+		name = tostring(func)
+	end
+
 	-- create class
 	---@type af_services_debugger_attached_function
 	local attachedFunction = AuroraFramework.internal.class(
@@ -772,15 +813,15 @@ AuroraFramework.services.timerService.loop.create = function(duration, callback)
 		{
 			duration = duration,
 			creationTime = server.getTimeMillisec(),
-			id = af_timerID
+			id = AuroraFramework.services.timerService.timerID
 		},
 
 		{
-			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
+			completion = AuroraFramework.libraries.events.create(AuroraFramework.services.timerService.timerID.."_af_loop")
 		},
 
 		AuroraFramework.services.timerService.loop.ongoing,
-		af_timerID
+		AuroraFramework.services.timerService.timerID
 	)
 
 	-- attach callback
@@ -824,15 +865,15 @@ AuroraFramework.services.timerService.delay.create = function(duration, callback
 		{
 			duration = duration,
 			creationTime = server.getTimeMillisec(),
-			id = af_timerID
+			id = AuroraFramework.services.timerService.timerID
 		},
 
 		{
-			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
+			completion = AuroraFramework.libraries.events.create(AuroraFramework.services.timerService.timerID.."_af_loop")
 		},
 
 		AuroraFramework.services.timerService.delay.ongoing,
-		af_timerID
+		AuroraFramework.services.timerService.timerID
 	)
 
 	-- attach callback
