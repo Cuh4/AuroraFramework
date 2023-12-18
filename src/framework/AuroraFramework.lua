@@ -507,36 +507,44 @@ AuroraFramework.services.debuggerService = {
 	loggers = {}
 }
 
--- Recursively convert a table to string. Source: https://gist.github.com/ripter/4270799
+-- Recursively convert a table to string
 ---@param tbl table
 ---@param indent number|nil
 AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, indent)
-	-- setup table
-	local contents = {}
+	-- default indent
+    if not indent then
+        indent = 0
+    end
 
-	-- default indent of 0
-	if not indent then
-		indent = 0
-	end
+    -- create a table for later
+    local toConcatenate = {}
 
-	-- iterate through table
-	for index, value in pairs(tbl) do
-		-- get value type + 
-		valueType = type(value)
-		formatting = ("  "):rep(indent)..index..": "
-		
-		if valueType == "table" then
-			-- iterate table
-			table.insert(contents, formatting)
-			table.insert(contents, AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 1))
-		else
-			-- convert any other type
-			table.insert(contents, formatting..tostring(value))
-		end
-	end
+    -- convert the table to a string
+    for index, value in pairs(tbl) do
+        -- get value type
+        local valueType = type(value)
 
-	-- return as string
-	return table.concat(contents, "\n")
+        -- format the index for later
+        local formattedIndex = ("%s:"):format(index)
+
+        -- format the value
+        local toAdd = formattedIndex
+
+        if valueType == "table" then
+            local formattedValue = AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 2)
+            toAdd = toAdd..("\n%s"):format(formattedValue)
+        elseif valueType == "number" then
+            toAdd = toAdd..(" %s"):format(value)
+        else
+            toAdd = toAdd..(" \"%s\""):format(tostring(value))
+        end
+
+        -- add to table
+        table.insert(toConcatenate, ("  "):rep(indent)..toAdd)
+    end
+
+    -- return the table as a formatted string
+    return table.concat(toConcatenate, "\n")
 end
 
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
