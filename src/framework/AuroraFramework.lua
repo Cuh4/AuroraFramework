@@ -745,7 +745,7 @@ AuroraFramework.services.debuggerService.attach = function(func, logger)
 		end
 
 		-- send debug message
-		attachedFunction.properties.logger:send(("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(attachedFunction.properties.name, executionTime, averageExecutionTime, tostring(returned)))
+		attachedFunction.properties.logger:send(("%s() was called. | Usage Count: %s | Took: %s ms, AVG: %s ms | Returned: %s"):format(attachedFunction.properties.name, attachedFunction.properties.functionUsageCount, executionTime, averageExecutionTime, tostring(returned)))
 
 		-- fire event
 		attachedFunction.events.functionCall:fire(returned, ...)
