@@ -628,7 +628,7 @@ end
 
 -- Create a logger
 ---@param name string
----@param shouldSendInChat boolean|nil When a message is sent through the logger, it will send it in chat if this is true, or via debugl.log if this is false
+---@param shouldSendInChat boolean|nil When a message is sent through the logger, it will send it in chat if this is true, or via debug.log if this is false
 AuroraFramework.services.debuggerService.createLogger = function(name, shouldSendInChat)
 	-- create the logger
 	---@type af_services_debugger_logger
