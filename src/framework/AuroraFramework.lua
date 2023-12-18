@@ -503,6 +503,36 @@ AuroraFramework.services.debuggerService = {
 	loggers = {}
 }
 
+-- Modify a variable
+-- This exists because you can't really modify a function passed to a function without recursively going through _ENV and finding it
+---@param variable any
+---@param new any
+AuroraFramework.services.debuggerService.internal.modifyVariable = function(variable, new)
+	-- recursive search sub-function. scans through a table to find the value then modifies it
+	---@param tbl table
+	local function recursiveSearch(tbl)
+		for index, value in pairs(tbl) do
+			-- get value type
+			local valueType = type(value)
+
+			-- check if its the var we're looking for
+			if value == variable then
+				tbl[index] = new
+				return
+			end
+
+			-- not the var we're looking for, so go through the value if its a table instead, otherwise go to the next value
+			if valueType == "table" then
+				recursiveSearch(value)
+			end
+		end
+	end
+
+	-- start the search process
+	recursiveSearch(_ENV)
+	return new
+end
+
 -- Recursively convert a table to string
 ---@param tbl table
 ---@param indent number|nil
@@ -582,7 +612,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 			end
 
 			-- get current path
-			local currentPath = path.."."..index
+			local currentPath = path.."."..tostring(index)
 
 			-- get value type
 			local valueType = type(value)
@@ -638,14 +668,12 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 	)
 
 	-- overwrite function
-	local oldFunc = func
-
-	func = function(...)
+	AuroraFramework.services.debuggerService.internal.modifyVariable(func, function(...)
 		-- calculate execution time
 		attachedFunction.properties.profiler:start()
 
 		-- call old function
-		local returned = oldFunc(...)
+		local returned = func(...)
 
 		-- track stuffs
 		local executionTime = attachedFunction.properties.profiler:stop()
@@ -672,7 +700,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 
 		-- return actual function result
 		return returned
-	end
+	end)
 
 	attachedFunction.properties.targetFunction = func
 
