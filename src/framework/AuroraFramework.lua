@@ -1380,11 +1380,20 @@ end
 ---@return af_services_group_group
 AuroraFramework.services.groupService.spawnGroup = function(position, playlist_id, addonIndex)
 	-- spawn the group
-	local group_id, successful, vehicle_ids = server.spawnAddonVehicle(position, addonIndex or AuroraFramework.attributes.AddonIndex, playlist_id)
+	local vehicle_id, successful, vehicle_ids = server.spawnAddonVehicle(position, addonIndex or AuroraFramework.attributes.AddonIndex, playlist_id)
 
 	if not successful then
 		return
 	end
+
+	-- get group id
+	local data = server.getVehicleData(vehicle_id)
+
+	if not data then
+		return
+	end
+
+	local group_id = data.group_id
 
 	-- setup vehicle data beforehand
 	for _, vehicle_id in pairs(vehicle_ids) do
