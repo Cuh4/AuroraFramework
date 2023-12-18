@@ -673,10 +673,10 @@ AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger)
 	for index, value in pairs(tbl) do
 		if type(value) == "table" then
 			-- value is a table, so attach to all functions inside of it
-			AuroraFramework.services.debuggerService.attachMultiple(func, logger)
+			AuroraFramework.services.debuggerService.attachMultiple(value, logger)
 		elseif type(value) == "function" then
 			-- value is a function, so attach to it
-			AuroraFramework.services.debuggerService.attach(func, logger)
+			AuroraFramework.services.debuggerService.attach(value, logger)
 		end
 	end
 end
