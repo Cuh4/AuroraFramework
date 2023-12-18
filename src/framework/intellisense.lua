@@ -73,11 +73,7 @@ _ = {
     events = {
         ---@type af_libs_event_event
         functionCall = nil -- Called when the modified function is called. Passes through what was returned, and all args passed through to the function
-    },
-
-    -- 
-    ---@param self af_services_debugger_attached_function
-    remove = function(self) end
+    }
 }
 
 ---------------- Timer
