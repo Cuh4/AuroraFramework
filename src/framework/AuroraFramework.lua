@@ -482,10 +482,36 @@ AuroraFramework.libraries.events.remove = function(name)
 	AuroraFramework.libraries.events.createdEvents[name] = nil
 end
 
----------------- Timer
-local af_timerID = 0
+--------------------------------------------------------------------------------
+--// Services \\--
+--------------------------------------------------------------------------------
+---------------- Timer Service
+AuroraFramework.services.timerService = {
+	initialize = function()
+		-- Handle loops and delays
+		AuroraFramework.callbacks.onTick.internal:connect(function()
+			local current = server.getTimeMillisec()
+	
+			-- Handle loops
+			for _, loop in pairs(AuroraFramework.services.timerService.loop.ongoing) do
+				if current > loop.properties.creationTime + (loop.properties.duration * 1000) then
+					loop.events.completion:fire(v)
+					loop.properties.creationTime = current
+				end
+			end
+	
+			-- Handle delays
+			for _, delay in pairs(AuroraFramework.services.timerService.delay.ongoing) do
+				if current > delay.properties.creationTime + (delay.properties.duration * 1000) then
+					delay.events.completion:fire(v)
+					delay:remove()
+				end
+			end
+		end)
+	end,
 
-AuroraFramework.libraries.timer = {
+	timerID = 0,
+
 	loop = {
 		---@type table<integer, af_libs_timer_loop>
 		ongoing = {}
@@ -500,7 +526,7 @@ AuroraFramework.libraries.timer = {
 -- Create a loop. Duration is in seconds
 ---@param duration integer In seconds
 ---@param callback function
-AuroraFramework.libraries.timer.loop.create = function(duration, callback)
+AuroraFramework.services.timerService.loop.create = function(duration, callback)
 	-- unique id
 	af_timerID = af_timerID + 1
 
@@ -512,7 +538,7 @@ AuroraFramework.libraries.timer.loop.create = function(duration, callback)
 		{
 			---@param self af_libs_timer_loop
 			remove = function(self)
-				AuroraFramework.libraries.timer.loop.remove(self.properties.id)
+				AuroraFramework.services.timerService.loop.remove(self.properties.id)
 			end,
 
 			---@param self af_libs_timer_loop
@@ -532,7 +558,7 @@ AuroraFramework.libraries.timer.loop.create = function(duration, callback)
 			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
 		},
 
-		AuroraFramework.libraries.timer.loop.ongoing,
+		AuroraFramework.services.timerService.loop.ongoing,
 		af_timerID
 	)
 
@@ -545,14 +571,14 @@ end
 
 -- Remove a loop
 ---@param id integer
-AuroraFramework.libraries.timer.loop.remove = function(id)
-	AuroraFramework.libraries.timer.loop.ongoing[id] = nil
+AuroraFramework.services.timerService.loop.remove = function(id)
+	AuroraFramework.services.timerService.loop.ongoing[id] = nil
 end
 
 -- Create a delay. Duration is in seconds
 ---@param duration integer In seconds
 ---@param callback function
-AuroraFramework.libraries.timer.delay.create = function(duration, callback)
+AuroraFramework.services.timerService.delay.create = function(duration, callback)
 	-- unique id
 	af_timerID = af_timerID + 1
 
@@ -564,7 +590,7 @@ AuroraFramework.libraries.timer.delay.create = function(duration, callback)
 		{
 			---@param self af_libs_timer_delay
 			remove = function(self)
-				AuroraFramework.libraries.timer.delay.remove(self.properties.id)
+				AuroraFramework.services.timerService.delay.remove(self.properties.id)
 			end,
 
 			---@param self af_libs_timer_delay
@@ -584,7 +610,7 @@ AuroraFramework.libraries.timer.delay.create = function(duration, callback)
 			completion = AuroraFramework.libraries.events.create(af_timerID.."_af_loop")
 		},
 
-		AuroraFramework.libraries.timer.delay.ongoing,
+		AuroraFramework.services.timerService.delay.ongoing,
 		af_timerID
 	)
 
@@ -597,36 +623,10 @@ end
 
 -- Remove a delay
 ---@param id integer
-AuroraFramework.libraries.timer.delay.remove = function(id)
-	AuroraFramework.libraries.timer.delay.ongoing[id] = nil
+AuroraFramework.services.timerService.delay.remove = function(id)
+	AuroraFramework.services.timerService.delay.ongoing[id] = nil
 end
 
--- Handler
-AuroraFramework.libraries.timer.handler = function()
-	AuroraFramework.callbacks.onTick.internal:connect(function()
-		local current = server.getTimeMillisec()
-
-		-- Handle loops
-		for _, loop in pairs(AuroraFramework.libraries.timer.loop.ongoing) do
-			if current > loop.properties.creationTime + (loop.properties.duration * 1000) then
-				loop.events.completion:fire(v)
-				loop.properties.creationTime = current
-			end
-		end
-
-		-- Handle delays
-		for _, delay in pairs(AuroraFramework.libraries.timer.delay.ongoing) do
-			if current > delay.properties.creationTime + (delay.properties.duration * 1000) then
-				delay.events.completion:fire(v)
-				delay:remove()
-			end
-		end
-	end)
-end
-
---------------------------------------------------------------------------------
---// Services \\--
---------------------------------------------------------------------------------
 ---------------- Addon Communication
 AuroraFramework.services.communicationService = {
 	initialize = function()
@@ -850,7 +850,7 @@ AuroraFramework.services.groupService = {
 			local group = vehicle.properties.group
 
 			-- wait a tick to make sure the vehicle is removed from the group
-			AuroraFramework.libraries.timer.delay.create(0, function()
+			AuroraFramework.services.timerService.delay.create(0, function()
 				-- check group length
 				if AuroraFramework.libraries.miscellaneous.getTableLength(group.properties.vehicles) >= 1 then
 					return
@@ -1126,7 +1126,7 @@ AuroraFramework.services.vehicleService = {
 
 		-- Remove vehicle data whenever a vehicle is despawned
 		AuroraFramework.callbacks.onVehicleDespawn.internal:connect(function(vehicle_id)
-			AuroraFramework.libraries.timer.delay.create(0, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away, hence the delay
+			AuroraFramework.services.timerService.delay.create(0, function() -- because of how stupid stormworks is, sometimes onvehicledespawn is called before onvehiclespawn if a vehicle is despawned right away, hence the delay
 				-- fire events
 				local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
@@ -1492,7 +1492,7 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Update player properties
-		AuroraFramework.libraries.timer.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
+		AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
 			-- Activate player join events
 			for _, v in pairs(server.getPlayers()) do
 				AuroraFramework.callbacks.onPlayerJoin.main:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
@@ -2137,7 +2137,7 @@ end
 AuroraFramework.services.chatService = {
 	initialize = function()
 		AuroraFramework.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
-			AuroraFramework.libraries.timer.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
+			AuroraFramework.services.timerService.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
 				-- get player
 				local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
@@ -2149,7 +2149,7 @@ AuroraFramework.services.chatService = {
 				local message = AuroraFramework.services.chatService.internal.construct(player, content)
 
 				-- enforce message limit
-				if #AuroraFramework.services.chatService.messages >= 129 then
+				if #AuroraFramework.services.chatService.messages > AuroraFramework.services.chatService.messageLimit then
 					table.remove(AuroraFramework.services.chatService.messages, 1)
 				end
 
@@ -2169,7 +2169,8 @@ AuroraFramework.services.chatService = {
 	},
 
 	---@type table<integer, af_services_chat_message>
-	messages = {}, -- max of 129, since thats all the chat window can contain
+	messages = {},
+	messageLimit = 129, -- max of 129, since thats all the chat window can contain
 
 	internal = {
 		message_id = 0
@@ -3363,6 +3364,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Initialize services
+AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
 AuroraFramework.services.playerService.initialize()
 AuroraFramework.services.vehicleService.initialize()
@@ -3372,6 +3374,3 @@ AuroraFramework.services.commandService.initialize()
 AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.UIService.initialize()
 AuroraFramework.services.TPSService.initialize()
-
--- // Initialize libraries
-AuroraFramework.libraries.timer.handler()
