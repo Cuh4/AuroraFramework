@@ -666,13 +666,18 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
 end
 
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
----@param tbl table<integer, function>
+---@param tbl table
 ---@param logger af_services_debugger_logger
 AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger)
 	-- iterate through table
-	for index, func in pairs(func) do
-		-- attach
-		AuroraFramework.services.debuggerService.attach(func, logger)
+	for index, value in pairs(tbl) do
+		if type(value) == "table" then
+			-- value is a table, so attach to all functions inside of it
+			AuroraFramework.services.debuggerService.attachMultiple(func, logger)
+		elseif type(value) == "function" then
+			-- value is a function, so attach to it
+			AuroraFramework.services.debuggerService.attach(func, logger)
+		end
 	end
 end
 
