@@ -14,11 +14,12 @@
 ---@param player af_services_player_player
 ---@param args table<integer, string>
 AuroraFramework.services.commandService.create(function(command, player, args)
-    player:kill() -- kills the player
-    command:successNotification("You died! Congratulations!", player) -- shows a success notification on the right of their screen temporarily
+    player:kill() -- Kills the player
+    command:successNotification("You died! Congratulations!", player) -- Shows a success notification on the right of their screen temporarily
 
-    command:remove() -- prevent other players from using this command
+    command:remove() -- Prevent other players from using this command
 end, "kill", {"s", "k", "suicide", "die"}, false, "Kills the player.", true, false)
+
 -- The parameters passed through to the "create" function are, in order, the following:
 -- name ("kill"),
 -- shorthands ({"s", "k", "suicide", "die"}),
