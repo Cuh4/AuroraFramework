@@ -608,7 +608,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		{},
 
 		{
-			func = nil,
+			targetFunction = nil,
 
 			functionUsageCount = 0,
 			recentExecutionTime = 0,
@@ -652,7 +652,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		end
 
 		-- send debug message
-		attachedFunction.properties.logger:send(nil, ("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(name, executionTime, averageExecutionTime, tostring(returned)))
+		attachedFunction.properties.logger:send(("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(name, executionTime, averageExecutionTime, tostring(returned)))
 
 		-- fire event
 		attachedFunction.events.functionCall:fire(returned, ...)
