@@ -802,7 +802,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 		{
 			name = name,
 			sendToChat = shouldSendInChat or false,
-			formattedName = ("[DEBUGGER | %s - Addon #%s]"):format(name, AuroraFramework.attributes.AddonIndex)
+			formattedName = ("[DebuggerService - Logger | %s - Addon #%s]"):format(name, AuroraFramework.attributes.AddonIndex)
 		},
 
 		nil,
