@@ -503,34 +503,57 @@ AuroraFramework.services.debuggerService = {
 	loggers = {}
 }
 
--- Modify a variable
--- This exists because you can't really modify a function passed to a function without recursively going through _ENV and finding it
+-- Find a variable in _ENV. Had to create this so I could modify a function passed through to a function
 ---@param variable any
----@param new any
-AuroraFramework.services.debuggerService.internal.modifyVariable = function(variable, new)
+---@return table|nil varTbl The table the variable was found in
+---@return string|nil tblIndex The index of the table in which the variable is found
+---@return string
+AuroraFramework.services.debuggerService.internal.findENVVariable = function(variable)
 	-- recursive search sub-function. scans through a table to find the value then modifies it
-	---@param tbl table
-	local function recursiveSearch(tbl)
-		for index, value in pairs(tbl) do
-			-- get value type
-			local valueType = type(value)
+	local variableTable
+	local variableIndex
+	local variablePath
 
-			-- check if its the var we're looking for
-			if value == variable then
-				tbl[index] = new
+	---@param tbl table
+	---@param path string
+	local function recursiveSearch(tbl, path)
+		for index, value in pairs(tbl) do
+			-- stop search if we've found it
+			if result then
 				return
 			end
 
-			-- not the var we're looking for, so go through the value if its a table instead, otherwise go to the next value
-			if valueType == "table" then
-				recursiveSearch(value)
+			-- set path
+			local currentPath = path.."."..tostring(index)
+
+			-- get value type
+			local valueType = type(value)
+
+			-- check the value type
+			if valueType ~= "table" then
+				-- value is a function, so check if its the variable we're looking for. if not, go to next value
+				if value ~= variable then
+					goto continue
+				end
+
+				-- found it!
+				variableTable = tbl
+				variableIndex = index
+				variablePath = currentPath
+
+				return
+			else
+				-- value is at able, so let's search it too
+				recursiveSearch(value, currentPath)
 			end
+
+			::continue::
 		end
 	end
 
 	-- start the search process
-	recursiveSearch(_ENV)
-	return new
+	recursiveSearch(_ENV, "_ENV")
+	return variableTable, variableIndex, variablePath
 end
 
 -- Recursively convert a table to string
@@ -585,61 +608,27 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
 end
 
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
----@param name string|nil If the name is not provided, then the framework will iterate through _ENV to find the true name of the function
 ---@param tbl table<integer, function>
 ---@param logger af_services_debugger_logger
-AuroraFramework.services.debuggerService.attachMultiple = function(name, tbl, logger)
+AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger)
 	-- iterate through table
 	for index, func in pairs(func) do
 		-- attach
-		AuroraFramework.services.debuggerService.attach(name.."."..index, func, logger)
+		AuroraFramework.services.debuggerService.attach(func, logger)
 	end
 end
 
 -- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
----@param name string|nil If the name is not provided, then the framework will iterate through _ENV to find the true name of the function
----@param func function
+---@param func function The function must be a global function and not a local one
 ---@param logger af_services_debugger_logger
-AuroraFramework.services.debuggerService.attach = function(name, func, logger)
+AuroraFramework.services.debuggerService.attach = function(func, logger)
 	-- find name if not provided
-	---@param tbl table
-	---@param path string
-	local function recursiveFind(tbl, path)
-		for index, value in pairs(tbl) do
-			-- stop here if the name has already been found
-			if name then
-				return
-			end
+	local funcTable, funcIndex, funcPathString = AuroraFramework.services.debuggerService.internal.findENVVariable(func)
 
-			-- get current path
-			local currentPath = path.."."..tostring(index)
-
-			-- get value type
-			local valueType = type(value)
-
-			-- do different tasks depending on value type
-			if valueType == "table" then
-				-- iterate through table
-				recursiveFind(value, currentPath)
-			elseif valueType == "function" then
-				-- check if this function is the same as the one provided
-				if value ~= func then
-					goto continue
-				end
-
-				-- found the function, so set the name
-				name = currentPath
-			end
-
-		    ::continue::
-		end
-	end
-
-	recursiveFind(_ENV, "_ENV")
-
-	-- if we still couldnt find the name of the function, then set it to tostring(func)
-	if not name then
-		name = tostring(func)
+	-- if we couldnt find the function, then stop here
+	if not funcTable then
+		logger:send("Failed to attach to function. Function could not be found in _ENV. Make sure the function is non-local.")
+		return
 	end
 
 	-- create class
@@ -650,7 +639,7 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		{},
 
 		{
-			name = name,
+			name = funcPathString,
 			targetFunction = nil,
 
 			functionUsageCount = 0,
@@ -663,12 +652,12 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 		},
 
 		{
-			functionCall = AuroraFramework.libraries.events.create("debug_attached_function_"..name)
+			functionCall = AuroraFramework.libraries.events.create("debug_attached_function_"..funcPathString)
 		}
 	)
 
 	-- overwrite function
-	AuroraFramework.services.debuggerService.internal.modifyVariable(func, function(...)
+	funcTable[funcIndex] = function(...)
 		-- calculate execution time
 		attachedFunction.properties.profiler:start()
 
@@ -700,9 +689,9 @@ AuroraFramework.services.debuggerService.attach = function(name, func, logger)
 
 		-- return actual function result
 		return returned
-	end)
+	end
 
-	attachedFunction.properties.targetFunction = func
+	attachedFunction.properties.targetFunction = funcTable[funcIndex]
 
 	-- return
 	return attachedFunction
