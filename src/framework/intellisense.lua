@@ -48,7 +48,7 @@ _ = {
     ---@param self af_services_debugger_logger
     ---@param separator string|nil
     ---@param ... any
-    send = function(self, ...) end
+    send = function(self, separator, ...) end
 }
 
 ---@class af_services_debugger_attached_function: af_internal_class
