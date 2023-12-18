@@ -533,8 +533,8 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
         if valueType == "table" then
             local formattedValue = AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 2)
             toAdd = toAdd..("\n%s"):format(formattedValue)
-        elseif valueType == "number" then
-            toAdd = toAdd..(" %s"):format(value)
+        elseif valueType == "number" or valueType == "boolean" then
+            toAdd = toAdd..(" %s"):format(tostring(value))
         else
             toAdd = toAdd..(" \"%s\""):format(tostring(value):gsub("\n", "\\n"))
         end
