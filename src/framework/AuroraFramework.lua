@@ -529,12 +529,9 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
 			-- iterate table
 			table.insert(contents, formatting)
 			table.insert(contents, AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 1))
-		elseif valueType == 'boolean' then
-			-- convert boolean
-			table.insert(contents, formatting..tostring(value))		
 		else
 			-- convert any other type
-			table.insert(contents, formatting..value)
+			table.insert(contents, formatting..tostring(value))
 		end
 	end
 
