@@ -98,9 +98,12 @@ end
 --------------------------------------------------------------------------------
 --// Attributes \\--
 --------------------------------------------------------------------------------
+---------------- DLCs
 AuroraFramework.attributes.WeaponsEnabled = server.dlcWeapons()
 AuroraFramework.attributes.AridEnabled = server.dlcArid()
 AuroraFramework.attributes.SpaceEnabled = server.dlcSpace()
+
+---------------- Misc
 AuroraFramework.attributes.AddonIndex = (server.getAddonIndex())
 
 --------------------------------------------------------------------------------
