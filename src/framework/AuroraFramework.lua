@@ -1322,7 +1322,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 		vehicle.properties.group = group
 
 		-- insert into vehicles table
-		vehicles[vehicle_id] = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+		vehicles[vehicle_id] = vehicle
 
 		::continue::
 	end
