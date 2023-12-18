@@ -497,6 +497,64 @@ end
 --------------------------------------------------------------------------------
 ---------------- Debugger Service
 AuroraFramework.services.debuggerService = {
+	initialize = function()
+		-- configurables
+		local artificialOnTickRequestURL = "auroraframework_debugger_ontick"
+		local threshold = 2500 -- ms
+
+		-- artificial ontick heartbeat function
+		local function heartbeat()
+			server.httpGet(0, artificialOnTickRequestURL)
+		end
+
+		-- detect whether or not the addon has broken by finding out the time difference between onTick and an artificial ontick
+		local onTickPreviousTime = server.getTimeMillisec()
+		local artificialOnTickTime = server.getTimeMillisec()
+		local hasBroken = false
+
+		-- ontick side
+		AuroraFramework.callbacks.onTick.internal:connect(function()
+			-- set time
+			onTickPreviousTime = server.getTimeMillisec()
+		end)
+
+		-- artificial ontick side
+		---@param port integer
+		---@param url string
+		---@param reply string
+		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
+			-- not us or the addon has stopped, so stop here
+			if port ~= 0 and url ~= artificialOnTickRequestURL or hasBroken then
+				return
+			end
+
+			-- set time
+			artificialOnTickTime = server.getTimeMillisec()
+
+			-- go again
+			heartbeat()
+
+			-- calculate difference
+			local difference = artificialOnTickTime - onTickPreviousTime
+
+			-- if difference is within threshold, stop here
+			if difference <= threshold then
+				return
+			end
+			
+			-- addon has likely stopped, so trigger event
+			hasBroken = true
+			AuroraFramework.services.debuggerService.events.onAddonStop:fire()
+		end)
+
+		-- start artificial ontick
+		heartbeat()
+	end,
+
+	events = {
+		onAddonStop = AuroraFramework.libraries.events.create("auroraFramework_onAddonStop"),
+	},
+
 	internal = {},
 
 	---@type table<string, af_services_debugger_logger>
@@ -1649,8 +1707,8 @@ AuroraFramework.services.notificationService.success = function(title, message, 
 	AuroraFramework.services.notificationService.custom(
 		"[Success] "..title,
 		message,
-		player,
-		AuroraFramework.services.notificationService.notificationTypes.completeMission
+		AuroraFramework.services.notificationService.notificationTypes.completeMission,
+		player
 	)
 end
 
@@ -2046,13 +2104,21 @@ end
 ---------------- HTTP
 AuroraFramework.services.HTTPService = {
 	initialize = function()
+		---@param port integer
+		---@param url string
+		---@param reply string
 		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
+			-- get the request
 			local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
 
-			if data then
-				data.events.reply:fire(tostring(reply)) -- reply callback
-				data:cancel() -- remove the request
+			-- doesn't exist, so ignore
+			if not data then
+				return
 			end
+
+			-- handle the request
+			data.events.reply:fire(tostring(reply)) -- reply callback
+			data:cancel() -- remove the request
 		end)
 	end,
 
@@ -2648,8 +2714,8 @@ AuroraFramework.services.commandService = {
 				end
 
 				-- command found, so fire events
-				cmd.events.activation:fire(cmd, args, player)
-				AuroraFramework.services.commandService.events.commandActivated:fire(cmd, args, player)
+				cmd.events.activation:fire(player, cmd, args)
+				AuroraFramework.services.commandService.events.commandActivated:fire(player, cmd, args)
 
 				-- continue
 			    ::continue::
@@ -3653,6 +3719,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Initialize services
+AuroraFramework.services.debuggerService.initialize()
 AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
 AuroraFramework.services.playerService.initialize()
