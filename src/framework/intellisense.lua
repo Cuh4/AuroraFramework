@@ -30,10 +30,60 @@ _ = {
 -------------------------------------------------
 -- Services
 -------------------------------------------------
+---------------- Debugger
+---@class af_services_debugger_logger: af_internal_class
+_ = {
+    __name__ = "debuggerLogger",
+
+    properties = {
+        name = "", -- The name of this logger
+        sendToChat = false -- Whether or not this logger should sent messages to chat or through debug.log
+    },
+
+    -- Remove this logger
+    ---@param self af_services_debugger_logger
+    remove = function(self) end, -- Remove this loop
+
+    -- Send a message through this logger
+    ---@param self af_services_debugger_logger
+    ---@param separator string|nil
+    ---@param ... any
+    send = function(self, ...) end
+}
+
+---@class af_services_debugger_attached_function: af_internal_class
+_ = {
+    __name__ = "debuggerAttachedFunction",
+
+    properties = {
+        targetFunction = function() end, -- The function with debug code attached
+
+        functionUsageCount = 0, -- How many times the function has been called
+        recentExecutionTime = 0, -- How long it took for the last function call to fully finish
+        averageExecutionTime = 0, -- The average execution time of the function
+        __averageTrack = {}, -- Table containing execution times. Used by the framework
+
+        ---@type af_libs_miscellaneous_profiler
+        profiler = nil,
+
+        ---@type af_services_debugger_logger
+        logger = nil
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        functionCall = nil -- Called when the modified function is called. Passes through what was returned, and all args passed through to the function
+    },
+
+    -- 
+    ---@param self af_services_debugger_attached_function
+    remove = function(self) end
+}
+
 ---------------- Timer
 ---@class af_services_timer_loop: af_internal_class
 _ = {
-    __name__ = "loop",
+    __name__ = "timerLoop",
 
     properties = {
         duration = 0, -- Duration of the loop in seconds
@@ -46,17 +96,19 @@ _ = {
         completion = nil -- The event that is fired when the loop is completed
     },
 
+    -- Remove this loop
     ---@param self af_services_timer_loop
-    remove = function(self) end, -- Remove this loop
+    remove = function(self) end,
 
+    -- Set the duration of this loop
     ---@param self af_services_timer_loop
     ---@param duration number
-    setDuration = function(self, duration) end -- Sets the duration of this loop
+    setDuration = function(self, duration) end
 }
 
 ---@class af_services_timer_delay: af_internal_class
 _ = {
-    __name__ = "delay",
+    __name__ = "timerDelay",
 
     properties = {
         duration = 0, -- Duration of the delay in seconds
@@ -69,12 +121,14 @@ _ = {
         completion = nil -- The event that is fired when the delay is completed
     },
 
+    -- Remove this delay
     ---@param self af_services_timer_delay
-    remove = function(self) end, -- Remove this delay
+    remove = function(self) end,
 
+    -- Set the duration of this delay
     ---@param self af_services_timer_delay
     ---@param duration number
-    setDuration = function(self, duration) end -- Sets the duration of this delay
+    setDuration = function(self, duration) end
 }
 
 ---------------- Communication

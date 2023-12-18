@@ -120,8 +120,8 @@ AuroraFramework.libraries.matrix = {}
 AuroraFramework.libraries.matrix.offset = function(position, x, y, z)
 	local new = matrix.translation(0, 0, 0)
 
-	for i, v in pairs(position) do
-		new[i] = v
+	for index, value in pairs(position) do
+		new[index] = value
 	end
 
 	local toOffset = {x or 0, y or 0, z or 0}
@@ -271,12 +271,23 @@ end
 
 -- Remove a value from a table
 ---@param tbl table
----@param value any
-AuroraFramework.libraries.miscellaneous.removeValueFromTable = function(tbl, value)
-	for i, v in pairs(tbl) do
-		if v == value then
-			tbl[i] = nil
+---@param valueToRemove any
+---@param useTableRemove boolean If true, the value will be removed using table.remove instead of index = nil
+AuroraFramework.libraries.miscellaneous.removeValueFromTable = function(tbl, valueToRemove, useTableRemove)
+	for index, value in pairs(tbl) do
+		-- not the value to remove, so go to next value
+		if value ~= valueToRemove then
+			goto continue
 		end
+
+		-- remove the value
+		if useTableRemove then
+			table.remove(tbl, index)
+		else
+			tbl[index] = nil
+		end
+
+	    ::continue::
 	end
 
 	return tbl
@@ -340,7 +351,7 @@ AuroraFramework.libraries.miscellaneous.getRandomTableValue = function(tbl)
     return tbl[math.random(1, #tbl)]
 end
 
--- Returns the average of a table full of numbers
+-- Returns the average of a table
 ---@param tbl table
 AuroraFramework.libraries.miscellaneous.average = function(tbl)
     local sum = 0
@@ -390,8 +401,8 @@ end
 -- Converts all values in a table to strings
 ---@param tbl table
 AuroraFramework.libraries.miscellaneous.tostringValuesInTable = function(tbl)
-	for i, v in pairs(tbl) do
-		tbl[i] = tostring(v)
+	for index, value in pairs(tbl) do
+		tbl[index] = tostring(value)
 	end
 
 	return tbl
@@ -400,9 +411,9 @@ end
 -- Converts all string values in a table to lowercase
 ---@param tbl table
 AuroraFramework.libraries.miscellaneous.lowerStringValuesInTable = function(tbl)
-	for i, v in pairs(tbl) do
-		if type(v) == "string" then
-			tbl[i] = v:lower()
+	for index, value in pairs(tbl) do
+		if type(value) == "string" then
+			tbl[index] = value:lower()
 		end
 	end
 
@@ -412,9 +423,9 @@ end
 -- Converts all string values in a table to uppercase
 ---@param tbl table
 AuroraFramework.libraries.miscellaneous.upperStringValuesInTable = function(tbl)
-	for i, v in pairs(tbl) do
-		if type(v) == "string" then
-			tbl[i] = v:upper()
+	for index, value in pairs(tbl) do
+		if type(value) == "string" then
+			tbl[index] = value:upper()
 		end
 	end
 
@@ -437,8 +448,8 @@ AuroraFramework.libraries.events.create = function(name)
 		{
 			---@param self af_libs_event_event
 			fire = function(self, ...)
-				for i, v in pairs(self.properties.connections) do
-					v(...)
+				for _, connection in pairs(self.properties.connections) do
+					connection(...)
 				end
 			end,
 
@@ -488,6 +499,213 @@ end
 --------------------------------------------------------------------------------
 --// Services \\--
 --------------------------------------------------------------------------------
+---------------- Debugger Service
+AuroraFramework.services.debuggerService = {
+	internal = {},
+
+	---@type table<string, af_services_debugger_logger>
+	loggers = {}
+}
+
+-- Recursively convert a table to string. Source: https://gist.github.com/ripter/4270799
+---@param tbl table
+---@param indent number|nil
+AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, indent)
+	-- setup table
+	local contents = {}
+
+	-- default indent of 0
+	if not indent then
+		indent = 0
+	end
+
+	-- iterate through table
+	for index, value in pairs(tbl) do
+		-- get value type + 
+		valueType = type(value)
+		formatting = ("  "):rep(indent)..index..": "
+		
+		if valueType == "table" then
+			-- iterate table
+			table.insert(contents, formatting)
+			table.insert(contents, AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 1))
+		elseif valueType == 'boolean' then
+			-- convert boolean
+			table.insert(contents, formatting..tostring(value))		
+		else
+			-- convert any other type
+			table.insert(contents, formatting..value)
+		end
+	end
+
+	-- return as string
+	return table.concat(contents, "\n")
+end
+
+-- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
+---@param name string
+---@param tbl table<integer, function>
+---@param logger af_services_debugger_logger
+AuroraFramework.services.debuggerService.attachMultiple = function(name, tbl, logger)
+	-- iterate through table
+	for index, func in pairs(func) do
+		-- attach
+		AuroraFramework.services.debuggerService.attach(name.."."..index, func, logger)
+	end
+end
+
+-- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
+---@param name string
+---@param func function
+---@param logger af_services_debugger_logger
+AuroraFramework.services.debuggerService.attach = function(name, func, logger)
+	-- create class
+	---@type af_services_debugger_attached_function
+	local attachedFunction = AuroraFramework.internal.class(
+		"debuggerAttachedFunction",
+
+		{},
+
+		{
+			func = nil,
+
+			functionUsageCount = 0,
+			recentExecutionTime = 0,
+			averageExecutionTime = 0,
+			__averageTrack = {},
+
+			profiler = AuroraFramework.libraries.miscellaneous.profiler(),
+			logger = logger
+		},
+
+		{
+			functionCall = AuroraFramework.libraries.events.create("debug_attached_function_"..name)
+		}
+	)
+
+	-- overwrite function
+	local oldFunc = func
+
+	func = function(...)
+		-- calculate execution time
+		attachedFunction.properties.profiler:start()
+
+		-- call old function
+		local returned = oldFunc(...)
+
+		-- track stuffs
+		local executionTime = attachedFunction.properties.profiler:stop()
+		
+		attachedFunction.properties.functionUsageCount = attachedFunction.properties.functionUsageCount + 1 -- increment usage count
+		attachedFunction.properties.recentExecutionTime = executionTime -- save recent execution time
+
+		table.insert(attachedFunction.properties.__averageTrack, executionTime) -- insert execution time into average tracking table to calculate average execution time
+
+		-- calculate average execution time, and save it
+		local averageExecutionTime = AuroraFramework.libraries.miscellaneous.average(attachedFunction.properties.__averageTrack)
+		attachedFunction.properties.averageExecutionTime = averageExecutionTime
+
+		-- clear average table if its too long
+		if #attachedFunction.properties.__averageTrack > 10 then
+			attachedFunction.properties.__averageTrack = {}
+		end
+
+		-- send debug message
+		attachedFunction.properties.logger:send(("%s was called. | Took: %s ms | Average: %s ms | Returned: %s"):format(name, executionTime, averageExecutionTime, tostring(returned)))
+
+		-- fire event
+		attachedFunction.events.functionCall:fire(returned, ...)
+
+		-- return actual function result
+		return returned
+	end
+
+	attachedFunction.properties.targetFunction = func
+
+	-- return
+	return attachedFunction
+end
+
+-- Create a logger
+---@param name string
+---@param shouldSendInChat boolean|nil When a message is sent through the logger, it will send it in chat if this is true, or via debugl.log if this is false
+AuroraFramework.services.debuggerService.createLogger = function(name, shouldSendInChat)
+	-- create the logger
+	---@type af_services_debugger_logger
+	local logger = AuroraFramework.internal.class(
+		"debuggerLogger",
+
+		{
+			---@param self af_services_debugger_logger
+			remove = function(self)
+				AuroraFramework.services.debuggerService.removeLogger(self.properties.name)
+			end,
+
+			---@param self af_services_debugger_logger
+			---@param separator string|nil
+			---@param ... any
+			send = function(self, separator, ...)
+				-- default sep
+				if not separator then
+					separator = "\n---\n"
+				end
+
+				-- pack args into table
+				local toPrint = {...}
+
+				-- convert all args to string
+				for index, arg in pairs(toPrint) do
+					local argType = type(arg)
+
+					if argType == "table" then
+						toPrint[index] = AuroraFramework.services.debuggerService.internal.tableToString(arg)
+					else
+						toPrint[index] = tostring(arg)
+					end
+				end
+
+				-- send the messages
+				if self.properties.sendToChat then
+					AuroraFramework.services.chatService.sendMessage(
+						self.properties.formattedName,
+						table.concat(toPrint, separator)
+					)
+				else
+					debug.log(
+						("%s %s"):format(self.properties.formattedName, table.concat(toPrint, separator))
+					)
+				end
+			end
+		},
+
+		{
+			name = name,
+			sendToChat = shouldSendInChat or false,
+			formattedName = ("[DEBUGGER | %s - Addon #%s]"):format(name, AuroraFramework.attributes.AddonIndex)
+		},
+
+		nil,
+
+		AuroraFramework.services.debuggerService.loggers,
+		name
+	)
+
+	-- return
+	return logger
+end
+
+-- Get a logger by name
+---@param name string
+AuroraFramework.services.debuggerService.getLogger = function(name)
+	return AuroraFramework.services.debuggerService.loggers[name]
+end
+
+-- Remove a logger
+---@param name string
+AuroraFramework.services.debuggerService.removeLogger = function(name)
+	AuroraFramework.services.debuggerService.loggers[name] = nil
+end
+
 ---------------- Timer Service
 AuroraFramework.services.timerService = {
 	initialize = function()
@@ -531,12 +749,12 @@ AuroraFramework.services.timerService = {
 ---@param callback function
 AuroraFramework.services.timerService.loop.create = function(duration, callback)
 	-- unique id
-	af_timerID = af_timerID + 1
+	AuroraFramework.services.timerService.timerID = AuroraFramework.services.timerService.timerID + 1
 
 	-- store loop
 	---@type af_services_timer_loop
 	local loop = AuroraFramework.internal.class(
-		"loop",
+		"timerLoop",
 
 		{
 			---@param self af_services_timer_loop
@@ -583,12 +801,12 @@ end
 ---@param callback function
 AuroraFramework.services.timerService.delay.create = function(duration, callback)
 	-- unique id
-	af_timerID = af_timerID + 1
+	AuroraFramework.services.timerService.timerID = AuroraFramework.services.timerService.timerID + 1
 
 	-- store delay
 	---@type af_services_timer_delay
 	local delay = AuroraFramework.internal.class(
-		"delay",
+		"timerDelay",
 
 		{
 			---@param self af_services_timer_delay
@@ -1855,18 +2073,23 @@ AuroraFramework.services.HTTPService.URLArgs = function(url, ...)
 	local packed = {...}
 
 	-- go through each argument
-	for i, v in pairs(packed) do
+	for index, URLArg in pairs(packed) do
 		-- check if the argument is valid
-		if v.name == nil or v.value == nil then
+		if URLArg.name == nil or URLArg.value == nil then
 			goto continue
 		end
 
-		if i == 1 then
+		-- http encode the name and value
+		URLArg.name = AuroraFramework.services.HTTPService.URLEncode(URLArg.name)
+		URLArg.value = AuroraFramework.services.HTTPService.URLEncode(URLArg.value)
+
+		-- format into url
+		if index == 1 then
 			-- first argument, so index with "?"
-			table.insert(args, "?"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
+			table.insert(args, "?"..URLArg.name.."="..URLArg.value)
 		else
 			-- all other arguments, so index with "&"
-			table.insert(args, "&"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
+			table.insert(args, "&"..URLArg.name.."="..URLArg.value)
 		end
 
 		::continue::
