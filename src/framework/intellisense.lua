@@ -31,6 +31,53 @@ _ = {
 -- Services
 -------------------------------------------------
 
+---------------- Timer
+---@class af_services_timer_loop: af_internal_class
+_ = {
+    __name__ = "loop",
+
+    properties = {
+        duration = 0, -- Duration of the loop in seconds
+        creationTime = 0, -- The time this loop was created
+        id = 0 -- The ID of this loop
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        completion = nil -- The event that is fired when the loop is completed
+    },
+
+    ---@param self af_services_timer_loop
+    remove = function(self) end, -- Remove this loop
+
+    ---@param self af_services_timer_loop
+    ---@param duration number
+    setDuration = function(self, duration) end -- Sets the duration of this loop
+}
+
+---@class af_services_timer_delay: af_internal_class
+_ = {
+    __name__ = "delay",
+
+    properties = {
+        duration = 0, -- Duration of the delay in seconds
+        creationTime = 0, -- The time this delay was created
+        id = 0 -- The ID of this delay
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        completion = nil -- The event that is fired when the delay is completed
+    },
+
+    ---@param self af_services_timer_delay
+    remove = function(self) end, -- Remove this delay
+
+    ---@param self af_services_timer_delay
+    ---@param duration number
+    setDuration = function(self, duration) end -- Sets the duration of this delay
+}
+
 ---------------- Communication
 ---@class af_services_communication_channel: af_internal_class
 _ = {
@@ -513,53 +560,6 @@ _ = {
 -------------------------------------------------
 -- Libraries
 -------------------------------------------------
-
----------------- Timer
----@class af_libs_timer_loop: af_internal_class
-_ = {
-    __name__ = "loop",
-
-    properties = {
-        duration = 0, -- Duration of the loop in seconds
-        creationTime = 0, -- The time this loop was created
-        id = 0 -- The ID of this loop
-    },
-
-    events = {
-        ---@type af_libs_event_event
-        completion = nil -- The event that is fired when the loop is completed
-    },
-
-    ---@param self af_libs_timer_loop
-    remove = function(self) end, -- Remove this loop
-
-    ---@param self af_libs_timer_loop
-    ---@param duration number
-    setDuration = function(self, duration) end -- Sets the duration of this loop
-}
-
----@class af_libs_timer_delay: af_internal_class
-_ = {
-    __name__ = "delay",
-
-    properties = {
-        duration = 0, -- Duration of the delay in seconds
-        creationTime = 0, -- The time this delay was created
-        id = 0 -- The ID of this delay
-    },
-
-    events = {
-        ---@type af_libs_event_event
-        completion = nil -- The event that is fired when the delay is completed
-    },
-
-    ---@param self af_libs_timer_delay
-    remove = function(self) end, -- Remove this delay
-
-    ---@param self af_libs_timer_delay
-    ---@param duration number
-    setDuration = function(self, duration) end -- Sets the duration of this delay
-}
 
 ---------------- Events
 ---@class af_libs_event_event: af_internal_class

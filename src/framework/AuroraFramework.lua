@@ -513,12 +513,12 @@ AuroraFramework.services.timerService = {
 	timerID = 0,
 
 	loop = {
-		---@type table<integer, af_libs_timer_loop>
+		---@type table<integer, af_services_timer_loop>
 		ongoing = {}
 	},
 
 	delay = {
-		---@type table<integer, af_libs_timer_delay>
+		---@type table<integer, af_services_timer_delay>
 		ongoing = {}
 	}
 }
@@ -531,17 +531,17 @@ AuroraFramework.services.timerService.loop.create = function(duration, callback)
 	af_timerID = af_timerID + 1
 
 	-- store loop
-	---@type af_libs_timer_loop
+	---@type af_services_timer_loop
 	local loop = AuroraFramework.internal.class(
 		"loop",
 
 		{
-			---@param self af_libs_timer_loop
+			---@param self af_services_timer_loop
 			remove = function(self)
 				AuroraFramework.services.timerService.loop.remove(self.properties.id)
 			end,
 
-			---@param self af_libs_timer_loop
+			---@param self af_services_timer_loop
 			---@param new number
 			setDuration = function(self, new)
 				self.duration = new
@@ -583,17 +583,17 @@ AuroraFramework.services.timerService.delay.create = function(duration, callback
 	af_timerID = af_timerID + 1
 
 	-- store delay
-	---@type af_libs_timer_delay
+	---@type af_services_timer_delay
 	local delay = AuroraFramework.internal.class(
 		"delay",
 
 		{
-			---@param self af_libs_timer_delay
+			---@param self af_services_timer_delay
 			remove = function(self)
 				AuroraFramework.services.timerService.delay.remove(self.properties.id)
 			end,
 
-			---@param self af_libs_timer_delay
+			---@param self af_services_timer_delay
 			---@param new number
 			setDuration = function(self, new)
 				self.duration = new
