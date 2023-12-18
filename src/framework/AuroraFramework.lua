@@ -1232,11 +1232,15 @@ AuroraFramework.services.groupService = {
 ---@param y number
 ---@param z number
 ---@param group_cost number
-AuroraFramework.services.groupService.internal.giveGroupData = function(group_id, peer_id, x, y, z, group_cost)
+---@param vehicle_ids vehicle_ids|nil
+AuroraFramework.services.groupService.internal.giveGroupData = function(group_id, peer_id, x, y, z, group_cost, vehicle_ids)
 	-- ignore if already exists
 	if AuroraFramework.services.groupService.getGroup(group_id) then
 		return
 	end
+
+	-- set vehicle ids if not provided
+	vehicle_ids = vehicle_ids or server.getVehicleGroup(group_id)
 
 	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
 	AuroraFramework.internal.performSaveDataAction(function()
@@ -1247,7 +1251,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 			y = y,
 			z = z,
 			group_cost = group_cost,
-			vehicle_ids = server.getVehicleGroup(group_id)
+			vehicle_ids = vehicle_ids
 		}
 
 		g_savedata.AuroraFramework.groups[group_id] = data
@@ -1305,7 +1309,6 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	)
 
 	-- set up vehicles belonging to the group
-	local vehicle_ids = server.getVehicleGroup(group_id)
 	local vehicles = {}
 
 	for _, vehicle_id in pairs(vehicle_ids) do
@@ -1401,7 +1404,8 @@ AuroraFramework.services.groupService.spawnGroup = function(position, playlist_i
 		group_id,
 		-1,
 		x, y, z,
-		0
+		0,
+		vehicle_ids
 	)
 end
 
