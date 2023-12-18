@@ -536,7 +536,7 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
         elseif valueType == "number" then
             toAdd = toAdd..(" %s"):format(value)
         else
-            toAdd = toAdd..(" \"%s\""):format(tostring(value))
+            toAdd = toAdd..(" \"%s\""):format(tostring(value):gsub("\n", "\\n"))
         end
 
         -- add to table
@@ -692,7 +692,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 			send = function(self, message)
 				-- convert message to string
 				if type(message) == "table" then
-					message = AuroraFramework.services.debuggerService.internal.tableToString(message)
+					message = "\n"..AuroraFramework.services.debuggerService.internal.tableToString(message)
 				else
 					message = tostring(message)
 				end
