@@ -486,6 +486,8 @@ _ = {
         ---@type SWMatrix
         spawnPos = nil, -- The position this vehicle was spawned at
 
+        loaded = false, -- Whether or not the vehicle has loaded or not
+
         cost = 0 -- The cost of this vehicle. 0 if infinite_money is enabled
     },
 
