@@ -531,8 +531,19 @@ AuroraFramework.services.debuggerService.internal.tableToString = function(tbl, 
         local toAdd = formattedIndex
 
         if valueType == "table" then
-            local formattedValue = AuroraFramework.services.debuggerService.internal.tableToString(value, indent + 2)
-            toAdd = toAdd..("\n%s"):format(formattedValue)
+			-- format table
+			local nextIndent = indent + 2
+            local formattedValue = AuroraFramework.services.debuggerService.internal.tableToString(value, nextIndent)
+
+			-- check if empty table
+			if formattedValue == "" then
+				formattedValue = "{}"
+			else
+				formattedValue = "\n"..formattedValue
+			end
+
+			-- add to string
+            toAdd = toAdd..(" %s"):format(formattedValue)
         elseif valueType == "number" or valueType == "boolean" then
             toAdd = toAdd..(" %s"):format(tostring(value))
         else
