@@ -62,10 +62,10 @@ AuroraFramework.services.chatService.events.onMessageSent:connect(function(messa
 end)
 
 -- Delete messages sent by a player if they request it
----@param command af_services_command_command
 ---@param player af_services_player_player
+---@param command af_services_command_command
 ---@param args table<integer, string>
-AuroraFramework.services.commandService.create(function(command, player, args)
+AuroraFramework.services.commandService.create(function(player, command, args)
     -- Get all messages sent by the player
     local messages = AuroraFramework.services.chatService.getAllMessagesSentByAPlayer(player)
 

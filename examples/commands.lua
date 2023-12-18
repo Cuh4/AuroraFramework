@@ -10,10 +10,10 @@
 ----------------------------------------
 
 -- Create a command that kills any player who uses it, and prevents others from using it afterwards.
----@param command af_services_command_command
 ---@param player af_services_player_player
+---@param command af_services_command_command
 ---@param args table<integer, string>
-AuroraFramework.services.commandService.create(function(command, player, args)
+AuroraFramework.services.commandService.create(function(player, command, args)
     player:kill() -- Kills the player
     command:successNotification("You died! Congratulations!", player) -- Shows a success notification on the right of their screen temporarily
 
