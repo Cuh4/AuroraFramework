@@ -1845,19 +1845,24 @@ end
 
 -- Convert a table of args into URL parameters
 ---@param url string
+---@param ... af_services_http_urlarg
 AuroraFramework.services.HTTPService.URLArgs = function(url, ...)
-	-- convert args to stuffs tghfgdfd
+	-- convert provided parameters to a table
 	local args = {}
 	local packed = {...}
 
+	-- go through each argument
 	for i, v in pairs(packed) do
+		-- check if the argument is valid
 		if v.name == nil or v.value == nil then
 			goto continue
 		end
 
 		if i == 1 then
+			-- first argument, so index with "?"
 			table.insert(args, "?"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
 		else
+			-- all other arguments, so index with "&"
 			table.insert(args, "&"..AuroraFramework.services.HTTPService.URLEncode(v.name).."="..AuroraFramework.services.HTTPService.URLEncode(v.value))
 		end
 
@@ -2070,7 +2075,7 @@ end
 ---@param str string
 ---@param pos number|nil
 ---@param end_delim string|nil
----@return any|nil decodedResult, number|nil nil = failed
+---@return any|nil, number|nil
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 
