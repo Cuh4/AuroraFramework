@@ -36,5 +36,5 @@ AuroraFramework.services.groupService.events.onSpawn:connect(function(group)
     end
 
     -- Call "move" every x seconds
-    AuroraFramework.libraries.timer.loop.create(0.1, move)
+    AuroraFramework.services.timerService.loop.create(0.1, move)
 end)
