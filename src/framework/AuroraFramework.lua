@@ -1366,6 +1366,7 @@ AuroraFramework.services.groupService.internal.removeGroupData = function(group_
 end
 
 -- Spawn a group (server.spawnAddonVehicle behind the hood)
+-- onGroupSpawn will not get triggered by groups spawned with this function
 ---@param position SWMatrix
 ---@param playlist_id integer
 ---@param addonIndex integer|nil
@@ -1381,7 +1382,7 @@ AuroraFramework.services.groupService.spawnGroup = function(position, playlist_i
 	-- setup group data, then return it
 	local x, y, z = matrix.position(position)
 
-	return AuroraFramework.services.groupService.internal.giveGroupData(
+	return AuroraFramework.services.groupService.internal.giveGroupData( -- onGroupSpawn gets called, but since the group already exists, it ignores the group entirely
 		group_id,
 		-1,
 		x, y, z,
