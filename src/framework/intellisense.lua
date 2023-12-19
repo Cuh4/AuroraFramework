@@ -57,6 +57,117 @@ _ = {
 -------------------------------------------------
 -- Services
 -------------------------------------------------
+---------------- Zone
+---@class af_services_zone_player_zone: af_internal_class
+_ = {
+    __name__ = "playerZone",
+
+    properties = {
+        name = "", -- The name of this zone
+
+        ---@type SWMatrix
+        position = nil, -- The position this zone is at
+
+        size = 0, -- The radius of the zone in meters
+
+        ---@type table<integer, af_services_player_player>
+        playersInZone = nil -- The players currently in the zone
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        onEnter = nil,
+
+        ---@type af_libs_event_event
+        onExit = nil
+    },
+
+    -- Remove this zone
+    ---@param self af_services_zone_player_zone
+    remove = function(self) end,
+
+    -- Move this zone
+    ---@param self af_services_zone_player_zone
+    ---@param newPos SWMatrix
+    move = function(self, newPos) end,
+
+    -- Change the size of this zone
+    ---@param self af_services_zone_player_zone
+    ---@param newSize number
+    changeSize = function(self, newSize) end,
+
+    -- Whether or not a player is in this zone
+    ---@param self af_services_zone_player_zone
+    ---@param player af_services_player_player
+    ---@return boolean
+    inZone = function(self, player) end,
+
+    -- Enter zone (internal method, do not use)
+    ---@param self af_services_zone_player_zone
+    ---@param player af_services_player_player
+    enter = function(self, player) end,
+
+    -- Exit zone (internal method, do not use)
+    ---@param self af_services_zone_player_zone
+    ---@param player af_services_player_player
+    exit = function(self, player) end
+}
+
+---@class af_services_zone_vehicle_zone: af_internal_class
+_ = {
+    __name__ = "vehicleZone",
+
+    properties = {
+        name = "", -- The name of this zone
+
+        ---@type SWMatrix
+        position = nil, -- The position this zone is at
+
+        size = 0, -- The radius of the zone in meters
+
+        ---@type table<integer, af_services_vehicle_vehicle>
+        vehiclesInZone = nil -- The vehicles currently in the zone
+    },
+
+    events = {
+        ---@type af_libs_event_event
+        onEnter = nil,
+
+        ---@type af_libs_event_event
+        onExit = nil
+    },
+
+    -- Remove this zone
+    ---@param self af_services_zone_vehicle_zone
+    remove = function(self) end,
+
+    -- Move this zone
+    ---@param self af_services_zone_vehicle_zone
+    ---@param newPos SWMatrix
+    move = function(self, newPos) end,
+
+    -- Change the size of this zone
+    ---@param self af_services_zone_vehicle_zone
+    ---@param newSize number
+    changeSize = function(self, newSize) end,
+
+    -- Whether or not a vehicle is in this zone
+    ---@param self af_services_zone_player_zone
+    ---@param vehicle af_services_vehicle_vehicle
+    ---@return boolean
+    inZone = function(self, player) end,
+
+    -- Enter zone (internal method, do not use)
+    ---@param self af_services_zone_player_zone
+    ---@param vehicle af_services_vehicle_vehicle
+    enter = function(self, vehicle) end,
+
+    -- Exit zone (internal method, do not use)
+    ---@param self af_services_zone_player_zone
+    ---@param vehicle af_services_vehicle_vehicle
+    exit = function(self, vehicle) end
+}
+
 ---------------- Debugger
 ---@class af_services_debugger_logger: af_internal_class
 _ = {

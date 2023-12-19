@@ -527,6 +527,262 @@ end
 --------------------------------------------------------------------------------
 --// Services \\--
 --------------------------------------------------------------------------------
+---------------- Zone Service
+AuroraFramework.services.zoneService = {
+	initialize = function()
+		-- Handle all zone types
+		---@param loop af_services_timer_loop
+		AuroraFramework.services.timerService.loop.create(AuroraFramework.services.zoneService.updateRate, function(loop)
+			-- Update refresh rate
+			loop:setDuration(AuroraFramework.services.zoneService.updateRate)
+
+			-- Vehicle zones
+			for _, vehicle in pairs(AuroraFramework.services.vehicleService.getAllVehicles()) do
+				-- Get position
+				local vehiclePos = vehicle:getPosition()
+
+				-- Go through all zones, and check if the vehicle is in any of them
+				for _, zone in pairs(AuroraFramework.services.zoneService.zones.vehicleZones) do
+					-- Check distance
+					local zonePos = zone.properties.position
+					local distance = matrix.distance(vehiclePos, zonePos)
+
+					if distance <= zone.properties.size then
+						-- Within zone range, so enter
+						zone:enter(vehicle)
+					else
+						-- Not within zone range, so exit
+						zone:exit(vehicle)
+					end
+				end
+			end
+
+			-- Player zones
+			for _, player in pairs(AuroraFramework.services.playerService.getAllPlayers()) do
+				-- Get position
+				local playerPos = player:getPosition()
+
+				-- Go through all zones, and check if the player is in any of them
+				for _, zone in pairs(AuroraFramework.services.zoneService.zones.playerZones) do
+					-- Check distance
+					local zonePos = zone.properties.position
+					local distance = matrix.distance(playerPos, zonePos)
+
+					if distance <= zone.properties.size then
+						-- Within zone range, so enter
+						zone:enter(player)
+					else
+						-- Not within zone range, so exit
+						zone:exit(player)
+					end
+				end
+			end
+		end)
+
+		-- Handle vehicle zones
+		---@param vehicle af_services_vehicle_vehicle
+		AuroraFramework.services.vehicleService.events.onDespawn:connect(function(vehicle)
+			for _, zone in pairs(AuroraFramework.services.zoneService.zones.vehicleZones) do
+				-- remove vehicle from zone
+				zone:exit(vehicle)
+			end
+		end)
+
+		-- Handle player zones
+		---@param player af_services_player_player
+		AuroraFramework.services.playerService.events.onLeave:connect(function(player)
+			for _, zone in pairs(AuroraFramework.services.zoneService.zones.playerZones) do
+				-- remove player from zone
+				zone:exit(player)
+			end
+		end)
+	end,
+
+	updateRate = 0.02, -- in seconds
+
+	zones = {
+		---@type table<string, af_services_zone_player_zone>
+		playerZones = {},
+
+		---@type table<string, af_services_zone_vehicle_zone>
+		vehicleZones = {}
+	}
+}
+
+-- Set update rate. Recommended to be under 0.1. If your addon is causing performance issues with lots of vehicles spawned and players in the server, try turning this up
+---@param rateInSeconds number
+AuroraFramework.services.zoneService.setUpdateRate = function(rateInSeconds)
+	AuroraFramework.services.zoneService.updateRate = rateInSeconds
+end
+
+-- Create a player zone
+---@param name string
+---@param position SWMatrix
+---@param size number In meters
+AuroraFramework.services.zoneService.createPlayerZone = function(name, position, size)
+	-- Create zone
+	---@type af_services_zone_player_zone
+	local zone = AuroraFramework.internal.class(
+		"playerZone",
+
+		{
+			---@param self af_services_zone_player_zone
+			remove = function(self)
+				return AuroraFramework.services.zoneService.removePlayerZone(self.properties.name)
+			end,
+
+			---@param self af_services_zone_player_zone
+			---@param newPos SWMatrix
+			move = function(self, newPos)
+				self.properties.position = newPos
+			end,
+		
+			---@param self af_services_zone_player_zone
+			---@param newSize number
+			changeSize = function(self, newSize)
+				self.properties.size = newSize
+			end,
+
+			---@param self af_services_zone_player_zone
+			---@param player af_services_player_player
+			inZone = function(self, player)
+				return self.properties.playersInZone[player.properties.peer_id] ~= nil
+			end,
+
+			---@param self af_services_zone_player_zone
+			---@param player af_services_player_player
+			enter = function(self, player)
+				if self.inZone(player) then
+					return
+				end
+
+				self.properties.playersInZone[player.properties.peer_id] = player
+				self.events.onEnter:fire(player)
+			end,
+
+			-- Exit zone (internal method, do not use)
+			---@param self af_services_zone_player_zone
+			---@param player af_services_player_player
+			exit = function(self, player)
+				if not self.inZone(player) then
+					return
+				end
+
+				self.properties.playersInZone[player.properties.peer_id] = nil
+				self.events.onExit:fire(player)
+			end
+		},
+
+		{
+			name = name,
+			position = position,
+			size = size,
+			playersInZone = {}
+		},
+
+		{
+			onEnter = AuroraFramework.libraries.events.create("auroraframework_playerzone_onenter_"..tostring(name)),
+			onExit = AuroraFramework.libraries.events.create("auroraframework_playerzone_onexit_"..tostring(name))
+		},
+
+		AuroraFramework.services.zoneService.zones.playerZones,
+		name
+	)
+
+	-- Return
+	return zone
+end
+
+-- Remove a player zone
+---@param name string
+AuroraFramework.services.zoneService.removePlayerZone = function(name)
+	AuroraFramework.services.zoneService.zones.playerZones[name] = nil
+end
+
+-- Create a vehicle zone
+---@param name string
+---@param position SWMatrix
+---@param size number In meters
+AuroraFramework.services.zoneService.createVehicleZone = function(name, position, size)
+	-- Create zone
+	---@type af_services_zone_vehicle_zone
+	local zone = AuroraFramework.internal.class(
+		"vehicleZone",
+
+		{
+			---@param self af_services_zone_vehicle_zone
+			remove = function(self)
+				return AuroraFramework.services.zoneService.removeVehicleZone(self.properties.name)
+			end,
+
+			---@param self af_services_zone_vehicle_zone
+			---@param newPos SWMatrix
+			move = function(self, newPos)
+				self.properties.position = newPos
+			end,
+		
+			---@param self af_services_zone_vehicle_zone
+			---@param newSize number
+			changeSize = function(self, newSize)
+				self.properties.size = newSize
+			end,
+
+			---@param self af_services_zone_vehicle_zone
+			---@param vehicle af_services_vehicle_vehicle
+			inZone = function(self, vehicle)
+				return self.properties.vehiclesInZone[vehicle.properties.vehicle_id] ~= nil
+			end,
+
+			---@param self af_services_zone_vehicle_zone
+			---@param vehicle af_services_vehicle_vehicle
+			enter = function(self, vehicle)
+				if self.inZone(vehicle) then
+					return
+				end
+
+				self.properties.vehiclesInZone[vehicle.properties.vehicle_id] = vehicle
+				self.events.onEnter:fire(vehicle)
+			end,
+
+			-- Exit zone (internal method, do not use)
+			---@param self af_services_zone_vehicle_zone
+			---@param vehicle af_services_vehicle_vehicle
+			exit = function(self, vehicle)
+				if not self.inZone(vehicle) then
+					return
+				end
+
+				self.properties.vehiclesInZone[vehicle.properties.vehicle_id] = nil
+				self.events.onExit:fire(vehicle)
+			end
+		},
+
+		{
+			name = name,
+			position = position,
+			size = size,
+			vehiclesInZone = {}
+		},
+
+		{
+			onEnter = AuroraFramework.libraries.events.create("auroraframework_vehiclezone_onenter_"..tostring(name)),
+			onExit = AuroraFramework.libraries.events.create("auroraframework_vehiclezone_onexit_"..tostring(name))
+		},
+
+		AuroraFramework.services.zoneService.zones.vehicleZones,
+		name
+	)
+
+	-- Return
+	return zone
+end
+
+-- Remove a vehicle zone
+---@param name string
+AuroraFramework.services.zoneService.removeVehicleZone = function(name)
+	AuroraFramework.services.zoneService.zones.vehicleZones[name] = nil
+end
+
 ---------------- Debugger Service
 AuroraFramework.services.debuggerService = {
 	initialize = function()
@@ -3823,6 +4079,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Initialize services
+AuroraFramework.services.zoneService.initialize()
 AuroraFramework.services.debuggerService.initialize()
 AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
