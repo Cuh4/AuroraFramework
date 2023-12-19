@@ -3384,7 +3384,7 @@ AuroraFramework.services.UIService.name = function(name, player)
 		return name
 	end
 
-	return name..player.properties.peer_ids
+	return name..player.properties.peer_id
 end
 
 -- Create a Screen UI object
