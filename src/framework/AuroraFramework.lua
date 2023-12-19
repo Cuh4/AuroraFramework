@@ -1997,6 +1997,12 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 		{
 			---@param self af_services_player_player
+			---@param audioMood SWAudioMoodEnum
+			setAudioMood = function(self, audioMood)
+				server.setAudioMood(self.properties.peer_id, audioMood)
+			end,
+
+			---@param self af_services_player_player
 			---@param slot SWSlotNumberEnum
 			---@param type SWEquipmentTypeEnum
 			---@param active boolean|nil

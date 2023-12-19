@@ -572,6 +572,11 @@ _ = {
         isHost = false
     },
 
+    -- Set the audio mood for this player
+    ---@param self af_services_player_player
+    ---@param audioMood SWAudioMoodEnum
+    setAudioMood = function(self, audioMood) end,
+
     -- Give this player an item
     ---@param self af_services_player_player
     ---@param slot SWSlotNumberEnum
