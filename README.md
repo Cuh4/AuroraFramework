@@ -6,16 +6,20 @@ Aurora Framework is a super reliable framework that makes the creation of Stormw
 This framework also makes most things OOP-based, meaning instead of doing:
 
 ```lua
-local vehicle_id = 1
-local pos = server.getVehiclePos(vehicle_id)
+function onReady()
+    local vehicle_id = 1
+    local pos = server.getVehiclePos(vehicle_id)
+end
 ```
 
 You can do:
 
 ```lua
-local vehicle_id = 1
-local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
-local pos = vehicle:getPosition()
+AuroraFramework.ready:connect(function()
+    local vehicle_id = 1
+    local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+    local pos = vehicle:getPosition()
+end)
 ```
 
 You can view examples over in the `examples` folder.
