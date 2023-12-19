@@ -652,7 +652,7 @@ AuroraFramework.services.zoneService.createPlayerZone = function(name, position,
 			---@param self af_services_zone_player_zone
 			---@param player af_services_player_player
 			enter = function(self, player)
-				if self.inZone(player) then
+				if self:inZone(player) then
 					return
 				end
 
@@ -664,7 +664,7 @@ AuroraFramework.services.zoneService.createPlayerZone = function(name, position,
 			---@param self af_services_zone_player_zone
 			---@param player af_services_player_player
 			exit = function(self, player)
-				if not self.inZone(player) then
+				if not self:inZone(player) then
 					return
 				end
 
@@ -736,7 +736,7 @@ AuroraFramework.services.zoneService.createVehicleZone = function(name, position
 			---@param self af_services_zone_vehicle_zone
 			---@param vehicle af_services_vehicle_vehicle
 			enter = function(self, vehicle)
-				if self.inZone(vehicle) then
+				if self:inZone(vehicle) then
 					return
 				end
 
@@ -748,7 +748,7 @@ AuroraFramework.services.zoneService.createVehicleZone = function(name, position
 			---@param self af_services_zone_vehicle_zone
 			---@param vehicle af_services_vehicle_vehicle
 			exit = function(self, vehicle)
-				if not self.inZone(vehicle) then
+				if not self:inZone(vehicle) then
 					return
 				end
 
