@@ -14,25 +14,41 @@
         UI persists even after addon reloads. The framework takes care of UI IDs and persistence for you.
         If you create a UI once on world creation, it will stay even after numerous save loads and addon reloads unless you remove it.
 
+        ---
+
         UIs that are only shown to a player are automatically removed when they leave.
+
+        ---
+
+        We must use the ready event when creating UI to allow the UIService to setup things before we do anything.
+        If we don't use the ready event, we run the risk of UI being overwritten and causing issues.
+
+        If you insist on not using the ready event, you must do:
+        AuroraFramework.services.UIService.getScreenUI(name) or AuroraFramework.services.UIService.createScreenUI(name, ...)
+
+        Instead of:
+        AuroraFramework.services.UIService.createScreenUI(name, ...)
 ]]
 
--- Create UI that'll be shown for everyone
-local UI = AuroraFramework.services.UIService.getScreenUI("WelcomeUI") or AuroraFramework.services.UIService.createScreenUI( -- if it already exists (framework stores UI in g_savedata, so UI persists!), use it instead of creating a new one
-    "WelcomeUI", -- the name of this ui
-    "Welcome to my server!", -- the text that should be shown
-    0, -- the x position on the screen (-1 to 1. -1 = far left, 1 = far right)
-    0.8, -- the y position on the screen (-1 to 1. -1 = bottom, 1 = top),
-    nil -- the player to show the UI to, if nil, it becomes shown to everyone
-)
+-- But even then, you may run into some issues.
+AuroraFramework.ready:connect(function()
+    -- Create UI that'll be shown for everyone
+    local UI = AuroraFramework.services.UIService.createScreenUI( -- if a screen popup with the same name already exists (framework stores UI in g_savedata, so UI persists!), it gets overwritten but uses the same id
+        "WelcomeUI", -- the name of this ui
+        "Welcome to my server!", -- the text that should be shown
+        0, -- the x position on the screen (-1 to 1. -1 = far left, 1 = far right)
+        0.8, -- the y position on the screen (-1 to 1. -1 = bottom, 1 = top),
+        nil -- the player to show the UI to, if nil, it becomes shown to everyone
+    )
 
--- Text seems a bit lacking, so we can change it like so:
-UI.properties.text = "Welcome to my awesome server!"
-UI:refresh()
+    -- Text seems a bit lacking, so we can change it like so:
+    UI.properties.text = "Welcome to my awesome server!"
+    UI:refresh()
 
--- We can also change the visibility of the UI.
-UI.properties.visible = false
-UI:refresh()
+    -- We can also change the visibility of the UI.
+    UI.properties.visible = false
+    UI:refresh()
+end)
 
 -- Now, let's create a custom player marker on the map.
 server.setGameSetting("map_show_players", false)
