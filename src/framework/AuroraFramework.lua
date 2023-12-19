@@ -1421,19 +1421,17 @@ end
 AuroraFramework.services.groupService = {
 	initialize = function()
 		-- Load groups from savedata
-		AuroraFramework.ready:connect(function() -- for some reason, auroraframework's savedata is empty the first tick, so we must wait a tick here
-			for _, group in pairs(g_savedata.AuroraFramework.groups) do
-				AuroraFramework.services.groupService.internal.giveGroupData(
-					group.group_id,
-					group.peer_id,
-					group.x,
-					group.y,
-					group.z,
-					group.group_cost,
-					group.vehicle_ids
-				)
-			end
-		end)
+		for _, group in pairs(g_savedata.AuroraFramework.groups) do
+			AuroraFramework.services.groupService.internal.giveGroupData(
+				group.group_id,
+				group.peer_id,
+				group.x,
+				group.y,
+				group.z,
+				group.group_cost,
+				group.vehicle_ids
+			)
+		end
 
 		-- Give group data whenever a group is spawned
 		AuroraFramework.callbacks.onGroupSpawn.internal:connect(function(...)
@@ -1767,19 +1765,17 @@ end
 AuroraFramework.services.vehicleService = {
 	initialize = function()
 		-- Load vehicles from savedata
-		AuroraFramework.ready:connect(function() -- for some reason, auroraframework's savedata is empty the first tick, so we must wait a tick here
-			for _, vehicle in pairs(g_savedata.AuroraFramework.vehicles) do
-				AuroraFramework.services.vehicleService.internal.giveVehicleData(
-					vehicle.vehicle_id,
-					vehicle.peer_id,
-					vehicle.x,
-					vehicle.y,
-					vehicle.z,
-					vehicle.group_cost,
-					vehicle.group_id
-				)
-			end
-		end)
+		for _, vehicle in pairs(g_savedata.AuroraFramework.vehicles) do
+			AuroraFramework.services.vehicleService.internal.giveVehicleData(
+				vehicle.vehicle_id,
+				vehicle.peer_id,
+				vehicle.x,
+				vehicle.y,
+				vehicle.z,
+				vehicle.group_cost,
+				vehicle.group_id
+			)
+		end
 
 		-- Give vehicle data whenever a vehicle is spawned
 		AuroraFramework.callbacks.onVehicleSpawn.internal:connect(function(...)
@@ -2204,12 +2200,6 @@ AuroraFramework.services.playerService = {
 				AuroraFramework.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
 			end
 
-			-- Activate character load events
-			local players = AuroraFramework.services.playerService.getAllPlayers()
-			for _, v in pairs(players) do
-				AuroraFramework.services.playerService.events.onCharacterLoad:fire(v)
-			end
-
 			-- Update player data
 			AuroraFramework.callbacks.onTick.internal:connect(function()
 				for _, player in pairs(server.getPlayers()) do
@@ -2237,7 +2227,6 @@ AuroraFramework.services.playerService = {
 	events = {
 		onJoin = AuroraFramework.libraries.events.create("auroraFramework_onPlayerJoin"),
 		onLeave = AuroraFramework.libraries.events.create("auroraFramework_onPlayerLeave"),
-		onCharacterLoad = AuroraFramework.libraries.events.create("auroraFramework_onPlayerCharacterLoad"),
 		onDie = AuroraFramework.libraries.events.create("auroraFramework_onPlayerDie"),
 		onRespawn = AuroraFramework.libraries.events.create("auroraFramework_onPlayerRespawn")
 	},
@@ -3204,118 +3193,115 @@ end
 ---------------- UI
 AuroraFramework.services.UIService = {
 	initialize = function()
-		-- load ui from savedata
-		AuroraFramework.ready:connect(function()
-			-- load map objects
-			for _, mapObject in pairs(g_savedata.AuroraFramework.UI.mapObjects) do
-				-- get the player, or nil if the ui is for everyone
-				local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapObject.peer_id)
+		-- load map objects
+		for _, mapObject in pairs(g_savedata.AuroraFramework.UI.mapObjects) do
+			-- get the player, or nil if the ui is for everyone
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapObject.peer_id)
 
-				-- if the player the ui was made for isnt in the server, don't create it
-				if not player and mapObject.peer_id ~= -1 then
-					return
-				end
-
-				-- make the ui
-				local ui = AuroraFramework.services.UIService.createMapObject(
-					mapObject.name,
-					mapObject.title,
-					mapObject.subtitle,
-					mapObject.pos,
-					mapObject.markerType,
-					player,
-					mapObject.radius,
-					mapObject.r,
-					mapObject.g,
-					mapObject.b,
-					mapObject.a,
-					mapObject.id
-				)
-
-				-- update properties
-				ui.properties.visible = mapObject.visible
-				ui:attach(mapObject.positionType, mapObject.attachID) -- automatically refreshes ui
+			-- if the player the ui was made for isnt in the server, don't create it
+			if not player and mapObject.peer_id ~= -1 then
+				return
 			end
 
-			-- load map lines
-			for _, mapLine in pairs(g_savedata.AuroraFramework.UI.mapLines) do
-				-- get the player, or nil if the ui is for everyone
-				local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapLine.peer_id)
+			-- make the ui
+			local ui = AuroraFramework.services.UIService.createMapObject(
+				mapObject.name,
+				mapObject.title,
+				mapObject.subtitle,
+				mapObject.pos,
+				mapObject.markerType,
+				player,
+				mapObject.radius,
+				mapObject.r,
+				mapObject.g,
+				mapObject.b,
+				mapObject.a,
+				mapObject.id
+			)
 
-				-- if the player the ui was made for isnt in the server, don't create it
-				if not player and mapLine.peer_id ~= -1 then
-					return
-				end
+			-- update properties
+			ui.properties.visible = mapObject.visible
+			ui:attach(mapObject.positionType, mapObject.attachID) -- automatically refreshes ui
+		end
 
-				-- make the ui
-				local ui = AuroraFramework.services.UIService.createMapLine(
-					mapLine.name,
-					mapLine.startPoint,
-					mapLine.endPoint,
-					mapLine.thickness,
-					player,
-					mapLine.r,
-					mapLine.g,
-					mapLine.b,
-					mapLine.a,
-					mapLine.id
-				)
+		-- load map lines
+		for _, mapLine in pairs(g_savedata.AuroraFramework.UI.mapLines) do
+			-- get the player, or nil if the ui is for everyone
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapLine.peer_id)
 
-				-- update properties
-				ui.properties.visible = mapLine.visible
-				ui:refresh()
+			-- if the player the ui was made for isnt in the server, don't create it
+			if not player and mapLine.peer_id ~= -1 then
+				return
 			end
 
-			-- load screen ui
-			for _, screenUI in pairs(g_savedata.AuroraFramework.UI.screen) do
-				-- get the player, or nil if the ui is for everyone
-				local player = AuroraFramework.services.playerService.getPlayerByPeerID(screenUI.peer_id)
+			-- make the ui
+			local ui = AuroraFramework.services.UIService.createMapLine(
+				mapLine.name,
+				mapLine.startPoint,
+				mapLine.endPoint,
+				mapLine.thickness,
+				player,
+				mapLine.r,
+				mapLine.g,
+				mapLine.b,
+				mapLine.a,
+				mapLine.id
+			)
 
-				-- if the player the ui was made for isnt in the server, don't create it
-				if not player and screenUI.peer_id ~= -1 then
-					return
-				end
+			-- update properties
+			ui.properties.visible = mapLine.visible
+			ui:refresh()
+		end
 
-				-- make the ui
-				local ui = AuroraFramework.services.UIService.createScreenUI(
-					screenUI.name,
-					screenUI.text,
-					screenUI.x,
-					screenUI.y,
-					player,
-					screenUI.id
-				)
+		-- load screen ui
+		for _, screenUI in pairs(g_savedata.AuroraFramework.UI.screen) do
+			-- get the player, or nil if the ui is for everyone
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(screenUI.peer_id)
 
-				-- update properties
-				ui.properties.visible = screenUI.visible
-				ui:refresh()
+			-- if the player the ui was made for isnt in the server, don't create it
+			if not player and screenUI.peer_id ~= -1 then
+				return
 			end
 
-			-- load map labels
-			for _, mapLabel in pairs(g_savedata.AuroraFramework.UI.mapLabels) do
-				-- get the player, or nil if the ui is for everyone
-				local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapLabel.peer_id)
+			-- make the ui
+			local ui = AuroraFramework.services.UIService.createScreenUI(
+				screenUI.name,
+				screenUI.text,
+				screenUI.x,
+				screenUI.y,
+				player,
+				screenUI.id
+			)
 
-				-- if the player the ui was made for isnt in the server, don't create it
-				if not player and mapLabel.peer_id ~= -1 then
-					return
-				end
+			-- update properties
+			ui.properties.visible = screenUI.visible
+			ui:refresh()
+		end
 
-				-- make the ui
-				local ui = AuroraFramework.services.UIService.createMapLabel(
-					mapLabel.name,
-					mapLabel.text,
-					mapLabel.pos,
-					mapLabel.labelType,
-					player,
-					mapLabel.id
-				)
+		-- load map labels
+		for _, mapLabel in pairs(g_savedata.AuroraFramework.UI.mapLabels) do
+			-- get the player, or nil if the ui is for everyone
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(mapLabel.peer_id)
 
-				-- update properties
-				ui.properties.visible = mapLabel.visible
-				ui:refresh()
+			-- if the player the ui was made for isnt in the server, don't create it
+			if not player and mapLabel.peer_id ~= -1 then
+				return
 			end
-		end)
+
+			-- make the ui
+			local ui = AuroraFramework.services.UIService.createMapLabel(
+				mapLabel.name,
+				mapLabel.text,
+				mapLabel.pos,
+				mapLabel.labelType,
+				player,
+				mapLabel.id
+			)
+
+			-- update properties
+			ui.properties.visible = mapLabel.visible
+			ui:refresh()
+		end
 
 		-- show ui on join
 		AuroraFramework.services.playerService.events.onJoin:connect(function(player) ---@param player af_services_player_player
@@ -4392,11 +4378,14 @@ AuroraFramework.services.zoneService.initialize()
 AuroraFramework.services.debuggerService.initialize()
 AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
-AuroraFramework.services.playerService.initialize()
-AuroraFramework.services.vehicleService.initialize() -- important this is initialized before groupservice
-AuroraFramework.services.groupService.initialize()
 AuroraFramework.services.chatService.initialize()
-AuroraFramework.services.commandService.initialize()
 AuroraFramework.services.HTTPService.initialize()
-AuroraFramework.services.UIService.initialize()
 AuroraFramework.services.TPSService.initialize()
+AuroraFramework.services.commandService.initialize()
+
+AuroraFramework.ready:connect(function()
+	AuroraFramework.services.UIService.initialize()
+	AuroraFramework.services.playerService.initialize()
+	AuroraFramework.services.vehicleService.initialize() -- important this is initialized before groupservice
+	AuroraFramework.services.groupService.initialize()
+end)
