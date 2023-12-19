@@ -649,15 +649,16 @@ end
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param tbl table
 ---@param logger af_services_debugger_logger
-AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger)
+---@param customHandler function|nil Function that is called when the modified functions are called
+AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger, customHandler)
 	-- iterate through table
 	for index, value in pairs(tbl) do
 		if type(value) == "table" then
 			-- value is a table, so attach to all functions inside of it
-			AuroraFramework.services.debuggerService.attachMultiple(value, logger)
+			AuroraFramework.services.debuggerService.attachMultiple(value, logger, customHandler)
 		elseif type(value) == "function" then
 			-- value is a function, so attach to it
-			AuroraFramework.services.debuggerService.attach(value, logger)
+			AuroraFramework.services.debuggerService.attach(value, logger, customHandler)
 		end
 	end
 end
@@ -665,7 +666,8 @@ end
 -- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param func function The function must be a global function and not a local one
 ---@param logger af_services_debugger_logger
-AuroraFramework.services.debuggerService.attach = function(func, logger)
+---@param customHandler function|nil Function that is called when the modified function is called
+AuroraFramework.services.debuggerService.attach = function(func, logger, customHandler)
 	-- find name if not provided
 	local funcTable, funcIndex, funcPathString = AuroraFramework.services.debuggerService.internal.findENVVariable(func)
 
@@ -699,6 +701,11 @@ AuroraFramework.services.debuggerService.attach = function(func, logger)
 		}
 	)
 
+	-- add custom handler
+	if customHandler then
+		attachedFunction.events.functionCall:connect(customHandler)
+	end
+
 	-- overwrite function
 	funcTable[funcIndex] = function(...)
 		-- calculate execution time
@@ -728,7 +735,7 @@ AuroraFramework.services.debuggerService.attach = function(func, logger)
 		attachedFunction.properties.logger:send(("%s() was called. | Usage Count: %s | Took: %s ms, AVG: %s ms | Returned: %s"):format(attachedFunction.properties.name, attachedFunction.properties.functionUsageCount, executionTime, averageExecutionTime, tostring(returned)))
 
 		-- fire event
-		attachedFunction.events.functionCall:fire(returned, ...)
+		attachedFunction.events.functionCall:fire(attachedFunction, returned, ...)
 
 		-- return actual function result
 		return returned
