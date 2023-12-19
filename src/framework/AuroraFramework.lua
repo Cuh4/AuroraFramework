@@ -3228,16 +3228,12 @@ AuroraFramework.services.UIService = {
 					mapObject.r,
 					mapObject.g,
 					mapObject.b,
-					mapObject.a
+					mapObject.a,
+					mapObject.id
 				)
-
-				-- creating a ui creates a new unique id, so we need to set it back
-				server.removeMapObject(mapObject.peer_id, ui.properties.id) -- to prevent multiple map objects being created
 
 				-- update properties
 				ui.properties.visible = mapObject.visible
-				ui.properties.id = mapObject.id
-
 				ui:attach(mapObject.positionType, mapObject.attachID) -- automatically refreshes ui
 			end
 
@@ -3257,20 +3253,16 @@ AuroraFramework.services.UIService = {
 					mapLine.startPoint,
 					mapLine.endPoint,
 					mapLine.thickness,
+					player,
 					mapLine.r,
 					mapLine.g,
 					mapLine.b,
 					mapLine.a,
-					player
+					mapLine.id
 				)
-
-				-- creating a ui creates a new unique id, so we need to set it back
-				server.removeMapLine(mapLine.peer_id, ui.properties.id) -- to prevent multiple map lines being created
 
 				-- update properties
 				ui.properties.visible = mapLine.visible
-				ui.properties.id = mapLine.id
-
 				ui:refresh()
 			end
 
@@ -3290,16 +3282,12 @@ AuroraFramework.services.UIService = {
 					screenUI.text,
 					screenUI.x,
 					screenUI.y,
-					player
+					player,
+					screenUI.id
 				)
-
-				-- creating a ui creates a new unique id, so we need to set it back
-				server.removePopup(screenUI.peer_id, ui.properties.id) -- to prevent multiple screen popups being created
 
 				-- update properties
 				ui.properties.visible = screenUI.visible
-				ui.properties.id = screenUI.id
-
 				ui:refresh()
 			end
 
@@ -3319,16 +3307,12 @@ AuroraFramework.services.UIService = {
 					mapLabel.text,
 					mapLabel.pos,
 					mapLabel.labelType,
-					player
+					player,
+					mapLabel.id
 				)
-
-				-- creating a ui creates a new unique id, so we need to set it back
-				server.removeMapLabel(mapLabel.peer_id, ui.properties.id) -- to prevent multiple map labels being created
 
 				-- update properties
 				ui.properties.visible = mapLabel.visible
-				ui.properties.id = mapLabel.id
-
 				ui:refresh()
 			end
 		end)
@@ -3393,12 +3377,21 @@ end
 ---@param x number
 ---@param y number
 ---@param player af_services_player_player|nil
+---@param custom_id integer|nil
 ---@return af_services_ui_screen
-AuroraFramework.services.UIService.createScreenUI = function(name, text, x, y, player)
-	-- get id
-	local id = server.getMapID()
+AuroraFramework.services.UIService.createScreenUI = function(name, text, x, y, player, custom_id)
+	-- Get ID
+	local id = custom_id or server.getMapID()
 
-	-- create ui
+	-- If UI with the same name exists, use the ID from it and overwrite the UI entirely
+	local alreadyExistingUI = AuroraFramework.services.UIService.getScreenUI(name)
+
+	if alreadyExistingUI then
+		id = alreadyExistingUI.properties.id
+		alreadyExistingUI:remove()
+	end
+
+	-- Create UI
 	---@type af_services_ui_screen
 	local ui = AuroraFramework.internal.class(
 		"UIScreen",
@@ -3414,7 +3407,7 @@ AuroraFramework.services.UIService.createScreenUI = function(name, text, x, y, p
 
 			---@param self af_services_ui_screen
 			remove = function(self)
-				return AuroraFramework.services.UIService.removeScreenUI(self.properties.id)
+				return AuroraFramework.services.UIService.removeScreenUI(self.properties.name)
 			end,
 
 			---@param self af_services_ui_screen
@@ -3485,12 +3478,21 @@ end
 ---@param pos SWMatrix
 ---@param labelType SWLabelTypeEnum
 ---@param player af_services_player_player|nil
+---@param custom_id integer|nil
 ---@return af_services_ui_map_label
-AuroraFramework.services.UIService.createMapLabel = function(name, text, pos, labelType, player)
-	-- get unique ui id
-	local id = server.getMapID()
+AuroraFramework.services.UIService.createMapLabel = function(name, text, pos, labelType, player, custom_id)
+	-- Get ID
+	local id = custom_id or server.getMapID()
 
-	-- create ui
+	-- If UI with the same name exists, use the ID from it and overwrite the UI entirely
+	local alreadyExistingUI = AuroraFramework.services.UIService.getMapLabel(name)
+
+	if alreadyExistingUI then
+		id = alreadyExistingUI.properties.id
+		alreadyExistingUI:remove()
+	end
+
+	-- Create UI
 	---@type af_services_ui_map_label
 	local ui = AuroraFramework.internal.class(
 		"UIMapLabel",
@@ -3512,7 +3514,7 @@ AuroraFramework.services.UIService.createMapLabel = function(name, text, pos, la
 
 			---@param self af_services_ui_map_label
 			remove = function(self)
-				return AuroraFramework.services.UIService.removeMapLabel(self.properties.id)
+				return AuroraFramework.services.UIService.removeMapLabel(self.properties.name)
 			end,
 
 			---@param self af_services_ui_map_label
@@ -3587,10 +3589,19 @@ end
 ---@param g integer|nil 0-255
 ---@param b integer|nil 0-255
 ---@param a integer|nil 0-255
+---@param custom_id integer|nil
 ---@return af_services_ui_map_line
-AuroraFramework.services.UIService.createMapLine = function(name, startPoint, endPoint, thickness, r, g, b, a, player)
+AuroraFramework.services.UIService.createMapLine = function(name, startPoint, endPoint, thickness, player, r, g, b, a, custom_id)
 	-- Get ID
-	local id = server.getMapID()
+	local id = custom_id or server.getMapID()
+
+	-- If UI with the same name exists, use the ID from it and overwrite the UI entirely
+	local alreadyExistingUI = AuroraFramework.services.UIService.getMapLine(name)
+
+	if alreadyExistingUI then
+		id = alreadyExistingUI.properties.id
+		alreadyExistingUI:remove()
+	end
 	
 	-- Create UI
 	---@type af_services_ui_map_line
@@ -3624,7 +3635,7 @@ AuroraFramework.services.UIService.createMapLine = function(name, startPoint, en
 
 			---@param self af_services_ui_map_line
 			remove = function(self)
-				return AuroraFramework.services.UIService.removeMapLine(self.properties.id)
+				return AuroraFramework.services.UIService.removeMapLine(self.properties.name)
 			end,
 
 			---@param self af_services_ui_map_line
@@ -3713,10 +3724,19 @@ end
 ---@param g integer|nil 0-255
 ---@param b integer|nil 0-255
 ---@param a integer|nil 0-255
+---@param custom_id integer|nil
 ---@return af_services_ui_map_object
-AuroraFramework.services.UIService.createMapObject = function(name, title, subtitle, pos, markerType, player, radius, r, g, b, a)
+AuroraFramework.services.UIService.createMapObject = function(name, title, subtitle, pos, markerType, player, radius, r, g, b, a, custom_id)
 	-- Get ID
-	local id = server.getMapID()
+	local id = custom_id or server.getMapID()
+
+	-- If UI with the same name exists, use the ID from it and overwrite the UI entirely
+	local alreadyExistingUI = AuroraFramework.services.UIService.getMapObject(name)
+
+	if alreadyExistingUI then
+		id = alreadyExistingUI.properties.id
+		alreadyExistingUI:remove()
+	end
 
 	-- Create UI
 	---@type af_services_ui_map_object
@@ -3739,7 +3759,7 @@ AuroraFramework.services.UIService.createMapObject = function(name, title, subti
 					peerID,
 					self.properties.id,
 					self.properties.positionType,
-					self.properties.objectType,
+					self.properties.markerType,
 					self.properties.pos[13],
 					self.properties.pos[15],
 					self.properties.pos[13],
@@ -3758,7 +3778,7 @@ AuroraFramework.services.UIService.createMapObject = function(name, title, subti
 
 			---@param self af_services_ui_map_object
 			remove = function(self)
-				return AuroraFramework.services.UIService.removeMapObject(self.properties.id)
+				return AuroraFramework.services.UIService.removeMapObject(self.properties.name)
 			end,
 
 			---@param self af_services_ui_map_object
