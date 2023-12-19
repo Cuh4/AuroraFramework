@@ -1080,7 +1080,7 @@ AuroraFramework.services.timerService = {
 			-- Handle loops
 			for _, loop in pairs(AuroraFramework.services.timerService.loop.ongoing) do
 				if current > loop.properties.creationTime + (loop.properties.duration * 1000) then
-					loop.events.completion:fire(v)
+					loop.events.completion:fire(loop)
 					loop.properties.creationTime = current
 				end
 			end
@@ -1088,7 +1088,7 @@ AuroraFramework.services.timerService = {
 			-- Handle delays
 			for _, delay in pairs(AuroraFramework.services.timerService.delay.ongoing) do
 				if current > delay.properties.creationTime + (delay.properties.duration * 1000) then
-					delay.events.completion:fire(v)
+					delay.events.completion:fire(delay)
 					delay:remove()
 				end
 			end
