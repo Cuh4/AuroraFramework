@@ -30,6 +30,67 @@ _ = {
 -------------------------------------------------
 -- Save Data
 -------------------------------------------------
+---------------- UI
+---@class af_savedata_screen_ui
+_ = {
+    name = "",
+    id = 0,
+    x = 0,
+    y = 0,
+    text = "",
+    visible = true,
+    peer_id = 0
+}
+
+---@class af_savedata_map_label
+_ = {
+    name = "",
+    startPoint = matrix.translation(),
+    endPoint = matrix.translation(),
+    visible = true,
+    peer_id = 0,
+    id = 0,
+
+    r = 0,
+    g = 0,
+    b = 0,
+    a = 0,
+
+    thickness = 0
+}
+
+---@class af_savedata_map_line
+_ = {
+    name = "",
+    id = 0,
+    x = 0,
+    y = 0,
+    text = "",
+    visible = true,
+    peer_id = 0
+}
+
+---@class af_savedata_map_object
+_ = {
+    name = "",
+    pos = matrix.translation(),
+    title = "",
+    subtitle = "",
+    visible = true,
+    peer_id = 0,
+    id = 0,
+    markerType = 0,
+    positionType = 0,
+    attachID = 0,
+
+    r = 0,
+    g = 0,
+    b = 0,
+    a = 0,
+    
+    radius = 0
+}
+
 ---------------- Vehicle
 ---@class af_savedata_vehicle
 _ = {
@@ -65,8 +126,7 @@ _ = {
     properties = {
         name = "", -- The name of this zone
 
-        ---@type SWMatrix
-        position = nil, -- The position this zone is at
+        position = matrix.translation(), -- The position this zone is at
 
         size = 0, -- The radius of the zone in meters
 
@@ -120,8 +180,7 @@ _ = {
     properties = {
         name = "", -- The name of this zone
 
-        ---@type SWMatrix
-        position = nil, -- The position this zone is at
+        position = matrix.translation(), -- The position this zone is at
 
         size = 0, -- The radius of the zone in meters
 
@@ -309,7 +368,8 @@ _ = {
         ---@type af_services_player_player|nil
         player = nil, -- The player this UI is shown to. If this is nil, the UI will be shown to everyone
 
-        id = 0 -- The ID of this UI
+        name = "", -- The name of this UI
+        id = 0 -- The internal ID of this UI
     },
 
     -- Refreshes this UI
@@ -319,6 +379,10 @@ _ = {
     -- Removes this UI
     ---@param self af_services_ui_screen
     remove = function(self) end,
+
+    -- Update g_savedata version. Used internally
+    ---@param self af_services_ui_screen
+    updateSaveData = function(self) end
 }
 
 ---@class af_services_ui_map_label: af_internal_class
@@ -326,8 +390,7 @@ _ = {
     __name__ = "UIMapLabel",
 
     properties = {
-        ---@type SWMatrix
-        pos = nil, -- The position where this UI is shown on the map
+        pos = matrix.translation(), -- The position where this UI is shown on the map
 
         text = "", -- The text of this map label
         visible = false, -- Whether or not the UI is visible
@@ -335,7 +398,8 @@ _ = {
         ---@type af_services_player_player|nil
         player = nil, -- The player this map label is shown to. If this is nil, the map label is shown to everyone
 
-        id = 0, -- The ID of this UI
+        name = "", -- The name of this UI
+        id = 0, -- The internal ID of this UI
 
         ---@type SWLabelTypeEnum
         labelType = nil, -- The type of label
@@ -348,6 +412,10 @@ _ = {
     -- Removes this UI
     ---@param self af_services_ui_map_label
     remove = function(self) end,
+
+    -- Update g_savedata version. Used internally
+    ---@param self af_services_ui_map_label
+    updateSaveData = function(self) end
 }
 
 ---@class af_services_ui_map_line: af_internal_class
@@ -355,18 +423,16 @@ _ = {
     __name__ = "UIMapLine",
 
     properties = {
-        ---@type SWMatrix
-        startPoint = nil, -- Where the line starts
-
-        ---@type SWMatrix
-        endPoint = nil, -- Where the line ends
+        startPoint = matrix.translation(), -- Where the line starts
+        endPoint = matrix.translation(), -- Where the line ends
 
         visible = false, -- Whether or not the UI is visible
 
         ---@type af_services_player_player|nil
         player = nil, -- The player this map line is shown to. If this is nil, the map line is shown to everyone
-
-        id = 0, -- The ID of this UI
+        
+        name = "", -- The name of this UI
+        id = 0, -- The internal ID of this UI
 
         r = 0, -- RGBA - 0-255
         g = 0, -- RGBA - 0-255
@@ -381,7 +447,11 @@ _ = {
 
     -- Removes this UI
     ---@param self af_services_ui_map_line
-    remove = function(self) end
+    remove = function(self) end,
+
+    -- Update g_savedata version. Used internally
+    ---@param self af_services_ui_map_label
+    updateSaveData = function(self) end
 }
 
 ---@class af_services_ui_map_object: af_internal_class
@@ -389,8 +459,7 @@ _ = {
     __name__ = "UIMapObject",
 
     properties = {
-        ---@type SWMatrix
-        pos = nil, -- The position where this UI is shown on the map
+        pos = matrix.translation(), -- The position where this UI is shown on the map
 
         title = "", -- The title of this map object
         subtitle = "", -- The subtitle of this map object
@@ -399,7 +468,8 @@ _ = {
         ---@type af_services_player_player|nil
         player = nil, -- The player this map object is shown to. If this is nil, the map object is shown to everyone
 
-        id = 0, -- The ID of this UI
+        name = "", -- The name of this UI
+        id = 0, -- The internal ID of this UI
 
         ---@type SWMarkerTypeEnum
         markerType = nil, -- The type of map object
@@ -427,7 +497,11 @@ _ = {
     ---@param self af_services_ui_map_object
     ---@param positionType SWPositionTypeEnum
     ---@param objectOrVehicleID integer
-    attach = function(self, positionType, objectOrVehicleID) end
+    attach = function(self, positionType, objectOrVehicleID) end,
+
+    -- Update g_savedata version. Used internally
+    ---@param self af_services_ui_map_label
+    updateSaveData = function(self) end
 }
 
 ---------------- HTTP
@@ -540,8 +614,7 @@ _ = {
         ---@type table<integer, af_services_vehicle_vehicle>
         vehicles = {}, -- The vehicles that belong to this group
 
-        ---@type SWMatrix
-        spawnPos = nil,
+        spawnPos = matrix.translation(),
 
         ---@type af_services_vehicle_vehicle
         primaryVehicle = nil,
@@ -593,8 +666,7 @@ _ = {
         addonSpawned = false, -- Whether or not an addon spawned this vehicle
         vehicle_id = 0, -- The ID of this vehicle
 
-        ---@type SWMatrix
-        spawnPos = nil, -- The position this vehicle was spawned at
+        spawnPos = matrix.translation(), -- The position this vehicle was spawned at
 
         loaded = false, -- Whether or not the vehicle has loaded or not
 
