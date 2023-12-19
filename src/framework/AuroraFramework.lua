@@ -22,11 +22,15 @@ AuroraFramework = {
 	internal = {}
 }
 
-local function setupSaveData()
-	g_savedata = g_savedata or {}
-end
+g_savedata = {
+	AuroraFramework = {
+		---@type table<integer, af_savedata_vehicle>
+		vehicles = {},
 
-setupSaveData() -- in a function to allow addon to setup g_savedata first
+		---@type table<integer, af_savedata_group>
+		groups = {}
+	}
+}
 
 --------------------------------------------------------------------------------
 --// Internal \\--
@@ -68,28 +72,9 @@ AuroraFramework.internal.class = function(name, methods, properties, events, par
 	return class
 end
 
--- Perform g_savedata action
----@param action function
-AuroraFramework.internal.performSaveDataAction = function(action)
-	if not g_savedata.AuroraFramework then
-		g_savedata.AuroraFramework = {}
-	end
-
-	return action()
-end
-
 --------------------------------------------------------------------------------
 --// Attributes \\--
 --------------------------------------------------------------------------------
----------------- Save Data
-AuroraFramework.internal.performSaveDataAction(function()
-	---@type table<integer, af_savedata_group>
-	g_savedata.AuroraFramework.groups = {}
-	
-	---@type table<integer, af_savedata_vehicle>
-	g_savedata.AuroraFramework.vehicles = {}
-end)
-
 ---------------- DLCs
 AuroraFramework.attributes.WeaponsEnabled = server.dlcWeapons()
 AuroraFramework.attributes.AridEnabled = server.dlcArid()
@@ -686,7 +671,6 @@ AuroraFramework.services.debuggerService.attach = function(func, logger)
 
 	-- if we couldnt find the function, then stop here
 	if not funcTable then
-		logger:send("Failed to attach to function. Function could not be found in _ENV. Make sure the function is non-local.")
 		return
 	end
 
@@ -789,7 +773,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 					)
 				else
 					debug.log(
-						("%s %s"):format(self.properties.formattedName, message)
+						("%s %s"):format(self.properties.formattedName, message:gsub("\n", ("\n%s "):format(self.properties.formattedName)))
 					)
 				end
 			end
@@ -1160,15 +1144,16 @@ end
 AuroraFramework.services.groupService = {
 	initialize = function()
 		-- Load groups from savedata
-		AuroraFramework.internal.performSaveDataAction(function()
+		AuroraFramework.services.timerService.delay.create(0, function() -- for some reason, auroraframework's savedata is empty the first tick, so we must wait a tick here
 			for _, group in pairs(g_savedata.AuroraFramework.groups) do
 				AuroraFramework.services.groupService.internal.giveGroupData(
-					group.group_cost,
+					group.group_id,
 					group.peer_id,
 					group.x,
-					groop.y,
+					group.y,
 					group.z,
-					group.group_cost
+					group.group_cost,
+					group.vehicle_ids
 				)
 			end
 		end)
@@ -1190,7 +1175,11 @@ AuroraFramework.services.groupService = {
 		---@param vehicle af_services_vehicle_vehicle
 		AuroraFramework.services.vehicleService.events.onDespawn:connect(function(vehicle)
 			-- get group
-			local group = vehicle.properties.group
+			local group = vehicle:getGroup()
+
+			if not group then
+				return
+			end
 
 			-- remove vehicle from group
 			group.properties.vehicles[vehicle.properties.vehicle_id] = nil
@@ -1199,7 +1188,11 @@ AuroraFramework.services.groupService = {
 		-- Remove group when all vehicles in a group despawn
 		---@param vehicle af_services_vehicle_vehicle
 		AuroraFramework.services.vehicleService.events.onDespawn:connect(function(vehicle)
-			local group = vehicle.properties.group
+			local group = vehicle:getGroup()
+
+			if not group then
+				return
+			end
 
 			-- wait a tick to make sure the vehicle is removed from the group
 			AuroraFramework.services.timerService.delay.create(0, function()
@@ -1243,19 +1236,17 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	vehicle_ids = vehicle_ids or server.getVehicleGroup(group_id)
 
 	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
-	AuroraFramework.internal.performSaveDataAction(function()
-		local data = {
-			group_id = group_id,
-			peer_id = peer_id,
-			x = x,
-			y = y,
-			z = z,
-			group_cost = group_cost,
-			vehicle_ids = vehicle_ids
-		}
+	local data = {
+		group_id = group_id,
+		peer_id = peer_id,
+		x = x,
+		y = y,
+		z = z,
+		group_cost = group_cost,
+		vehicle_ids = vehicle_ids
+	}
 
-		g_savedata.AuroraFramework.groups[group_id] = data
-	end)
+	g_savedata.AuroraFramework.groups[group_id] = data
 
 	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
@@ -1312,6 +1303,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	local vehicles = {}
 
 	for _, vehicle_id in pairs(vehicle_ids) do
+		-- get vehicle
 		local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
 		if not vehicle then
@@ -1319,7 +1311,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 		end
 
 		-- set group attribute
-		vehicle.properties.group = group
+		vehicle.properties.group_id = group.properties.group_id
 
 		-- insert into vehicles table
 		vehicles[vehicle_id] = vehicle
@@ -1364,9 +1356,7 @@ end
 ---@param group_id integer
 AuroraFramework.services.groupService.internal.removeGroupData = function(group_id)
 	-- remove the group from savedata
-	AuroraFramework.internal.performSaveDataAction(function()
-		g_savedata.AuroraFramework.groups[group_id] = nil
-	end)
+	g_savedata.AuroraFramework.groups[group_id] = nil
 
 	-- remove the group from the framework
 	AuroraFramework.services.groupService.groups[group_id] = nil
@@ -1406,16 +1396,22 @@ AuroraFramework.services.groupService.spawnGroup = function(position, playlist_i
 		)
 	end
 
-	-- setup group data, then return it
+	-- setup group data
 	local x, y, z = matrix.position(position)
 
-	return AuroraFramework.services.groupService.internal.giveGroupData( -- onGroupSpawn gets called, but since the group already exists, it ignores the group entirely
+	local group = AuroraFramework.services.groupService.internal.giveGroupData(
 		group_id,
 		-1,
 		x, y, z,
 		0,
 		vehicle_ids
 	)
+
+	-- onGroupSpawn gets called, but since the group already exists, it ignores the group entirely, resulting in groupservice's onSpawn event not being fired. therefore, we must fire it ourselves
+	AuroraFramework.services.groupService.events.onSpawn:fire(group)
+
+	-- return the group
+	return group
 end
 
 -- Get a group
@@ -1495,7 +1491,7 @@ end
 AuroraFramework.services.vehicleService = {
 	initialize = function()
 		-- Load vehicles from savedata
-		AuroraFramework.internal.performSaveDataAction(function()
+		AuroraFramework.services.timerService.delay.create(0, function() -- for some reason, auroraframework's savedata is empty the first tick, so we must wait a tick here
 			for _, vehicle in pairs(g_savedata.AuroraFramework.vehicles) do
 				AuroraFramework.services.vehicleService.internal.giveVehicleData(
 					vehicle.vehicle_id,
@@ -1543,12 +1539,9 @@ AuroraFramework.services.vehicleService = {
 				-- fire events
 				local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
-				if not vehicle then
-					return
+				if vehicle then
+					AuroraFramework.services.vehicleService.events.onDespawn:fire(vehicle)
 				end
-
-				-- fire events
-				AuroraFramework.services.vehicleService.events.onDespawn:fire(vehicle)
 
 				-- remove data
 				AuroraFramework.services.vehicleService.internal.removeVehicleData(vehicle_id)
@@ -1583,19 +1576,17 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 	end
 
 	-- save the vehicle to g_savedata for when the addon is reloaded or a save is loaded
-	AuroraFramework.internal.performSaveDataAction(function()
-		local data = {
-			vehicle_id = vehicle_id,
-			peer_id = peer_id,
-			x = x,
-			y = y,
-			z = z,
-			group_cost = group_cost,
-			group_id = group_id
-		}
+	local data = {
+		vehicle_id = vehicle_id,
+		peer_id = peer_id,
+		x = x,
+		y = y,
+		z = z,
+		group_cost = group_cost,
+		group_id = group_id
+	}
 
-		g_savedata.AuroraFramework.vehicles[vehicle_id] = data
-	end)
+	g_savedata.AuroraFramework.vehicles[vehicle_id] = data
 
 	-- get player
 	local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) -- doesnt matter if this is nil, because of the addonSpawned property
@@ -1606,6 +1597,11 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 		"vehicle",
 
 		{
+			---@param self af_services_vehicle_vehicle
+			getGroup = function(self)
+				return AuroraFramework.services.groupService.getGroup(self.properties.group_id)
+			end,
+
 			---@param self af_services_vehicle_vehicle
 			despawn = function(self)
 				AuroraFramework.services.vehicleService.despawnVehicle(self.properties.vehicle_id)
@@ -1697,7 +1693,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			spawnPos = matrix.translation(x, y, z),
 			cost = group_cost,
 			loaded = false,
-			group = nil, -- gets set up by ongroupspawn in groupservice
+			group_id = nil, -- gets set up by ongroupspawn in groupservice
 			isPrimaryVehicle = false
 		},
 
@@ -1714,9 +1710,7 @@ end
 ---@param vehicle_id integer
 AuroraFramework.services.vehicleService.internal.removeVehicleData = function(vehicle_id)
 	-- remove vehicle from savedata
-	AuroraFramework.internal.performSaveDataAction(function()
-		g_savedata.AuroraFramework.vehicles[vehicle_id] = data
-	end)
+	g_savedata.AuroraFramework.vehicles[vehicle_id] = nil
 
 	-- remove vehicle from framework
 	AuroraFramework.services.vehicleService.vehicles[vehicle_id] = nil
