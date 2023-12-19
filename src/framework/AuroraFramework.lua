@@ -2181,17 +2181,6 @@ AuroraFramework.services.playerService = {
 			AuroraFramework.services.playerService.events.onRespawn:fire(player)
 		end)
 
-		-- Character load event
-		AuroraFramework.callbacks.onObjectLoad.internal:connect(function(object_id)
-			local player = AuroraFramework.services.playerService.getPlayerByObjectID(object_id)
-
-			if not player then
-				return
-			end
-
-			AuroraFramework.services.playerService.events.onCharacterLoad:fire(player)
-		end)
-
 		-- Update player properties
 		AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
 			-- Activate player join events
