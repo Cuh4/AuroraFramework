@@ -58,7 +58,7 @@ AuroraFramework.services.playerService.events.onJoin:connect(function(player)
     -- Create a map object for the player who just joined
     local uiName = AuroraFramework.services.UIService.name("PlayerMapIcon", player) -- if the player's peer id is 5, then this would become: "PlayerMapIcon5". this is here to prevent multiple UIs having the same name and therefore overwriting each other
 
-    local mapObject = AuroraFramework.services.UIService.getMapObject(uiName) or AuroraFramework.services.UIService.createMapObject(
+    local mapObject = AuroraFramework.services.UIService.createMapObject(
         uiName, -- name of the ui
         "[Player] "..player.properties.peer_id, -- title of the ui
         "Steam ID: "..player.properties.steam_id, -- subtitle of the ui
