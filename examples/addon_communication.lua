@@ -10,7 +10,7 @@
 ----------------------------------------
 
 -- Create a channel
--- The name of the channel cannot have spaces, and for other addons to receive messages from this addon, they have to use the same channel name when creating a channel
+-- The name of the channel cannot have spaces (spaces get stripped anyway), and for other addons to receive messages from this addon, they have to use the same channel name when creating a channel
 local mainChannel = AuroraFramework.services.communicationService.createChannel("main")
 
 -- Listen for messages on the channel

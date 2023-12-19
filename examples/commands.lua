@@ -17,7 +17,7 @@ AuroraFramework.services.commandService.create(function(player, command, args)
     player:kill() -- Kills the player
     command:successNotification("You died! Congratulations!", player) -- Shows a success notification on the right of their screen temporarily
 
-    command:remove() -- Prevent other players from using this command
+    command:remove() -- Prevent other players from using this command by removing the command entirely
 end, "kill", {"s", "k", "suicide", "die"}, false, "Kills the player.", true, false)
 
 -- The parameters passed through to the "create" function are, in order, the following:
