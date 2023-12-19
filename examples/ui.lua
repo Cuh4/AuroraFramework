@@ -9,12 +9,21 @@
 -- This example shows how you can create UI. This example will only touch on screen UI components (screen popup) and map UI components (map object). The other UI components work very similarly, so don't worry much.
 ----------------------------------------
 
+--[[
+    Note:
+        UI persists even after addon reloads. The framework takes care of UI IDs and persistence for you.
+        If you create a UI once on world creation, it will stay even after numerous save loads and addon reloads unless you remove it.
+
+        UIs that are only shown to a player are automatically removed when they leave.
+]]
+
 -- Create UI that'll be shown for everyone
-local UI = AuroraFramework.services.UIService.createScreenUI(
-    server.getMapID(), -- the ID of this ui
+local UI = AuroraFramework.services.UIService.getScreenUI("WelcomeUI") or AuroraFramework.services.UIService.createScreenUI( -- if it already exists (framework stores UI in g_savedata, so UI persists!), use it instead of creating a new one
+    "WelcomeUI", -- the name of this ui
     "Welcome to my server!", -- the text that should be shown
     0, -- the x position on the screen (-1 to 1. -1 = far left, 1 = far right)
-    0.8 -- the y position on the screen (-1 to 1. -1 = bottom, 1 = top)
+    0.8, -- the y position on the screen (-1 to 1. -1 = bottom, 1 = top),
+    nil -- the player to show the UI to, if nil, it becomes shown to everyone
 )
 
 -- Text seems a bit lacking, so we can change it like so:
@@ -31,8 +40,10 @@ server.setGameSetting("map_show_players", false)
 ---@param player af_services_player_player
 AuroraFramework.services.playerService.events.onJoin:connect(function(player)
     -- Create a map object for the player who just joined
-    local mapObject = AuroraFramework.services.UIService.createMapObject(
-        player.properties.peer_id + 1000, -- id of the ui
+    local uiName = AuroraFramework.services.UIService.name("PlayerMapIcon", player) -- if the player's peer id is 5, then this would become: "PlayerMapIcon5". this is here to prevent multiple UIs having the same name and therefore overwriting each other
+
+    local mapObject = AuroraFramework.services.UIService.getMapObject(uiName) or AuroraFramework.services.UIService.createMapObject(
+        uiName, -- name of the ui
         "[Player] "..player.properties.peer_id, -- title of the ui
         "Steam ID: "..player.properties.steam_id, -- subtitle of the ui
         matrix.translation(0, 0, 0), -- position of the ui, or position offset if the ui is attached to an object/vehicle
@@ -53,7 +64,9 @@ end)
 ---@param player af_services_player_player
 AuroraFramework.services.playerService.events.onLeave:connect(function(player)
     -- Get the player's map marker UI
-    local mapObject = AuroraFramework.services.UIService.getMapObject(player.properties.peer_id + 1000)
+    local mapObject = AuroraFramework.services.UIService.getMapObject(
+        AuroraFramework.services.UIService.name("PlayerMapIcon", player)
+    )
 
     -- Make sure it exists. Who knows, maybe something went wrong and the map object doesn't exist for some reason
     if not mapObject then
