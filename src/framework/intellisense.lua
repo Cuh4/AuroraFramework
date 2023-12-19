@@ -28,7 +28,7 @@ _ = {
 }
 
 -------------------------------------------------
--- SaveData
+-- Save Data
 -------------------------------------------------
 ---------------- Vehicle
 ---@class af_savedata_vehicle
@@ -476,8 +476,7 @@ _ = {
         ---@type af_services_player_player
         owner = nil, -- The owner of this vehicle
 
-        ---@type af_services_group_group
-        group = nil, -- The group this vehicle belongs to
+        group_id = 0, -- The ID of the group this vehicle belongs to
         isPrimaryVehicle = false, -- Whether or not this is the main vehicle in a group
 
         addonSpawned = false, -- Whether or not an addon spawned this vehicle
@@ -490,6 +489,11 @@ _ = {
 
         cost = 0 -- The cost of this vehicle. 0 if infinite_money is enabled
     },
+
+    -- Get the group of this vehicle
+    ---@param self af_services_vehicle_vehicle
+    ---@return af_services_group_group
+    getGroup = function(self) end,
 
     -- Despawn this vehicle
     ---@param self af_services_vehicle_vehicle
