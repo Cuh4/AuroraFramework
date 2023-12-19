@@ -64,7 +64,7 @@ AuroraFramework.services.playerService.events.onJoin:connect(function(player)
         "Steam ID: "..player.properties.steam_id, -- subtitle of the ui
         matrix.translation(0, 0, 0), -- position of the ui, or position offset if the ui is attached to an object/vehicle
         1, -- the marker type of the ui (1 = survivor)
-        nil, --- the player to show the map object to, or nil for everyone (nil by default)
+        nil, -- the player to show the map object to, or nil for everyone (nil by default)
         50, -- radius of the map object
         255, -- color rgba (red)
         255, -- color rgba (green)
