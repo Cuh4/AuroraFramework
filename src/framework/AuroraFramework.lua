@@ -1370,7 +1370,6 @@ AuroraFramework.services.groupService.internal.removeGroupData = function(group_
 end
 
 -- Spawn a group (server.spawnAddonVehicle behind the hood)
--- onGroupSpawn will not get triggered by groups spawned with this function
 ---@param position SWMatrix
 ---@param playlist_id integer
 ---@param addonIndex integer|nil
