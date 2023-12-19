@@ -3822,3 +3822,10 @@ AuroraFramework.services.commandService.initialize()
 AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.UIService.initialize()
 AuroraFramework.services.TPSService.initialize()
+
+-- // Ready event
+AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- to be used when the addon is finished setting up. you don't have to use this event, but it is recommended unless you wanna face issues such as spawned groups not being recognized the first tick
+
+AuroraFramework.callbacks.onCreate:connect(function()
+	AuroraFramework.ready:fire()
+end)
