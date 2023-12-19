@@ -14,7 +14,7 @@ AuroraFramework.services.playerService.setDedicatedServer(false) -- False by def
 
 -- Do everything once the framework is ready. We need this because all the services are initialized when the addon and framework is ready which is always after the base-level addon code is ran
 AuroraFramework.ready:connect(function()
-    -- Get players
+    -- Get players. Note that you can only fetch players when the framework is ready
     local host = AuroraFramework.services.playerService.getPlayerByPeerID(0) -- Host player (the one who created the server, or in dedicated servers, the server/first player to join)
 
     local handsomeMan = AuroraFramework.services.playerService.getPlayerByName("Cuh4") -- caps sensitive search, must be exact
@@ -24,54 +24,8 @@ AuroraFramework.ready:connect(function()
 
     local allPlayers = AuroraFramework.services.playerService.getAllPlayers() -- Returns a table of all recognized players
 
-    -- Guess the number game
-    local randomNumbersForPlayer = {} -- indexed by peer ID
-
-    ---@param player af_services_player_player
-    AuroraFramework.services.playerService.events.onJoin:connect(function(player)
-        -- Give a random number for the player
-        local randomNumber = math.random(1, 10)
-        randomNumbersForPlayer[player.properties.peer_id] = randomNumber
-
-        -- Announce the game
-        AuroraFramework.services.chatService.sendMessage(
-            "Game",
-            "Guess the number between 1-10!",
-            player
-        )
-    end)
-
-    ---@param message af_services_chat_message
-    AuroraFramework.services.chatService.events.onMessageSent:connect(function(message)
-        -- Get the random number given for the player when they joined
-        local randomNumber = randomNumbersForPlayer[message.properties.author.properties.peer_id]
-
-        -- Player doesn't have a number (they have completed the game)
-        if not randomNumber then
-            return
-        end
-
-        -- Check if they guessed it correctly
-        if tonumber(message) == randomNumber then
-            -- They guessed correctly, so say good job
-            AuroraFramework.services.chatService.sendMessage(
-                "Game",
-                "Good job! You guessed correctly!",
-                message.properties.author
-            )
-        else
-            -- They did not guess correctly, so mercilessly ban them
-            AuroraFramework.services.chatService.sendMessage(
-                "Game",
-                "No",
-                message.properties.author
-            )
-
-            message.properties.author:ban()
-        end
-    end)
-
     -- Send a notification to all recognized players
+    -- Note that this won't do anything, because players in the server aren't loaded by the framework until the next tick
     for _, player in pairs(allPlayers) do
         AuroraFramework.services.notificationService.info(
             "Game",
@@ -79,29 +33,76 @@ AuroraFramework.ready:connect(function()
             player
         )
     end
+end)
 
-    -- When a player dies, mock them
-    ---@param player af_services_player_player
-    AuroraFramework.services.playerService.events.onDie:connect(function(player)
+-- Guess the number game
+local randomNumbersForPlayer = {} -- indexed by peer ID
+
+---@param player af_services_player_player
+AuroraFramework.services.playerService.events.onJoin:connect(function(player)
+    -- Give a random number for the player
+    local randomNumber = math.random(1, 10)
+    randomNumbersForPlayer[player.properties.peer_id] = randomNumber
+
+    -- Announce the game
+    AuroraFramework.services.chatService.sendMessage(
+        "Game",
+        "Guess the number between 1-10!",
+        player
+    )
+end)
+
+---@param message af_services_chat_message
+AuroraFramework.services.chatService.events.onMessageSent:connect(function(message)
+    -- Get the random number given for the player when they joined
+    local randomNumber = randomNumbersForPlayer[message.properties.author.properties.peer_id]
+
+    -- Player doesn't have a number (they have completed the game)
+    if not randomNumber then
+        return
+    end
+
+    -- Check if they guessed it correctly
+    if tonumber(message) == randomNumber then
+        -- They guessed correctly, so say good job
         AuroraFramework.services.chatService.sendMessage(
-            "Death",
-            ("loool! %s died! what a nerd!"):format(player.properties.name)
+            "Game",
+            "Good job! You guessed correctly!",
+            message.properties.author
         )
-    end)
-
-    -- When a player respawns, give them a SMG
-    ---@param player af_services_player_player
-    AuroraFramework.services.playerService.events.onRespawn:connect(function(player)
-        -- Give SMG
-        player:setItem(
-            1, -- slot 1
-            37, -- smg
-            false, -- inactive. if we was to set this to true, the smg would start shooting even if the player didn't have it equipped
-            100000, -- 100,000 bullets
-            nil -- unneeded, but this can be a number. needed for items like fire extinguishers, flashlights, etc
+    else
+        -- They did not guess correctly, so mercilessly ban them
+        AuroraFramework.services.chatService.sendMessage(
+            "Game",
+            "No",
+            message.properties.author
         )
 
-        -- Get the player to 1 HP
-        player:damage(99) -- 100 (max health) - 99 = 1 HP
-    end)
+        message.properties.author:ban()
+    end
+end)
+
+-- When a player dies, mock them
+---@param player af_services_player_player
+AuroraFramework.services.playerService.events.onDie:connect(function(player)
+    AuroraFramework.services.chatService.sendMessage(
+        "Death",
+        ("loool! %s died! what a nerd!"):format(player.properties.name)
+    )
+end)
+
+-- When a player respawns, give them a SMG
+---@param player af_services_player_player
+AuroraFramework.services.playerService.events.onRespawn:connect(function(player)
+    -- Give SMG
+    player:setItem(
+        1, -- slot 1
+        37, -- smg
+        false, -- inactive. if we was to set this to true, the smg would start shooting even if the player didn't have it equipped
+        100000, -- 100,000 bullets
+        nil -- unneeded, but this can be a number. needed for items like fire extinguishers, flashlights, etc
+    )
+
+    -- Get the player to 1 HP
+    player:damage(99) -- 100 (max health) - 99 = 1 HP
 end)
