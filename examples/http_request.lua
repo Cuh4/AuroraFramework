@@ -15,7 +15,7 @@ local hasHandled = {}
 
 AuroraFramework.services.timerService.loop.create(5, function() -- calls this function every 5 seconds
     -- Create the target url
-    local url = AuroraFramework.services.HTTPService.URLArgs("/message", -- becomes "/message?name=source&value=game"
+    local url = AuroraFramework.services.HTTPService.URLArgs("/message", -- becomes "/message?source=game"
         {
             name = "source",
             value = "game"
