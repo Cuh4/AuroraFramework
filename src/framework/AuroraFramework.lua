@@ -42,7 +42,10 @@ g_savedata = {
 
 			---@type table<string, af_savedata_screen_ui>
 			screen = {}
-		}
+		},
+
+		---@type table<integer, boolean>
+		recognizedPeerIDs = {}
 	}
 }
 
@@ -2140,13 +2143,18 @@ AuroraFramework.services.playerService = {
 			end
 
 			-- give the player data
-			AuroraFramework.services.playerService.internal.givePlayerData(
+			local playerData = AuroraFramework.services.playerService.internal.givePlayerData(
 				player.steam_id,
 				player.name,
 				player.id,
 				player.admin,
 				player.auth
 			)
+
+			-- if the player's peer id isnt stored in g_savedata, that means they connected to the server for the first time, but the addon wasnt working when they joined. therefore, call the onJoin event
+			if playerData and not g_savedata.AuroraFramework.recognizedPeerIDs[player.id] then
+				AuroraFramework.services.playerService.events.onJoin:fire(playerData)
+			end
 
 		    ::continue::
 		end
@@ -2202,20 +2210,17 @@ AuroraFramework.services.playerService = {
 
 		-- Update player properties
 		AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
-			-- Update player data
 			AuroraFramework.callbacks.onTick.internal:connect(function()
 				for _, player in pairs(server.getPlayers()) do
+					-- player doesn't have data (usually means player is connecting, or the player is the server and dedicatedServer is set to true), so ignore
 					if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
 						goto continue
 					end
 
-					AuroraFramework.services.playerService.internal.givePlayerData(
-						player.steam_id,
-						player.name,
-						player.id,
-						player.admin,
-						player.auth
-					)
+					-- update properties
+					local data = AuroraFramework.services.playerService.players[player.id]
+					data.properties.admin = player.admin
+					data.properties.auth = player.auth
 
 				    ::continue::
 				end
@@ -2245,6 +2250,11 @@ AuroraFramework.services.playerService = {
 ---@param admin boolean
 ---@param auth boolean
 AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
+	-- check if the player already exists
+	if AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) then
+		return
+	end
+
 	-- check if the player is the server itself in a dedicated server
 	if tonumber(steam_id) == 0 and AuroraFramework.services.playerService.isDedicatedServer then
 		return
@@ -2252,6 +2262,9 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 	-- check if the player is the host player
 	local isHost = peer_id == 0
+
+	-- store the player's peer id in g_savedata to prevent onJoin being called for this player after an addon reload
+	g_savedata.AuroraFramework.recognizedPeerIDs[peer_id] = true
 
 	-- create player class
 	---@type af_services_player_player
@@ -2391,6 +2404,7 @@ end
 ---@param peer_id integer
 AuroraFramework.services.playerService.internal.removePlayerData = function(peer_id)
 	AuroraFramework.services.playerService.players[peer_id] = nil
+	g_savedata.AuroraFramework.recognizedPeerIDs[peer_id] = nil
 end
 
 -- Returns all recognised players
