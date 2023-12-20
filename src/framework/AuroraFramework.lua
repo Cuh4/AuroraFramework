@@ -2143,7 +2143,7 @@ AuroraFramework.services.playerService = {
 			-- the player is not in the server, so remove their data from g_savedata
 			if not playerInServer then
 				AuroraFramework.services.playerService.internal.removePlayerData(player.peer_id)
-				return
+				goto continue
 			end
 
 			-- give the player data
@@ -2154,6 +2154,27 @@ AuroraFramework.services.playerService = {
 				player.admin,
 				player.auth
 			)
+
+			::continue::
+		end
+
+		-- Load players currently in the server
+		for _, player in pairs(server.getPlayers()) do
+			-- check if the player already has data
+			if AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then
+				goto continue
+			end
+
+			-- give the player data
+			AuroraFramework.services.playerService.internal.givePlayerData(
+				player.steam_id,
+				player.name,
+				player.id,
+				player.admin,
+				player.auth
+			)
+
+		    ::continue::
 		end
 
 		-- Give player data whenever a player joins
@@ -4403,8 +4424,8 @@ AuroraFramework.services.TPSService.initialize()
 AuroraFramework.services.commandService.initialize()
 
 AuroraFramework.ready:connect(function()
-	AuroraFramework.services.UIService.initialize()
 	AuroraFramework.services.playerService.initialize()
+	AuroraFramework.services.UIService.initialize()
 	AuroraFramework.services.vehicleService.initialize() -- important this is initialized before groupservice
 	AuroraFramework.services.groupService.initialize()
 end)
