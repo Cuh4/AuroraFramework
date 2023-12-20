@@ -2329,15 +2329,36 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			end,
 
 			---@param self af_services_player_player
+			getCharacterData = function(self)
+				-- get the player's character
+				local character = self:getCharacter()
+
+				if not character then
+					return
+				end
+
+				-- get the player's character data and return it
+				return server.getCharacterData(character)
+			end,
+
+			---@param self af_services_player_player
 			---@param damageToDeal number
 			damage = function(self, damageToDeal)
+				-- get the player's character
 				local character = self:getCharacter()
+
+				if not character then
+					return
+				end
+
+				-- get the player's character data
 				local data = server.getCharacterData(character)
 
 				if not data then
 					return
 				end
 
+				-- deal damage
 				return server.setCharacterData(character, data.hp - damageToDeal, data.interactible, data.ai)
 			end,
 

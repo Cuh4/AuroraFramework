@@ -803,6 +803,11 @@ _ = {
     ---@return integer
     getCharacter = function(self) end,
 
+    -- Get this player's character data
+    ---@param self af_services_player_player
+    ---@return SWObjectData
+    getCharacterData = function(self) end,
+
     -- Damage this player. Supply a negative number to heal the player
     ---@param self af_services_player_player
     ---@param damageToDeal number
