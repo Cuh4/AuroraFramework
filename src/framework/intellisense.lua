@@ -115,6 +115,16 @@ _ = {
     vehicle_ids = {}
 }
 
+---------------- Player
+---@class af_savedata_player
+_ = {
+    steam_id = "",
+    name = "",
+    peer_id = 0,
+    admin = false,
+    auth = false
+}
+
 -------------------------------------------------
 -- Services
 -------------------------------------------------
@@ -516,7 +526,7 @@ _ = {
 
     events = {
         ---@type af_libs_event_event
-        reply = nil -- This event is called when this request receives a reply
+        reply = nil -- This event is called when this request receives a reply. Two params: Request Response, Request Success
     },
 
     -- Cancel this HTTP request

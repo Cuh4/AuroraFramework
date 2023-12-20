@@ -42,7 +42,10 @@ g_savedata = {
 
 			---@type table<string, af_savedata_screen_ui>
 			screen = {}
-		}
+		},
+
+		---@type table<integer, af_savedata_player>
+		players = {}
 	}
 }
 
@@ -2132,6 +2135,27 @@ end
 ---------------- Players
 AuroraFramework.services.playerService = {
 	initialize = function()
+		-- Load players from g_savedata
+		for _, player in pairs(g_savedata.AuroraFramework.players) do
+			-- check if the player is in the server
+			local _, playerInServer = server.getPlayerName(player.peer_id)
+
+			-- the player is not in the server, so remove their data from g_savedata
+			if not playerInServer then
+				AuroraFramework.services.playerService.internal.removePlayerData(player.peer_id)
+				return
+			end
+
+			-- give the player data
+			AuroraFramework.services.playerService.internal.givePlayerData(
+				player.steam_id,
+				player.name,
+				player.peer_id,
+				player.admin,
+				player.auth
+			)
+		end
+
 		-- Give player data whenever a player joins
 		AuroraFramework.callbacks.onPlayerJoin.internal:connect(function(...)
 			-- give data and fire join event
@@ -2183,12 +2207,6 @@ AuroraFramework.services.playerService = {
 
 		-- Update player properties
 		AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
-			-- Activate player join events
-			for _, v in pairs(server.getPlayers()) do
-				AuroraFramework.callbacks.onPlayerJoin.main:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
-				AuroraFramework.callbacks.onPlayerJoin.internal:fire(v.steam_id, v.name, v.id, v.admin, v.auth)
-			end
-
 			-- Update player data
 			AuroraFramework.callbacks.onTick.internal:connect(function()
 				for _, player in pairs(server.getPlayers()) do
@@ -2231,12 +2249,23 @@ AuroraFramework.services.playerService = {
 ---@param peer_id integer
 ---@param admin boolean
 ---@param auth boolean
----@return af_services_player_player
 AuroraFramework.services.playerService.internal.givePlayerData = function(steam_id, name, peer_id, admin, auth)
 	-- check if the player is the server itself in a dedicated server
 	if tonumber(steam_id) == 0 and AuroraFramework.services.playerService.isDedicatedServer then
 		return
 	end
+
+	-- check if the player is the host player
+	local isHost = peer_id == 0
+
+	-- save to g_savedata
+	g_savedata.AuroraFramework.players[peer_id] = {
+		steam_id = steam_id,
+		name = name,
+		peer_id = peer_id,
+		admin = admin,
+		auth = auth
+	}
 
 	-- create player class
 	---@type af_services_player_player
@@ -2360,7 +2389,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			peer_id = peer_id,
 			admin = admin,
 			auth = auth,
-			isHost = peer_id == 0
+			isHost = isHost
 		},
 
 		nil,
@@ -2373,8 +2402,10 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 end
 
 -- Remove player data from a player
+---@param peer_id integer
 AuroraFramework.services.playerService.internal.removePlayerData = function(peer_id)
 	AuroraFramework.services.playerService.players[peer_id] = nil
+	g_savedata.AuroraFramework.players[peer_id] = nil
 end
 
 -- Returns all recognised players
@@ -2459,7 +2490,7 @@ AuroraFramework.services.HTTPService = {
 		---@param port integer
 		---@param url string
 		---@param reply string
-		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
+		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, response)
 			-- get the request
 			local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
 
@@ -2469,7 +2500,7 @@ AuroraFramework.services.HTTPService = {
 			end
 
 			-- handle the request
-			data.events.reply:fire(tostring(reply)) -- reply callback
+			data.events.reply:fire(tostring(reply), AuroraFramework.services.HTTPService.ok(response)) -- reply callback
 			data:cancel() -- remove the request
 		end)
 	end,
@@ -2496,16 +2527,14 @@ AuroraFramework.services.HTTPService = {
 ---@param callback function|nil
 ---@return af_services_http_request
 AuroraFramework.services.HTTPService.request = function(port, url, callback)
+	-- check if a request has already been made
 	local ongoingRequest = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
 
-	if ongoingRequest then -- a request has already been made to the same port and url, so we simply connect to the request's event
-		if callback then
-			ongoingRequest.properties.event:connect(callback)
-		end
-
-		return ongoingRequest
+	if ongoingRequest then -- a request has already been made to the same port and url, so we simply stop here
+		return
 	end
 
+	-- create a http request
 	---@type af_services_http_request
 	local httpRequest = AuroraFramework.internal.class(
 		"HTTPRequest",
@@ -2531,12 +2560,15 @@ AuroraFramework.services.HTTPService.request = function(port, url, callback)
 		port.."|"..url
 	)
 
+	-- connect callback to reply event
 	if callback then
 		httpRequest.events.reply:connect(callback) -- attach callback to reply event
 	end
 
+	-- send http request
 	server.httpGet(port, url)
 
+	-- return http request class
 	return httpRequest
 end
 
@@ -2620,9 +2652,7 @@ AuroraFramework.services.HTTPService.ok = function(response)
         ["Connection closed unexpectedly"] = true,
         ["connect(): Connection refused"] = true,
         ["recv(): Connection reset by peer"] = true,
-        ["timeout"] = true,
-		["nil"] = true,
-		[""] = true
+        ["timeout"] = true
     }
 
     return notOk[response] == nil
