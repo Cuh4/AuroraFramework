@@ -11,6 +11,9 @@
 
 -- Let's pretend a HTTP server is running on port 6500, and whenever a request is sent to "/message", it returns a JSON object containing a message and an indentifier.
 
+-- Note that HTTP requests can only be sent to localhost. This is a Stormworks limitation. If you want to send requests to places other than localhost (eg: google.com), you'll
+-- need a HTTP server that redirects your request to wherever you want it to go, basically a proxy.
+
 local hasHandled = {}
 
 AuroraFramework.services.timerService.loop.create(5, function() -- calls this function every 5 seconds
