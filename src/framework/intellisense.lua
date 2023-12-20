@@ -234,7 +234,9 @@ _ = {
 
     properties = {
         name = "", -- The name of this logger
-        sendToChat = false -- Whether or not this logger should sent messages to chat or through debug.log
+        sendToChat = false, -- Whether or not this logger should sent messages to chat or through debug.log
+        formattedName = "", -- The formatted name of this logger. Only exists for the framework, not for your addon. Used for printing messages
+        suppressed = false -- Whether or not this logger can send anything at all
     },
 
     -- Remove this logger
@@ -244,7 +246,12 @@ _ = {
     -- Send a message through this logger
     ---@param self af_services_debugger_logger
     ---@param message any
-    send = function(self, message) end
+    send = function(self, message) end,
+
+    -- Suppress/Unsuppress the logger
+    ---@param self af_services_debugger_logger
+    ---@param shouldSuppress boolean
+    setSuppressed = function(self, shouldSuppress) end
 }
 
 ---@class af_services_debugger_attached_function: af_internal_class

@@ -870,7 +870,7 @@ AuroraFramework.services.debuggerService = {
 ---@param variable any
 ---@return table|nil varTbl The table the variable was found in
 ---@return string|nil tblIndex The index of the table in which the variable is found
----@return string
+---@return string path The path to the variable (eg: _ENV.some.table.the_variable)
 AuroraFramework.services.debuggerService.internal.findENVVariable = function(variable)
 	-- recursive search sub-function. scans through a table to find the value then modifies it
 	local variableTable
@@ -1038,6 +1038,11 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 			---@param self af_services_debugger_logger
 			---@param message any
 			send = function(self, message)
+				-- don't send anything if not permitted to
+				if self.properties.suppressed then
+					return
+				end
+
 				-- convert message to string
 				if type(message) == "table" then
 					message = "\n"..AuroraFramework.libraries.miscellaneous.tableToString(message)
@@ -1056,6 +1061,12 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 						("%s %s"):format(self.properties.formattedName, message:gsub("\n", ("\n%s "):format(self.properties.formattedName)))
 					)
 				end
+			end,
+
+			---@param self af_services_debugger_logger
+			---@param shouldSuppress boolean
+			setSuppressed = function(self, shouldSuppress)
+				self.properties.suppressed = shouldSuppress
 			end
 		},
 
