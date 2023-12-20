@@ -42,10 +42,7 @@ g_savedata = {
 
 			---@type table<string, af_savedata_screen_ui>
 			screen = {}
-		},
-
-		---@type table<integer, af_savedata_player>
-		players = {}
+		}
 	}
 }
 
@@ -2135,34 +2132,11 @@ end
 ---------------- Players
 AuroraFramework.services.playerService = {
 	initialize = function()
-		-- Load players from g_savedata
-		for _, player in pairs(g_savedata.AuroraFramework.players) do
-			-- check if the player is in the server
-			local _, playerInServer = server.getPlayerName(player.peer_id)
-
-			-- the player is not in the server, so remove their data from g_savedata
-			if not playerInServer then
-				AuroraFramework.services.playerService.internal.removePlayerData(player.peer_id)
-				goto continue
-			end
-
-			-- give the player data
-			AuroraFramework.services.playerService.internal.givePlayerData(
-				player.steam_id,
-				player.name,
-				player.peer_id,
-				player.admin,
-				player.auth
-			)
-
-			::continue::
-		end
-
-		-- Load players currently in the server
+		-- Load players that are currently in the server without calling events
 		for _, player in pairs(server.getPlayers()) do
-			-- check if the player already has data
-			if AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then
-				goto continue
+			-- check if the player is connecting and hasnt loaded (the infamous "unnamed client")
+			if player.steam_id == 0 then
+				return
 			end
 
 			-- give the player data
@@ -2278,15 +2252,6 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 	-- check if the player is the host player
 	local isHost = peer_id == 0
-
-	-- save to g_savedata
-	g_savedata.AuroraFramework.players[peer_id] = {
-		steam_id = steam_id,
-		name = name,
-		peer_id = peer_id,
-		admin = admin,
-		auth = auth
-	}
 
 	-- create player class
 	---@type af_services_player_player
@@ -2426,7 +2391,6 @@ end
 ---@param peer_id integer
 AuroraFramework.services.playerService.internal.removePlayerData = function(peer_id)
 	AuroraFramework.services.playerService.players[peer_id] = nil
-	g_savedata.AuroraFramework.players[peer_id] = nil
 end
 
 -- Returns all recognised players
@@ -2440,12 +2404,6 @@ AuroraFramework.services.playerService.setDedicatedServer = function(isDedicated
 	AuroraFramework.services.playerService.isDedicatedServer = isDedicatedServer
 
 	if isDedicatedServer then
-		local host = AuroraFramework.services.playerService.getPlayerByPeerID(0)
-
-		if not host then
-			return
-		end
-
 		AuroraFramework.services.playerService.internal.removePlayerData(0)
 	end
 end
@@ -4405,11 +4363,24 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Ready event
-AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- to be used when the addon is finished setting up. you don't have to use this event, but it is recommended unless you wanna face issues such as spawned groups not being recognized the first tick
+AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- to be used when the addon is finished setting up. you don't have to use this event, but it is recommended unless you wanna face issues such as spawned groups not being recognized the first tick. provides one param: "save_load"|"save_creation"|"addon_reload"
 
-AuroraFramework.callbacks.onCreate.internal:connect(function()
+---@param first_load boolean
+AuroraFramework.callbacks.onCreate.internal:connect(function(save_creation)
 	AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick, because stormworks g_savedata is weird
-		AuroraFramework.ready:fire()
+		if save_creation then
+			-- first load
+			AuroraFramework.ready:fire("save_creation")
+			return
+		end
+
+		if server.getPlayers()[1].steam_id == 0 then
+			-- loading from saved file
+			AuroraFramework.ready:fire("save_load")
+		else
+			-- addon reload
+			AuroraFramework.ready:fire("addon_reload")
+		end
 	end)
 end)
 

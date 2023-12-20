@@ -115,16 +115,6 @@ _ = {
     vehicle_ids = {}
 }
 
----------------- Player
----@class af_savedata_player
-_ = {
-    steam_id = "",
-    name = "",
-    peer_id = 0,
-    admin = false,
-    auth = false
-}
-
 -------------------------------------------------
 -- Services
 -------------------------------------------------
