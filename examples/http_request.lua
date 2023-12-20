@@ -24,9 +24,10 @@ AuroraFramework.services.timerService.loop.create(5, function() -- calls this fu
 
     -- Send a request
     ---@param response string
-    local request = AuroraFramework.services.HTTPService.request(6500, url, function(response) -- the response is anything that the request returns
+    ---@param success boolean
+    local request = AuroraFramework.services.HTTPService.request(6500, url, function(response, success) -- the response is anything that the request returns
         -- Check if the request was successful
-        if not AuroraFramework.services.HTTPService.ok(response) then
+        if not success then -- alternatively, you can do "if not AuroraFramework.services.HTTPService.ok(response) then". but this is unneeded because this is actually what happens behind the scenes
             return
         end
 
