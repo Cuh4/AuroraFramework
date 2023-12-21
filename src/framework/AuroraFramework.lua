@@ -2169,8 +2169,11 @@ AuroraFramework.services.playerService = {
 				AuroraFramework.services.playerService.events.onJoin:fire(playerData)
 			end
 
-		    ::continue::
+			::continue::
 		end
+
+		-- Purge player persistence data
+		g_savedata.AuroraFramework.recognizedPeerIDs = {}
 
 		-- Give player data whenever a player joins
 		AuroraFramework.callbacks.onPlayerJoin.internal:connect(function(...)
@@ -4411,14 +4414,14 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Ready event
-AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- to be used when the addon is finished setting up. you don't have to use this event, but it is recommended unless you wanna face issues such as spawned groups not being recognized the first tick. provides one param: "save_load"|"save_creation"|"addon_reload"
+AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- provides one param: "save_load"|"save_create"|"addon_reload"
 
 ---@param first_load boolean
-AuroraFramework.callbacks.onCreate.internal:connect(function(save_creation)
+AuroraFramework.callbacks.onCreate.internal:connect(function(save_create)
 	AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick, because stormworks g_savedata is weird
-		if save_creation then
+		if save_create then
 			-- first load
-			AuroraFramework.ready:fire("save_creation")
+			AuroraFramework.ready:fire("save_create")
 			return
 		end
 
@@ -4442,9 +4445,10 @@ AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.TPSService.initialize()
 AuroraFramework.services.commandService.initialize()
 
-AuroraFramework.ready:connect(function()
-	AuroraFramework.services.playerService.initialize()
-	AuroraFramework.services.UIService.initialize()
-	AuroraFramework.services.vehicleService.initialize() -- important this is initialized before groupservice
-	AuroraFramework.services.groupService.initialize()
+---@param state "save_load"|"save_create"|"addon_reload"
+AuroraFramework.ready:connect(function(state)
+	AuroraFramework.services.playerService.initialize(state)
+	AuroraFramework.services.UIService.initialize(state)
+	AuroraFramework.services.vehicleService.initialize(state) -- important this is initialized before groupservice
+	AuroraFramework.services.groupService.initialize(state)
 end)
