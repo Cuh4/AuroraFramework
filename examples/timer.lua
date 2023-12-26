@@ -21,6 +21,11 @@ end)
 ---@param loop af_services_timer_loop
 AuroraFramework.services.timerService.loop.create(5, function(loop)
     local host = AuroraFramework.services.playerService.getPlayerByPeerID(0)
+
+    if not host then -- EITHER: framework isn't ready yet, so host is nil OR no players in the server because the addon is being ran in a dedicated server and the player service "isDedicatedServer" property is true, OR the same property is true in a non-dedicated server
+        return
+    end
+
     server.spawnMeteor(host:getPosition(), 1) -- Spawn a meteor at the host's position
 
     loop:setDuration(math.random(5, 15)) -- Update the loop duration to a random value, makes things a bit more unpredictable
