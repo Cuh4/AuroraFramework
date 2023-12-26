@@ -16,14 +16,15 @@ AuroraFramework.services.playerService.setDedicatedServer(false) -- False by def
 AuroraFramework.ready:connect(function()
     -- Get players. Note that you can only fetch players when the framework is ready
     -- This is by far the most reliable way to fetch a player
-    local host = AuroraFramework.services.playerService.getPlayerByPeerID(0) -- Host player (the one who created the server, or in dedicated servers, the server/first player to join)
+    local host = AuroraFramework.services.playerService.getPlayerByPeerID(0) -- Host player (the one who created the server, or in dedicated servers, the server/first player to join depending on the player service's "isDedicatedServer" property)
 
     -- Note that multiple players can have the same name! 
-    -- In this case, addon may choose the player that joined earlier, but it is not always the case! (The addon may have loaded after players joined, therefor not indexing them by their join order)
-    local handsomeMan = AuroraFramework.services.playerService.getPlayerByName("Cuh4") -- caps sensitive search, must be exact
-    local handsomeMan2 = AuroraFramework.services.playerService.getPlayerByNameSearch("CUH4") -- non-caps sensitive search, can be partial, returns player with closest name to the provided name
+    -- In this case, the framework may choose the player that joined earlier, but it is not always the case!
+    local handsomeMan = AuroraFramework.services.playerService.getPlayerByName("Cuh4") -- Caps-sensitive search, must be exact
+    local handsomeMan2 = AuroraFramework.services.playerService.getPlayerByNameSearch("CUH4") -- Non-caps sensitive search, can be partial, returns player with closest name to the provided name
+
     -- Note that multiple players may have the same Steam ID!
-    -- This happens because of a bug, where you can launch 2 Stormworks instances - you are then allowed to join to a server with both of them.
+    -- This happens because of a bug, where you can launch 2+ Stormworks instances - you are then allowed to join to a server with all of them.
     local handsomeMan3 = AuroraFramework.services.playerService.getPlayerBySteamID(handsomeMan2.properties.steam_id) -- Get a player by their Steam ID. This returns handsomeMan2 because we're using his Steam ID
     local handsomeMan4 = AuroraFramework.services.playerService.getPlayerByObjectID(handsomeMan3:getCharacter()) -- Get a player by their character ID. This returns handsomeMan3 (i.e. handsomeMan2) because we're using his character
 
