@@ -15,7 +15,7 @@ AuroraFramework.services.playerService.setDedicatedServer(false) -- False by def
 -- Do everything once the framework is ready. We need this because all the services are initialized when the addon and framework is ready which is always after the base-level addon code is ran
 AuroraFramework.ready:connect(function()
     -- Get players. Note that you can only fetch players when the framework is ready
-    -- This is by far the most reliable way to fetch a player
+    -- This is by far the most reliable waypoint to fetch a player because peer IDs are unique for each player
     local host = AuroraFramework.services.playerService.getPlayerByPeerID(0) -- Host player (the one who created the server, or in dedicated servers, the server/first player to join depending on the player service's "isDedicatedServer" property)
 
     -- Note that multiple players can have the same name! 
