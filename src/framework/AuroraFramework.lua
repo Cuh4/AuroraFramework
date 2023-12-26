@@ -2225,22 +2225,20 @@ AuroraFramework.services.playerService = {
 		end)
 
 		-- Update player properties
-		AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick for addon to attach callbacks to player events
-			AuroraFramework.callbacks.onTick.internal:connect(function()
-				for _, player in pairs(server.getPlayers()) do
-					-- player doesn't have data (usually means player is connecting, or the player is the server and dedicatedServer is set to true), so ignore
-					if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
-						goto continue
-					end
-
-					-- update properties
-					local data = AuroraFramework.services.playerService.players[player.id]
-					data.properties.admin = player.admin
-					data.properties.auth = player.auth
-
-				    ::continue::
+		AuroraFramework.callbacks.onTick.internal:connect(function()
+			for _, player in pairs(server.getPlayers()) do
+				-- player doesn't have data (usually means player is connecting, or the player is the server and dedicatedServer is set to true), so ignore
+				if not AuroraFramework.services.playerService.getPlayerByPeerID(player.id) then -- don't update player data if there is none (usually means player is connecting, but hasnt connected fully)
+					goto continue
 				end
-			end)
+
+				-- update properties
+				local data = AuroraFramework.services.playerService.players[player.id]
+				data.properties.admin = player.admin
+				data.properties.auth = player.auth
+
+				::continue::
+			end
 		end)
 	end,
 
