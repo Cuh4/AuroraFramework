@@ -22,6 +22,8 @@ AuroraFramework.ready:connect(function()
     -- In this case, addon may choose the player that joined earlier, but it is not always the case! (The addon may have loaded after players joined, therefor not indexing them by their join order)
     local handsomeMan = AuroraFramework.services.playerService.getPlayerByName("Cuh4") -- caps sensitive search, must be exact
     local handsomeMan2 = AuroraFramework.services.playerService.getPlayerByNameSearch("CUH4") -- non-caps sensitive search, can be partial, returns player with closest name to the provided name
+    -- Note that multiple players may have the same Steam ID!
+    -- This happens because of a bug, where you can launch 2 Stormworks instances - you are then allowed to join to a server with both of them.
     local handsomeMan3 = AuroraFramework.services.playerService.getPlayerBySteamID(handsomeMan2.properties.steam_id) -- Get a player by their Steam ID. This returns handsomeMan2 because we're using his Steam ID
     local handsomeMan4 = AuroraFramework.services.playerService.getPlayerByObjectID(handsomeMan3:getCharacter()) -- Get a player by their character ID. This returns handsomeMan3 (i.e. handsomeMan2) because we're using his character
 
