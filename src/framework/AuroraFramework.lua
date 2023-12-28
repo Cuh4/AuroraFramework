@@ -2944,6 +2944,7 @@ AuroraFramework.services.chatService = {
 
 -- Construct a message
 ---@param author af_services_player_player
+---@param messageContent string
 ---@return af_services_chat_message
 AuroraFramework.services.chatService.internal.construct = function(author, messageContent)
 	AuroraFramework.services.chatService.internal.message_id = AuroraFramework.services.chatService.internal.message_id + 1
@@ -2992,8 +2993,8 @@ AuroraFramework.services.chatService.getAllMessagesSentByAPlayer = function(play
 	return list
 end
 
--- Get the newest message
-AuroraFramework.services.chatService.getNewestMessage = function()
+-- Get the latest message
+AuroraFramework.services.chatService.getLatestMessage = function()
 	return AuroraFramework.services.chatService.messages[#AuroraFramework.services.chatService.messages]
 end
 
@@ -3004,6 +3005,7 @@ end
 
 -- Edit a message
 ---@param message af_services_chat_message
+---@param newContent string
 ---@param player af_services_player_player|nil If player, the message will be edited for the player, else, everyone
 AuroraFramework.services.chatService.editMessage = function(message, newContent, player)
 	-- edit message
@@ -3062,23 +3064,17 @@ AuroraFramework.services.chatService.isSameMessage = function(message1, message2
 end
 
 -- Send a message to everyone/a player
----@param author any
----@param message any
+---@param author string
+---@param message string
 ---@param player af_services_player_player|nil
 AuroraFramework.services.chatService.sendMessage = function(author, message, player)
-	local peer_id = -1
-
-	if player then
-		peer_id = player.properties.peer_id
-	end
-
-	server.announce(tostring(author), tostring(message), peer_id)
+	server.announce(tostring(author), tostring(message), AuroraFramework.libraries.miscellaneous.getPeerID(player))
 end
 
 -- Clear chat for everyone/a player
 ---@param player af_services_player_player|nil
 AuroraFramework.services.chatService.clear = function(player)
-	for _ = 1, 129 do
+	for _ = 1, AuroraFramework.services.chatService.messageLimit do
 		AuroraFramework.services.chatService.sendMessage(" ", " ", player)
 	end
 end
