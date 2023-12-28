@@ -2782,7 +2782,7 @@ end
 -- Encode a Lua object into a JSON string
 ---@param obj any The data to encode
 ---@param as_key boolean|nil
----@return string|nil
+---@return string
 AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key)
 	local s = {}           -- We'll build the string as an array of strings to be concatenated.
 	local kind = AuroraFramework.services.HTTPService.JSON.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
@@ -2835,7 +2835,7 @@ end
 ---@param str string
 ---@param pos number|nil
 ---@param end_delim string|nil
----@return any|nil, number|nil
+---@return any, number
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
 	pos = pos or 1
 
