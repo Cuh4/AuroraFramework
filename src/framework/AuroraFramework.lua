@@ -2517,7 +2517,7 @@ AuroraFramework.services.HTTPService = {
 	initialize = function()
 		---@param port integer
 		---@param url string
-		---@param reply string
+		---@param response string
 		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, response)
 			-- get the request
 			local data = AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url]
@@ -2528,7 +2528,7 @@ AuroraFramework.services.HTTPService = {
 			end
 
 			-- handle the request
-			data.events.reply:fire(tostring(reply), AuroraFramework.services.HTTPService.ok(response)) -- reply callback
+			data.events.reply:fire(tostring(response), AuroraFramework.services.HTTPService.ok(response)) -- reply callback
 			data:cancel() -- remove the request
 		end)
 	end,
