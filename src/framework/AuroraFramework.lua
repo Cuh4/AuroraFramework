@@ -17,9 +17,9 @@ AuroraFramework = {
 	callbacks = {},
 
 	attributes = {},
+	internal = {},
 	libraries = {},
-	services = {},
-	internal = {}
+	services = {}
 }
 
 g_savedata = {
@@ -810,12 +810,22 @@ end
 ---------------- Debugger Service
 AuroraFramework.services.debuggerService = {
 	initialize = function()
+		-- create artificial ontick event
+		AuroraFramework.internal.artificialOnTick = AuroraFramework.libraries.events.create("auroraframework_artificialOnTick")
+
 		-- configurables
 		local artificialOnTickRequestURL = "auroraframework_debugger_ontick"
 		local threshold = 2500 -- ms
 
 		-- artificial ontick heartbeat function
-		local function heartbeat()
+		---@param hasBroken boolean
+		local function heartbeat(hasBroken)
+			AuroraFramework.internal.artificialOnTick:fire()
+
+			if hasBroken then
+				return
+			end
+
 			server.httpGet(0, artificialOnTickRequestURL)
 		end
 
@@ -836,7 +846,7 @@ AuroraFramework.services.debuggerService = {
 		---@param reply string
 		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
 			-- not us or the addon has stopped, so stop here
-			if port ~= 0 and url ~= artificialOnTickRequestURL or hasBroken then
+			if port ~= 0 and url ~= artificialOnTickRequestURL then
 				return
 			end
 
@@ -844,7 +854,12 @@ AuroraFramework.services.debuggerService = {
 			artificialOnTickTime = server.getTimeMillisec()
 
 			-- go again
-			heartbeat()
+			heartbeat(hasBroken)
+
+			-- stop here if the addon has broken already
+			if hasBroken then
+				return
+			end
 
 			-- calculate difference
 			local difference = artificialOnTickTime - onTickPreviousTime
