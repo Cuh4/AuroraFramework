@@ -1267,9 +1267,9 @@ AuroraFramework.services.communicationService = {
 		---@param peer_id integer
 		---@param indicator string
 		---@param channelName string
-		---@param data string
-		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, data)
-			-- remove sw command indicator from communication indicator
+		---@param ... string
+		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, ...)
+			-- remove question mark from communication indicator
 			indicator = indicator:sub(2)
 
 			-- check if the message was sent by an addon
@@ -1277,7 +1277,7 @@ AuroraFramework.services.communicationService = {
 				return
 			end
 
-			-- check if the indicator is valid. if its not, then its a different addon communication system is likely being used by the
+			-- check if the indicator is valid. if its not, then a different addon communication system is likely being used by the
 			-- source addon, and therefore we should ignore it to prevent any errors (like json decoding invalid data)
 			if AuroraFramework.services.communicationService.internal.communicationIndicatorName ~= indicator then
 				return
@@ -1291,7 +1291,9 @@ AuroraFramework.services.communicationService = {
 			end
 
 			-- fire event
+			local data = table.concat({...}, " ") -- data may include spaces, so it ends up being split across arguments. here we just join them back together into one string
 			local decoded = AuroraFramework.services.communicationService.internal.decode(data)
+	
 			channel.events.message:fire(decoded)
 		end)
 	end,
@@ -1304,22 +1306,18 @@ AuroraFramework.services.communicationService = {
 	}
 }
 
--- Encode data (Data --> JSON --> Base64)
+-- Encode data (Data --> JSON)
 ---@param data any
 ---@return string
 AuroraFramework.services.communicationService.internal.encode = function(data)
-	return AuroraFramework.services.HTTPService.Base64.encode(
-		AuroraFramework.services.HTTPService.JSON.encode(data)
-	)
+	return AuroraFramework.services.HTTPService.JSON.encode(data)
 end
 
--- Decode data (Base64 --> JSON --> Data)
+-- Decode data (JSON --> Data)
 ---@param data string
 ---@return any
 AuroraFramework.services.communicationService.internal.decode = function(data)
-	return AuroraFramework.services.HTTPService.JSON.decode(
-		AuroraFramework.services.HTTPService.Base64.decode(data)
-	)
+	return AuroraFramework.services.HTTPService.JSON.decode(data)
 end
 
 -- Create a channel, which then you can send messages or listen for messages
