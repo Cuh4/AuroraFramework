@@ -14,7 +14,7 @@
 local mainChannel = AuroraFramework.services.communicationService.createChannel("main")
 
 -- Listen for messages on the channel
-mainChannel:listen(function(data)
+mainChannel:listen(true, function(data) -- first parameter dictates whether the addon should accept messages from this addon and other addons, or just other addons
     AuroraFramework.services.chatService.sendMessage("Server", "I received a message: "..data["message"]) -- this will print in chat: "I received a message: hello world"
 end)
 
