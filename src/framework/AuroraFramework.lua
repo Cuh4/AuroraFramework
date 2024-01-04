@@ -1736,6 +1736,7 @@ end
 
 -- Get a group
 ---@param group_id integer
+---@return af_services_group_group
 AuroraFramework.services.groupService.getGroup = function(group_id)
 	return AuroraFramework.services.groupService.groups[group_id]
 end
@@ -1746,6 +1747,7 @@ AuroraFramework.services.groupService.getAllGroups = function()
 end
 
 -- Get the amount of spawned and recognised groups
+---@return integer
 AuroraFramework.services.groupService.getGlobalGroupCount = function()
 	return AuroraFramework.libraries.miscellaneous.getTableLength(AuroraFramework.services.groupService.groups)
 end
@@ -1773,6 +1775,7 @@ end
 
 -- Get the amount of vehicles spawned by a player
 ---@param player af_services_player_player
+---@return integer
 AuroraFramework.services.groupService.getGroupCountOfPlayer = function(player)
 	return #AuroraFramework.services.groupService.getAllGroupsSpawnedByAPlayer(player)
 end
@@ -1780,6 +1783,7 @@ end
 -- Returns whether or not two groups are the same
 ---@param group1 af_services_group_group
 ---@param group2 af_services_group_group
+---@return boolean
 AuroraFramework.services.groupService.isSameGroup = function(group1, group2)
 	return group1.properties.group_id == group2.properties.group_id
 end
@@ -1887,6 +1891,7 @@ AuroraFramework.services.vehicleService = {
 ---@param z number
 ---@param group_cost number
 ---@param group_id integer
+---@return af_services_vehicle_vehicle
 AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehicle_id, peer_id, x, y, z, group_cost, group_id)
 	-- ignore if data already exists
 	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
@@ -2042,11 +2047,13 @@ end
 
 -- Get a vehicle by its ID
 ---@param vehicle_id integer
+---@return af_services_vehicle_vehicle
 AuroraFramework.services.vehicleService.getVehicleByVehicleID = function(vehicle_id)
 	return AuroraFramework.services.vehicleService.vehicles[vehicle_id]
 end
 
 -- Get the amount of spawned and recognised vehicles
+---@return integer
 AuroraFramework.services.vehicleService.getGlobalVehicleCount = function()
 	return AuroraFramework.libraries.miscellaneous.getTableLength(AuroraFramework.services.vehicleService.vehicles)
 end
@@ -2074,6 +2081,7 @@ end
 
 -- Get the amount of vehicles spawned by a player
 ---@param player af_services_player_player
+---@return integer
 AuroraFramework.services.vehicleService.getVehicleCountOfPlayer = function(player)
 	return #AuroraFramework.services.vehicleService.getAllVehiclesSpawnedByAPlayer(player)
 end
@@ -2081,6 +2089,7 @@ end
 -- Returns whether or not two vehicles are the same
 ---@param vehicle1 af_services_vehicle_vehicle
 ---@param vehicle2 af_services_vehicle_vehicle
+---@return boolean
 AuroraFramework.services.vehicleService.isSameVehicle = function(vehicle1, vehicle2)
 	return vehicle1.properties.vehicle_id == vehicle2.properties.vehicle_id
 end
