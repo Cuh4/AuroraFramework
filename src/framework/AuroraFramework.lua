@@ -3174,14 +3174,14 @@ AuroraFramework.services.commandService = {
 	---@type table<string, af_services_command_command>
 	commands = {},
 	events = {
-		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_commandActivated") -- command, args, player
+		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_commandActivated") -- player, args, command
 	},
 
 	internal = {}
 }
 
 -- Create a command
----@param callback fun(command: af_services_command_command, args: table<integer, string>, player: af_services_player_player)
+---@param callback fun(player: af_services_player_player, command: af_services_command_command, args: table<integer, string>)
 ---@param name string
 ---@param shorthands table<integer, string>|nil
 ---@param capsSensitive boolean|nil
