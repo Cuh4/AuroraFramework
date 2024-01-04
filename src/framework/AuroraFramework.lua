@@ -228,6 +228,10 @@ AuroraFramework.libraries.miscellaneous.combineTables = function(shouldInsert, .
 
 	-- combine tables
 	for _, tbl in pairs(tables) do
+		if tbl == main then
+			goto continue
+		end
+
 		for index, value in pairs(tbl) do
 			if shouldInsert then
 				table.insert(main, value)
@@ -235,6 +239,8 @@ AuroraFramework.libraries.miscellaneous.combineTables = function(shouldInsert, .
 				main[index] = value
 			end
 		end
+
+	    ::continue::
 	end
 
 	-- return
