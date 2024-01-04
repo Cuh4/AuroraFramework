@@ -1344,9 +1344,10 @@ AuroraFramework.services.communicationService.createChannel = function(name)
 			end,
 
 			---@param self af_services_communication_channel
+			---@param acceptMessagesFromThisAddon boolean
 			---@param callback fun(data: any, addonIndex: integer)
-			listen = function(self, callback)
-				AuroraFramework.services.communicationService.listen(self, callback)
+			listen = function(self, acceptMessagesFromThisAddon, callback)
+				AuroraFramework.services.communicationService.listen(self, acceptMessagesFromThisAddon, callback)
 			end,
 
 			---@param self af_services_communication_channel

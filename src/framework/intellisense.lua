@@ -336,7 +336,8 @@ _ = {
 
     -- Listen for messages from other addons on a specific channel
     ---@param self af_services_communication_channel
-    ---@param callback function
+    ---@param acceptMessagesFromThisAddon boolean
+    ---@param callback fun(data: any, addonIndex: integer)
     listen = function(self, callback) end,
 
     -- Remove this channel
