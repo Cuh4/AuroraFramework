@@ -338,7 +338,7 @@ _ = {
     ---@param self af_services_communication_channel
     ---@param acceptMessagesFromThisAddon boolean
     ---@param callback fun(data: any, addonIndex: integer)
-    listen = function(self, callback) end,
+    listen = function(self, acceptMessagesFromThisAddon, callback) end,
 
     -- Remove this channel
     ---@param self af_services_communication_channel
