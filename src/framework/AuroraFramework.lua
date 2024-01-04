@@ -202,7 +202,7 @@ AuroraFramework.libraries.miscellaneous.tableToString = function(tbl, indent)
     return table.concat(toConcatenate, "\n")
 end
 
--- Returns whether or not if a number is between two numbers
+-- Returns whether or not a number is between two numbers
 ---@param number number
 ---@param thresholdMin number
 ---@param thresholdMax number
