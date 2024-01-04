@@ -1158,7 +1158,7 @@ AuroraFramework.services.timerService = {
 
 -- Create a loop. Duration is in seconds
 ---@param duration integer In seconds
----@param callback function
+---@param callback fun(loop: af_services_timer_loop)
 AuroraFramework.services.timerService.loop.create = function(duration, callback)
 	-- unique id
 	AuroraFramework.services.timerService.timerID = AuroraFramework.services.timerService.timerID + 1
@@ -1210,7 +1210,7 @@ end
 
 -- Create a delay. Duration is in seconds
 ---@param duration integer In seconds
----@param callback function
+---@param callback fun(delay: af_services_timer_delay)
 AuroraFramework.services.timerService.delay.create = function(duration, callback)
 	-- unique id
 	AuroraFramework.services.timerService.timerID = AuroraFramework.services.timerService.timerID + 1
@@ -1267,8 +1267,9 @@ AuroraFramework.services.communicationService = {
 		---@param peer_id integer
 		---@param indicator string
 		---@param channelName string
+		---@param addonIndex string
 		---@param ... string
-		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, ...)
+		AuroraFramework.callbacks.onCustomCommand.internal:connect(function(_, peer_id, _, _, indicator, channelName, addonIndex, ...)
 			-- remove question mark from communication indicator
 			indicator = indicator:sub(2)
 
@@ -1290,11 +1291,14 @@ AuroraFramework.services.communicationService = {
 				return
 			end
 
+			-- convert addon index to number
+			addonIndex = tonumber(addonIndex)
+
 			-- fire event
 			local data = table.concat({...}, " ") -- data may include spaces, so it ends up being split across arguments. here we just join them back together into one string
 			local decoded = AuroraFramework.services.communicationService.internal.decode(data)
 	
-			channel.events.message:fire(decoded)
+			channel.events.message:fire(decoded, addonIndex)
 		end)
 	end,
 
@@ -1340,7 +1344,7 @@ AuroraFramework.services.communicationService.createChannel = function(name)
 			end,
 
 			---@param self af_services_communication_channel
-			---@param callback function
+			---@param callback fun(data: any, addonIndex: integer)
 			listen = function(self, callback)
 				AuroraFramework.services.communicationService.listen(self, callback)
 			end,
@@ -1387,21 +1391,31 @@ AuroraFramework.services.communicationService.send = function(channel, data)
 	local encodedData = AuroraFramework.services.communicationService.internal.encode(data)
 
 	-- send over to addons that are listening on this channel
-	local command = ("?%s %s %s"):format(
+	local command = "?"..table.concat({
 		AuroraFramework.services.communicationService.internal.communicationIndicatorName,
 		channel.properties.name,
+		AuroraFramework.attributes.AddonIndex,
 		encodedData
-	)
+	}, " ")
 
-	server.command(command) -- can't use command service here
+	server.command(command) -- can't use this framework's command service here
 end
 
 -- Listen for messages from other addons on a specific channel
 ---@param channel af_services_communication_channel
----@param callback function
-AuroraFramework.services.communicationService.listen = function(channel, callback)
+---@param acceptMessagesFromThisAddon boolean
+---@param callback fun(data: any, addonIndex: integer)
+AuroraFramework.services.communicationService.listen = function(channel, acceptMessagesFromThisAddon, callback)
 	-- attach function to channel's reply event
-	channel.events.message:connect(callback)
+	---@param data any
+	---@param addonIndex integer
+	channel.events.message:connect(function(data, addonIndex)
+		if addonIndex == AuroraFramework.attributes.AddonIndex and not acceptMessagesFromThisAddon then
+			return
+		end
+
+		return callback(data, addonIndex)
+	end)
 end
 
 ---------------- TPS
@@ -2570,7 +2584,7 @@ AuroraFramework.services.HTTPService = {
 -- Send a HTTP request
 ---@param port integer
 ---@param url string
----@param callback function|nil
+---@param callback fun(response: string, successful: boolean)|nil
 ---@return af_services_http_request
 AuroraFramework.services.HTTPService.request = function(port, url, callback)
 	-- check if a request has already been made
@@ -3157,7 +3171,7 @@ AuroraFramework.services.commandService = {
 }
 
 -- Create a command
----@param callback function first param = command, second param = args in table, third = player
+---@param callback fun(command: af_services_command_command, args: table<integer, string>, player: af_services_player_player)
 ---@param name string
 ---@param shorthands table<integer, string>|nil
 ---@param capsSensitive boolean|nil
