@@ -84,6 +84,7 @@ AuroraFramework.libraries.class.create = function(name, methods, properties, eve
 
 	-- assign methods to the class
 	class = AuroraFramework.libraries.miscellaneous.combineTables(
+		false,
 		class,
 		methods
 	)
@@ -210,9 +211,10 @@ AuroraFramework.libraries.miscellaneous.threshold = function(number, thresholdMi
 end
 
 -- Combine tables together
+---@param shouldInsert boolean if true, the function will simply insert all values of every table into one main table and let lua handle the indexes. if false, the function will do the same but carry over the indexes, overwriting values if necessary
 ---@param ... table
 ---@return table
-AuroraFramework.libraries.miscellaneous.combineTables = function(...)
+AuroraFramework.libraries.miscellaneous.combineTables = function(shouldInsert, ...)
 	-- create vars
 	local tables = {...}
 
@@ -227,7 +229,11 @@ AuroraFramework.libraries.miscellaneous.combineTables = function(...)
 	-- combine tables
 	for _, tbl in pairs(tables) do
 		for index, value in pairs(tbl) do
-			main[index] = value
+			if shouldInsert then
+				table.insert(main, value)
+			else
+				main[index] = value
+			end
 		end
 	end
 
