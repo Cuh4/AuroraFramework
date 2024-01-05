@@ -1,30 +1,41 @@
-# ***Aurora Framework***
+![SW Screenshot](imgs/readme_top.png)
 
-### **Overview**
-Aurora Framework is a super reliable framework that makes the creation of Stormworks: Build and Rescue (game) addons much easier.
+---
 
-This framework also makes most things OOP-based, meaning instead of doing:
+# *Aurora Framework*
+
+
+## 📚 | Overview
+Aurora Framework is a super reliable OOP-based framework that makes the creation of Stormworks: Build and Rescue (game) addons much easier.
+
+As said, the framework makes creating addons easier, here's an example of that:
 
 ```lua
-function onReady()
-    local vehicle_id = 1
-    local pos = server.getVehiclePos(vehicle_id)
+-- Without Aurora Framework
+local timer = 0
+
+function onTick()
+    timer = timer + 1
+
+    if timer < 60 then
+        return
+    end
+    
+    timer = 0
+    server.announce("Woah", "A second has passed.")
 end
 ```
 
-You can do:
-
 ```lua
-AuroraFramework.ready:connect(function()
-    local vehicle_id = 1
-    local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
-    local pos = vehicle:getPosition()
+-- With Aurora Framework
+AuroraFramework.services.timerService.loop.create(1, function()
+    AuroraFramework.services.chatService.sendMessage("Woah", "A second has passed.")
 end)
 ```
 
 You can view examples over in the `examples` folder.
 
-### **Features**
+## 📃 | Features
 - **Services** - This framework contains numerous functions/"classes" for different things that are categorized depending on what they do. These functions/"classes" go under services.
 - **OOP-Based** - This framework is entirely OOP-based. To apply something to a player, or a vehicle, you must find the player/vehicle object and call a method inside of the object.
 - **Reliable** - This framework is consistently maintained and works extremely well.
@@ -32,17 +43,22 @@ You can view examples over in the `examples` folder.
 - **Less Work** - This framework handles so much of the tough stuff for you. You won't need to create tables to track players, vehicles, and such. There are also plenty of helper functions in the framework's libraries that you can utilize.
 - **Libraries** - This framework has numerous libraries that contain functions you might need during addon development. This speeds up development time as you won't need to create as many functions single-handedly.
 
-### **Installation**
-Before doing anything, place `src/framework` into your addon's folder.
+## 💾 | Installation
+Stormworks addons are located at `%appdata%/Stormworks/data/missions`.
 
-After doing so, place `src/gameIntellisense.lua` into your addon's folder for Addon Lua intellisense support. This is not needed, but it will provide auto-completion for all of the game's functions and such.
+### 💽 | Installation
+1) `git clone` this repo into your addon's folder: `git clone "https://github.com/Cuh4/AuroraFramework"`
+2) Move `src/framework` into your addon's folder. This will provide the framework itself (`AuroraFramework.lua`), as well as intellisense for the framework (`intellisense.lua`).
+3) **[Optional]** Move `src/gameIntellisense.lua` into your addon's folder. This will provide intellisense (auto-completion, etc) for Addon Lua.
 
 Your addon's folder should now look like:
 
 ![Example](imgs/addon_folder_example.png)
 
+### 📖 | Utilizing Aurora Framework
 Now, for actually using the framework, you can either:
-- Take the  `require()` route:
+
+- **Take the `require()` route:**
     1) Install the [Stormworks Lua Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi).
     2) Use the extension's `require("path.to.file")` support feature with your addon's framework file.
         ```lua
@@ -50,12 +66,12 @@ Now, for actually using the framework, you can either:
         -- merges everything in framework/AuroraFramework.lua with your script.lua file once you build your addon using the extension
         require("framework.AuroraFramework")
 
-        -- use the framework like so:
+        -- your addon code
         AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
         ```
     3) Build your addon using the `F7` key. You'll have to do this everytime you make a change to your addon.
 
-- Take the all-in-one route:
+- **Take the all-in-one route:**
     1) Copy the contents of your addon's `framework/AuroraFramework.lua`.
     2) Paste it into your addon's `script.lua` file. Be sure to paste it above all of your addon code, not below it.
         ```lua
@@ -67,8 +83,8 @@ Now, for actually using the framework, you can either:
         AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
         ```
 
-Be sure to keep `framework/intellisense.lua` in your addon's workspace for intellisense support.
+    - **Note:** You can create your own script to automatically combine the framework with your addon's `script.lua`. This is what I personally do.
 
-### **Warnings**
+## ⚠️ | Warnings
 - This framework gets updated quite frequently, so you may need to repeat the installation steps above there and then.
-- This framework contains little descriptive documentation because this was made purely for myself originally. The framework does utilize typehinting and basic function annotations though.
+- This framework doesn't include actual documentation because this was made purely for myself originally. The framework does utilize typehinting and basic function annotations for intellisense support though.
