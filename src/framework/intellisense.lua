@@ -6,7 +6,6 @@
 -------------------------------------------------
 -- Callbacks
 -------------------------------------------------
-
 ---@class af_callbacks_callback
 ---@field internal af_libs_event_event To be used by the framework
 ---@field main af_libs_event_event To be used by your addon
@@ -914,3 +913,8 @@ _ = {
     ---@return number
     stop = function(self) end
 }
+
+-------------------------------------------------
+-- Miscellaneous
+-------------------------------------------------
+---@alias af_ready_state "save_load"|"save_create"|"addon_reload"

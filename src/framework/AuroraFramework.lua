@@ -4493,7 +4493,7 @@ AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.TPSService.initialize()
 AuroraFramework.services.commandService.initialize()
 
----@param state "save_load"|"save_create"|"addon_reload"
+---@param state af_ready_state
 AuroraFramework.ready:connect(function(state)
 	AuroraFramework.services.playerService.initialize(state)
 	AuroraFramework.services.UIService.initialize(state)
