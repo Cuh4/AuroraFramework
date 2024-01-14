@@ -2200,44 +2200,42 @@ end
 ---------------- Players
 AuroraFramework.services.playerService = {
 	initialize = function()
-		AuroraFramework.services.timerService.delay.create(0, function() -- to allow the addon to connect to events n stuff in the ready event. this is a bit hacky but this fixes some issues like ui not being able to be created in the playerservice onJoin event due to timing. i need to rewrite this framework at some point god damn
-			-- Load players that are currently in the server without calling events
-			for _, player in pairs(server.getPlayers()) do
-				-- check if the player is connecting and hasnt loaded (the infamous "unnamed client")
-				if player.steam_id == 0 then
-					return
-				end
-
-				-- give the player data
-				local isRecognized = g_savedata.AuroraFramework.recognizedPeerIDs[player.id] -- givePlayerData autoamtically adds the player's peer id to the recognizedPeerIDs table, hence why we check it before giving the player data instead of after
-
-				local playerData = AuroraFramework.services.playerService.internal.givePlayerData(
-					player.steam_id,
-					player.name,
-					player.id,
-					player.admin,
-					player.auth
-				)
-
-				-- if the player's peer id isnt stored in g_savedata, that means they connected to the server for the first time, but the addon wasnt working when they joined. therefore, call the onJoin event
-				if playerData and not isRecognized then
-					AuroraFramework.services.playerService.events.onJoin:fire(playerData)
-				end
-
-				::continue::
+		-- Load players that are currently in the server without calling events
+		for _, player in pairs(server.getPlayers()) do
+			-- check if the player is connecting and hasnt loaded (the infamous "unnamed client")
+			if player.steam_id == 0 then
+				return
 			end
 
-			-- Purge player persistence data
-			for _, peer_id in pairs(g_savedata.AuroraFramework.recognizedPeerIDs) do
-				if AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) then
-					goto continue
-				end
+			-- give the player data
+			local isRecognized = g_savedata.AuroraFramework.recognizedPeerIDs[player.id] -- givePlayerData autoamtically adds the player's peer id to the recognizedPeerIDs table, hence why we check it before giving the player data instead of after
 
-				g_savedata.AuroraFramework.recognizedPeerIDs[peer_id] = nil
+			local playerData = AuroraFramework.services.playerService.internal.givePlayerData(
+				player.steam_id,
+				player.name,
+				player.id,
+				player.admin,
+				player.auth
+			)
 
-				::continue::
+			-- if the player's peer id isnt stored in g_savedata, that means they connected to the server for the first time, but the addon wasnt working when they joined. therefore, call the onJoin event
+			if playerData and not isRecognized then
+				AuroraFramework.services.playerService.events.onJoin:fire(playerData)
 			end
-		end)
+
+			::continue::
+		end
+
+		-- Purge player persistence data
+		for _, peer_id in pairs(g_savedata.AuroraFramework.recognizedPeerIDs) do
+			if AuroraFramework.services.playerService.getPlayerByPeerID(peer_id) then
+				goto continue
+			end
+
+			g_savedata.AuroraFramework.recognizedPeerIDs[peer_id] = nil
+
+			::continue::
+		end
 
 		-- Give player data whenever a player joins
 		AuroraFramework.callbacks.onPlayerJoin.internal:connect(function(...)
