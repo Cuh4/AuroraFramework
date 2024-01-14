@@ -634,11 +634,13 @@ _ = {
 
     -- Get the position of this group
     ---@param self af_services_group_group
+    ---@return SWMatrix
     getPosition = function(self) end,
 
     -- Get a vehicle that is apart of this group
     ---@param self af_services_group_group
     ---@param vehicle_id integer
+    ---@return af_services_vehicle_vehicle
     getVehicle = function(self, vehicle_id) end
 }
 
