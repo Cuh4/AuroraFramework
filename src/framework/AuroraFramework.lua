@@ -1570,6 +1570,11 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	-- set vehicle ids if not provided
 	vehicle_ids = vehicle_ids or server.getVehicleGroup(group_id)
 
+	-- ignore if vehicle ids cant be retrieved
+	if not vehicle_ids then
+		return
+	end
+
 	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
 	local data = {
 		group_id = group_id,
@@ -1638,6 +1643,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	local vehicles = {}
 
 	for _, vehicle_id in pairs(vehicle_ids) do
+		mainLogger:send("vehicle #"..vehicle_id)
 		-- get vehicle
 		local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
@@ -1647,7 +1653,7 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 
 		-- set group attribute
 		vehicle.properties.group_id = group.properties.group_id
-
+		
 		-- insert into vehicles table
 		vehicles[vehicle_id] = vehicle
 
