@@ -59,6 +59,7 @@ AuroraFramework.attributes.SpaceEnabled = server.dlcSpace()
 
 ---------------- Misc
 AuroraFramework.attributes.AddonIndex = (server.getAddonIndex())
+AuroraFramework.attributes.AddonData = server.getAddonData(AuroraFramework.attributes.AddonIndex)
 
 --------------------------------------------------------------------------------
 --// Libraries \\--
