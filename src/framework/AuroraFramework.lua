@@ -955,7 +955,7 @@ end
 -- Attaches debug code to multiple functions. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param tbl table
 ---@param logger af_services_debugger_logger
----@param customHandler function|nil Function that is called when the modified functions are called
+---@param customHandler fun(attachedFunction: af_services_debugger_attached_function, returned: any, ...: any)|nil Function that is called when the modified functions are called
 AuroraFramework.services.debuggerService.attachMultiple = function(tbl, logger, customHandler)
 	-- iterate through table
 	for index, value in pairs(tbl) do
@@ -972,7 +972,7 @@ end
 -- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param func function The function must be a global function and not a local one
 ---@param logger af_services_debugger_logger
----@param customHandler function|nil Function that is called when the modified function is called
+---@param customHandler fun(attachedFunction: af_services_debugger_attached_function, returned: any, ...: any)|nil Function that is called when the modified function is called
 AuroraFramework.services.debuggerService.attach = function(func, logger, customHandler)
 	-- find name if not provided
 	local funcTable, funcIndex, funcPathString = AuroraFramework.services.debuggerService.internal.findENVVariable(func)
