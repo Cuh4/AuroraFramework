@@ -1090,7 +1090,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 				else
 					message = tostring(message)
 
-					if not ... or #... > 0 then
+					if ... then
 						message = message:format(...)
 					end
 				end
