@@ -1110,7 +1110,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 		{
 			name = name,
 			sendToChat = shouldSendInChat or false,
-			formattedName = ("(%s | Logger %s)"):format(
+			formattedName = ("(\"%s\" | Logger %s)"):format(
 				AuroraFramework.attributes.AddonData.name,
 				name
 			)
