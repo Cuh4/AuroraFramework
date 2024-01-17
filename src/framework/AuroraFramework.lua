@@ -1070,7 +1070,8 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 
 			---@param self af_services_debugger_logger
 			---@param message any
-			send = function(self, message)
+			---@param ... any
+			send = function(self, message, ...)
 				-- don't send anything if not permitted to
 				if self.properties.suppressed then
 					return
@@ -1080,7 +1081,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 				if type(message) == "table" then
 					message = "\n"..AuroraFramework.libraries.miscellaneous.tableToString(message)
 				else
-					message = tostring(message)
+					message = tostring(message):format(...)
 				end
 
 				-- send the messages
@@ -1090,9 +1091,12 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 						message
 					)
 				else
-					debug.log(
-						("%s %s"):format(self.properties.formattedName, message:gsub("\n", ("\n%s "):format(self.properties.formattedName)))
+					message = ("%s %s"):format(
+						self.properties.formattedName,
+						message:gsub("\n", ("\n%s "):format(self.properties.formattedName))
 					)
+
+					debug.log(message)
 				end
 			end,
 
@@ -1106,7 +1110,11 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 		{
 			name = name,
 			sendToChat = shouldSendInChat or false,
-			formattedName = ("[DebuggerService - Logger | %s - Addon #%s]"):format(name, AuroraFramework.attributes.AddonIndex)
+			formattedName = ("['%s' Logger | Addon #%s (%s)]"):format(
+				name,
+				AuroraFramework.attributes.AddonIndex,
+				AuroraFramework.attributes.AddonData.name
+			)
 		},
 
 		nil,
@@ -1643,7 +1651,6 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	local vehicles = {}
 
 	for _, vehicle_id in pairs(vehicle_ids) do
-		mainLogger:send("vehicle #"..vehicle_id)
 		-- get vehicle
 		local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 

@@ -229,7 +229,8 @@ _ = {
     -- Send a message through this logger
     ---@param self af_services_debugger_logger
     ---@param message any
-    send = function(self, message) end,
+    ---@param ... any Custom args for string.format(message, ...)
+    send = function(self, message, ...) end,
 
     -- Suppress/Unsuppress the logger
     ---@param self af_services_debugger_logger
