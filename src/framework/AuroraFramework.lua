@@ -1098,9 +1098,11 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 						message
 					)
 				else
-					message = ("%s %s"):format(
-						self.properties.formattedName,
-						message:gsub("\n", ("\n%s "):format(self.properties.formattedName))
+					local formattedName = self.properties.formattedName.." - "
+
+					message = ("%s%s"):format(
+						formattedName,
+						message:gsub("\n", ("\n%s"):format(formattedName))
 					)
 
 					debug.log(message)
@@ -1117,7 +1119,7 @@ AuroraFramework.services.debuggerService.createLogger = function(name, shouldSen
 		{
 			name = name,
 			sendToChat = shouldSendInChat or false,
-			formattedName = ("%s | Logger %s"):format(
+			formattedName = ("\"%s\" | %s (Logger)"):format(
 				AuroraFramework.attributes.AddonData.name,
 				name
 			)
