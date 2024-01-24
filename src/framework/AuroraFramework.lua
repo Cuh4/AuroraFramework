@@ -4496,9 +4496,9 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Ready event
-AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- provides one param: "save_load"|"save_create"|"addon_reload"
+AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- note: the arguments provided to this event don't matter in dedicated servers
 
----@param first_load boolean
+---@param save_create boolean
 AuroraFramework.callbacks.onCreate.internal:connect(function(save_create)
 	AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick, because stormworks g_savedata is weird
 		if save_create then

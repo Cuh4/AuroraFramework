@@ -920,4 +920,4 @@ _ = {
 -------------------------------------------------
 -- Miscellaneous
 -------------------------------------------------
----@alias af_ready_state "save_load"|"save_create"|"addon_reload"
+---@alias af_ready_state "save_load"|"save_create"|"addon_reload" Note: this is incorrect in dedicated servers
