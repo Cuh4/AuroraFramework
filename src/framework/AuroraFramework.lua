@@ -2230,7 +2230,7 @@ AuroraFramework.services.playerService = {
 		for _, player in pairs(server.getPlayers()) do
 			-- check if the player is connecting and hasnt loaded (the infamous "unnamed client")
 			if player.steam_id == 0 then
-				return
+				goto continue
 			end
 
 			-- give the player data
@@ -3185,12 +3185,12 @@ AuroraFramework.services.commandService = {
 			-- go through all commands
 			for _, cmd in pairs(AuroraFramework.services.commandService.commands) do
 				-- check admin permissions
-				if cmd.properties.requiresAdmin and not admin then
+				if cmd.properties.requiresAdmin and not player.properties.admin then
 					goto continue
 				end
 
 				-- check auth permissions
-				if cmd.properties.requiresAuth and not auth then
+				if cmd.properties.requiresAuth and not player.properties.auth then
 					goto continue
 				end
 
