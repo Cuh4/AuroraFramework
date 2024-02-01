@@ -1460,7 +1460,12 @@ AuroraFramework.services.TPSService = {
 		AuroraFramework.callbacks.onTick.internal:connect(function()
 			-- calculate tps
 			local now = server.getTimeMillisec()
-			local tps = 1000 / (now - previous)
+
+			local tps = AuroraFramework.libraries.miscellaneous.clamp( -- sometimes the tps can go over 62 (calculation issue), so we clamp it. the tps is accurate for the most part, though
+				1000 / (now - previous),
+				0,
+				62
+			)
 
 			-- update tps
 			AuroraFramework.services.TPSService.tpsData.tps = tps
