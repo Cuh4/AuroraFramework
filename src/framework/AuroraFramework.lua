@@ -2506,7 +2506,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 
 			---@param self af_services_player_player
 			---@param shouldGive boolean
-			setAdmin = function(selfshouldGive, give)
+			setAdmin = function(self, shouldGive)
 				if shouldGive then
 					server.addAdmin(self.properties.peer_id)
 				else
