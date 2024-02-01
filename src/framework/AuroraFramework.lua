@@ -1600,6 +1600,10 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 		return
 	end
 
+	-- convert ids to int
+	group_id = tonumber(group_id)
+	peer_id = tonumber(peer_id)
+
 	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
 	local data = {
 		group_id = group_id,
@@ -1941,6 +1945,11 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 	if AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id) then
 		return
 	end
+
+	-- convert ids to int
+	vehicle_id = tonumber(vehicle_id)
+	peer_id = tonumber(peer_id)
+	group_id = tonumber(group_id)
 
 	-- save the vehicle to g_savedata for when the addon is reloaded or a save is loaded
 	local data = {
@@ -2362,10 +2371,16 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		return
 	end
 
+	-- convert steam id to string
+	steam_id = tostring(steam_id)
+
 	-- check if the player is the server itself in a dedicated server
-	if tonumber(steam_id) == 0 and AuroraFramework.services.playerService.isDedicatedServer then
+	if steam_id == "0" and AuroraFramework.services.playerService.isDedicatedServer then
 		return
 	end
+
+	-- convert peer id to int
+	peer_id = tonumber(peer_id)
 
 	-- check if the player is the host player
 	local isHost = peer_id == 0
@@ -2511,7 +2526,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		},
 
 		{
-			steam_id = tostring(steam_id),
+			steam_id = steam_id,
 			name = name,
 			peer_id = peer_id,
 			admin = admin,
