@@ -1601,8 +1601,8 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 	end
 
 	-- convert ids to int
-	group_id = tonumber(group_id)
-	peer_id = tonumber(peer_id)
+	group_id = math.floor(group_id)
+	peer_id = math.floor(peer_id)
 
 	-- save the group to g_savedata for when the addon is reloaded or a save is loaded
 	local data = {
@@ -1947,9 +1947,9 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 	end
 
 	-- convert ids to int
-	vehicle_id = tonumber(vehicle_id)
-	peer_id = tonumber(peer_id)
-	group_id = tonumber(group_id)
+	vehicle_id = math.floor(vehicle_id)
+	peer_id = math.floor(peer_id)
+	group_id = math.floor(group_id)
 
 	-- save the vehicle to g_savedata for when the addon is reloaded or a save is loaded
 	local data = {
@@ -2380,7 +2380,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 	end
 
 	-- convert peer id to int
-	peer_id = tonumber(peer_id)
+	peer_id = math.floor(peer_id)
 
 	-- check if the player is the host player
 	local isHost = peer_id == 0
@@ -2891,7 +2891,7 @@ end
 ---@param obj any The data to encode
 ---@param as_key boolean|nil
 ---@return string
-AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key)
+AuroraFramework.services.HTTPService.JSON.encode = function(obj, as_key) -- https://gist.github.com/tylerneylon/59f4bcf316be525b30ab
 	local s = {}           -- We'll build the string as an array of strings to be concatenated.
 	local kind = AuroraFramework.services.HTTPService.JSON.kind_of(obj) -- This is 'array' if it's an array or type(obj) otherwise.
 
