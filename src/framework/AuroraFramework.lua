@@ -2792,7 +2792,8 @@ AuroraFramework.services.HTTPService.ok = function(response)
         ["Connection closed unexpectedly"] = true,
         ["connect(): Connection refused"] = true,
         ["recv(): Connection reset by peer"] = true,
-        ["timeout"] = true
+        ["timeout"] = true,
+		["connect(): Can't assign requested address"] = true
     }
 
     return notOk[response] == nil
