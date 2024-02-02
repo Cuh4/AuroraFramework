@@ -849,7 +849,7 @@ AuroraFramework.services.debuggerService = {
 				return
 			end
 
-			server.httpGet(0, artificialOnTickRequestURL)
+			server.httpGet(0, artificialOnTickRequestURL..AuroraFramework.attributes.AddonIndex)
 		end
 
 		---@param port integer
@@ -858,6 +858,10 @@ AuroraFramework.services.debuggerService = {
 		AuroraFramework.callbacks.httpReply.internal:connect(function(port, url, reply)
 			-- not us or the addon has stopped, so stop here
 			if port ~= 0 and url ~= artificialOnTickRequestURL then
+				return
+			end
+
+			if tonumber(url:gsub(artificialOnTickRequestURL, "")) ~= AuroraFramework.attributes.AddonIndex then
 				return
 			end
 
