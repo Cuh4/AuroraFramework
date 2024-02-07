@@ -861,7 +861,10 @@ AuroraFramework.services.debuggerService = {
 				return
 			end
 
-			if tonumber(url:gsub(artificialOnTickRequestURL, "")) ~= AuroraFramework.attributes.AddonIndex then
+			-- check if this request was from us
+			local addonIndex = url:gsub(artificialOnTickRequestURL, "")
+
+			if tonumber(addonIndex) ~= AuroraFramework.attributes.AddonIndex then
 				return
 			end
 
