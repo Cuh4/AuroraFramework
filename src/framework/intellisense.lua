@@ -771,7 +771,7 @@ _ = {
     -- Get an item this player has equipped
     ---@param self af_services_player_player
     ---@param slot SWSlotNumberEnum
-    ---@return integer
+    ---@return SWEquipmentTypeEnum
     getItem = function(self, slot) end,
 
     -- Kick this player
