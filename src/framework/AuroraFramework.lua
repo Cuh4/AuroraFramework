@@ -2426,7 +2426,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			---@param self af_services_player_player
     		---@param slot SWSlotNumberEnum
 			getItem = function(self, slot)
-				return server.getCharacterItem(self:getCharacter(), slot) ---@diagnostic disable-line
+				return (server.getCharacterItem(self:getCharacter(), slot)) ---@diagnostic disable-line
 			end,
 
 			---@param self af_services_player_player
