@@ -2267,7 +2267,9 @@ AuroraFramework.services.playerService = {
 
 			-- if the player's peer id isnt stored in g_savedata, that means they connected to the server for the first time, but the addon wasnt working when they joined. therefore, call the onJoin event
 			if playerData and not isRecognized then
-				AuroraFramework.services.playerService.events.onJoin:fire(playerData)
+				AuroraFramework.services.timerService.delay.create(0, function()
+					AuroraFramework.services.playerService.events.onJoin:fire(playerData)
+				end)
 			end
 
 			::continue::
