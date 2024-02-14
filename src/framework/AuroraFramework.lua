@@ -152,6 +152,24 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Split a string (source: https://stackoverflow.com/questions/1426954/split-string-in-lua)
+---@param str string
+---@param separator string|nil
+---@return table<integer, string>
+AuroraFramework.libraries.miscellaneous.splitString = function(str, separator)
+	if not sep then
+		sep = "%s"
+	end
+
+	local parts = {}
+
+	for part in string.gmatch(inputstr, "([^"..sep.."]+)") do
+		table.insert(parts, part)
+	end
+
+	return parts
+end
+
 -- Recursively convert a table to string
 ---@param tbl table
 ---@param indent number|nil
