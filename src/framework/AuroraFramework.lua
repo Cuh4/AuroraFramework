@@ -163,7 +163,7 @@ AuroraFramework.libraries.miscellaneous.splitString = function(str, separator)
 
 	local parts = {}
 
-	for part in string.gmatch(inputstr, "([^"..sep.."]+)") do
+	for part in string.gmatch(str, "([^"..sep.."]+)") do
 		table.insert(parts, part)
 	end
 
