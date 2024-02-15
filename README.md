@@ -17,11 +17,10 @@ local timer = 0
 function onTick()
     timer = timer + 1
 
-    if timer < 60 then
+    if timer % 60 ~= 0 then
         return
     end
-    
-    timer = 0
+
     server.announce("Woah", "A second has passed.")
 end
 ```
@@ -49,11 +48,13 @@ Stormworks addons are located at `%appdata%/Stormworks/data/missions`.
 ### 💽 | Installation
 1) `git clone` this repo into your addon's folder: `git clone "https://github.com/Cuh4/AuroraFramework"`
 2) Move `src/framework` into your addon's folder. This will provide the framework itself (`AuroraFramework.lua`), as well as intellisense for the framework (`intellisense.lua`).
-3) **[Optional]** Move `src/gameIntellisense.lua` into your addon's folder. This will provide intellisense (auto-completion, etc) for Addon Lua.
+3) **[Optional]** Move `docs/intellisense.lua` from [this repo](https://github.com/Cuh4/StormworksAddonLuaDocumentation) into your addon's folder. This will provide intellisense (auto-completion, etc) for Addon Lua.
 
 Your addon's folder should now look like:
 
 ![Example](imgs/addon_folder_example.png)
+
+Note that `intellisense.lua` from the repo mentioned above was renamed to `gameIntellisense.lua`.
 
 ### 📖 | Utilizing Aurora Framework
 Now, for actually using the framework, you can either:
@@ -69,7 +70,7 @@ Now, for actually using the framework, you can either:
         -- your addon code
         AuroraFramework.services.chatService.sendMessage("Server", "Hey all!")
         ```
-    3) Build your addon using the `F7` key. You'll have to do this everytime you make a change to your addon.
+    3) Build your addon using the extension. You'll have to do this everytime you make a change to your addon.
 
 - **Take the all-in-one route:**
     1) Copy the contents of your addon's `framework/AuroraFramework.lua`.
