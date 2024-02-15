@@ -346,6 +346,8 @@ _ = {
 }
 
 ---------------- UI
+---@alias af_services_ui_ui af_services_ui_map_label|af_services_ui_map_object|af_services_ui_map_line|af_services_ui_screen
+
 ---@class af_services_ui_screen: af_libs_class_class
 _ = {
     __name__ = "UIScreen",
