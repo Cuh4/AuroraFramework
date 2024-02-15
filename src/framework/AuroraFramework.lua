@@ -4606,7 +4606,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Ready event
-AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready") -- note: the arguments provided to this event don't matter in dedicated servers
+AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready")
 
 ---@param save_create boolean
 AuroraFramework.callbacks.onCreate.internal:connect(function(save_create)
