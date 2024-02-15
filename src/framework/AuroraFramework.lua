@@ -4610,14 +4610,18 @@ AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework
 
 ---@param save_create boolean
 AuroraFramework.callbacks.onCreate.internal:connect(function(save_create)
+	local start = server.getTimeMillisec()
+
 	AuroraFramework.services.timerService.delay.create(0, function() -- wait a tick, because stormworks g_savedata is weird
+		local difference = server.getTimeMillisec() - start
+
 		if save_create then
 			-- first load
 			AuroraFramework.ready:fire("save_create")
 			return
 		end
 
-		if server.getPlayers()[1].steam_id == 0 then
+		if difference > 100 then -- for reloading the addon, the difference is normally <14. for loading into a save, the difference is normally above 6000
 			-- loading from saved file
 			AuroraFramework.ready:fire("save_load")
 		else
