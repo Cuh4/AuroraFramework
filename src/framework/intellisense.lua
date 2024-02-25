@@ -509,7 +509,6 @@ _ = {
         awaitingReplies = {} ---@type table<integer, af_services_http_awaitingreply> -- The awaiting replies for this request
     },
 
-
     -- Returns the amount of awaiting replies this request has
     ---@param self af_services_http_request
     ---@return integer
