@@ -516,14 +516,11 @@ AuroraFramework.libraries.miscellaneous.upperStringValuesInTable = function(tbl)
 end
 
 ---------------- Events
-AuroraFramework.libraries.events = {
-	---@type table<string, af_libs_event_event>
-	createdEvents = {}
-}
+AuroraFramework.libraries.events = {}
 
 -- Create an event
 ---@param name string
-AuroraFramework.libraries.events.create = function(name)
+AuroraFramework.libraries.events.create = function()
 	---@type af_libs_event_event
 	local event = AuroraFramework.libraries.class.create(
 		"event",
@@ -542,11 +539,6 @@ AuroraFramework.libraries.events.create = function(name)
 			end,
 
 			---@param self af_libs_event_event
-			remove = function(self)
-				return AuroraFramework.libraries.events.remove(self.properties.name)
-			end,
-
-			---@param self af_libs_event_event
 			---@param toConnect function
 			connect = function(self, toConnect)
 				table.insert(self.properties.connections, toConnect)
@@ -554,29 +546,13 @@ AuroraFramework.libraries.events.create = function(name)
 		},
 
 		{
-			name = name,
 			connections = {}
 		},
 
-		nil,
-
-		AuroraFramework.libraries.events.createdEvents,
-		name
+		nil
 	)
 
 	return event
-end
-
--- Get an event
----@param name string
-AuroraFramework.libraries.events.get = function(name)
-	return AuroraFramework.libraries.events.createdEvents[name]
-end
-
--- Remove an event
----@param name string
-AuroraFramework.libraries.events.remove = function(name)
-	AuroraFramework.libraries.events.createdEvents[name] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -736,8 +712,8 @@ AuroraFramework.services.zoneService.createPlayerZone = function(name, position,
 		},
 
 		{
-			onEnter = AuroraFramework.libraries.events.create("auroraframework_playerzone_onenter_"..tostring(name)),
-			onExit = AuroraFramework.libraries.events.create("auroraframework_playerzone_onexit_"..tostring(name))
+			onEnter = AuroraFramework.libraries.events.create(),
+			onExit = AuroraFramework.libraries.events.create()
 		},
 
 		AuroraFramework.services.zoneService.zones.playerZones,
@@ -820,8 +796,8 @@ AuroraFramework.services.zoneService.createVehicleZone = function(name, position
 		},
 
 		{
-			onEnter = AuroraFramework.libraries.events.create("auroraframework_vehiclezone_onenter_"..tostring(name)),
-			onExit = AuroraFramework.libraries.events.create("auroraframework_vehiclezone_onexit_"..tostring(name))
+			onEnter = AuroraFramework.libraries.events.create(),
+			onExit = AuroraFramework.libraries.events.create()
 		},
 
 		AuroraFramework.services.zoneService.zones.vehicleZones,
@@ -842,7 +818,7 @@ end
 AuroraFramework.services.debuggerService = {
 	initialize = function()
 		-- create artificial ontick event
-		AuroraFramework.internal.artificialOnTick = AuroraFramework.libraries.events.create("auroraframework_artificialOnTick")
+		AuroraFramework.internal.artificialOnTick = AuroraFramework.libraries.events.create()
 
 		-- configurables
 		local artificialOnTickRequestURL = "auroraframework_debugger_ontick"
@@ -915,7 +891,7 @@ AuroraFramework.services.debuggerService = {
 	end,
 
 	events = {
-		onAddonStop = AuroraFramework.libraries.events.create("auroraFramework_onAddonStop"),
+		onAddonStop = AuroraFramework.libraries.events.create(),
 	},
 
 	internal = {},
@@ -1028,7 +1004,7 @@ AuroraFramework.services.debuggerService.attach = function(func, logger, customH
 		},
 
 		{
-			functionCall = AuroraFramework.libraries.events.create("debug_attached_function_"..funcPathString)
+			functionCall = AuroraFramework.libraries.events.create()
 		}
 	)
 
@@ -1246,7 +1222,7 @@ AuroraFramework.services.timerService.loop.create = function(duration, callback)
 		},
 
 		{
-			completion = AuroraFramework.libraries.events.create(AuroraFramework.services.timerService.timerID.."_af_loop")
+			completion = AuroraFramework.libraries.events.create()
 		},
 
 		AuroraFramework.services.timerService.loop.ongoing,
@@ -1298,7 +1274,7 @@ AuroraFramework.services.timerService.delay.create = function(duration, callback
 		},
 
 		{
-			completion = AuroraFramework.libraries.events.create(AuroraFramework.services.timerService.timerID.."_af_loop")
+			completion = AuroraFramework.libraries.events.create()
 		},
 
 		AuroraFramework.services.timerService.delay.ongoing,
@@ -1419,7 +1395,7 @@ AuroraFramework.services.communicationService.createChannel = function(name)
 		},
 
 		{
-			message = AuroraFramework.libraries.events.create("auroraFramework_communicationService_onMessage_"..name)
+			message = AuroraFramework.libraries.events.create()
 		},
 
 		AuroraFramework.services.communicationService.channels,
@@ -1596,8 +1572,8 @@ AuroraFramework.services.groupService = {
 	groups = {},
 
 	events = {
-		onSpawn = AuroraFramework.libraries.events.create("auroraFramework_onGroupSpawn"),
-		onDespawn = AuroraFramework.libraries.events.create("auroraFramework_onGroupDespawn")
+		onSpawn = AuroraFramework.libraries.events.create(),
+		onDespawn = AuroraFramework.libraries.events.create()
 	},
 
 	internal = {}
@@ -1948,9 +1924,9 @@ AuroraFramework.services.vehicleService = {
 	vehicles = {},
 
 	events = {
-		onSpawn = AuroraFramework.libraries.events.create("auroraFramework_onVehicleSpawn"),
-		onLoad = AuroraFramework.libraries.events.create("auroraFramework_onVehicleLoad"),
-		onDespawn = AuroraFramework.libraries.events.create("auroraFramework_onVehicleDespawn")
+		onSpawn = AuroraFramework.libraries.events.create(),
+		onLoad = AuroraFramework.libraries.events.create(),
+		onDespawn = AuroraFramework.libraries.events.create()
 	},
 
 	internal = {}
@@ -2387,10 +2363,10 @@ AuroraFramework.services.playerService = {
 	players = {},
 
 	events = {
-		onJoin = AuroraFramework.libraries.events.create("auroraFramework_onPlayerJoin"),
-		onLeave = AuroraFramework.libraries.events.create("auroraFramework_onPlayerLeave"),
-		onDie = AuroraFramework.libraries.events.create("auroraFramework_onPlayerDie"),
-		onRespawn = AuroraFramework.libraries.events.create("auroraFramework_onPlayerRespawn")
+		onJoin = AuroraFramework.libraries.events.create(),
+		onLeave = AuroraFramework.libraries.events.create(),
+		onDie = AuroraFramework.libraries.events.create(),
+		onRespawn = AuroraFramework.libraries.events.create()
 	},
 
 	internal = {},
@@ -2771,7 +2747,7 @@ AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 		nil,
 
 		{
-			reply = AuroraFramework.libraries.events.create("auroraFramework_HTTPReply_"..index)
+			reply = AuroraFramework.libraries.events.create()
 		},
 
 		request.properties.awaitingReplies
@@ -3106,9 +3082,9 @@ AuroraFramework.services.chatService = {
 	end,
 
 	events = {
-		onMessageSent = AuroraFramework.libraries.events.create("auroraFramework_onMessageSent"), -- message
-		onMessageDeleted = AuroraFramework.libraries.events.create("auroraFramework_onMessageDeleted"), -- message, player|nil
-		onMessageEdited = AuroraFramework.libraries.events.create("auroraFramework_onMessageEdited") -- message, player|nil
+		onMessageSent = AuroraFramework.libraries.events.create(), -- message
+		onMessageDeleted = AuroraFramework.libraries.events.create(), -- message, player|nil
+		onMessageEdited = AuroraFramework.libraries.events.create() -- message, player|nil
 	},
 
 	---@type table<integer, af_services_chat_message>
@@ -3310,7 +3286,7 @@ AuroraFramework.services.commandService = {
 	---@type table<string, af_services_command_command>
 	commands = {},
 	events = {
-		commandActivated = AuroraFramework.libraries.events.create("auroraFramework_commandActivated") -- player, args, command
+		commandActivated = AuroraFramework.libraries.events.create() -- player, args, command
 	},
 
 	internal = {}
@@ -3391,7 +3367,7 @@ AuroraFramework.services.commandService.create = function(callback, name, shorth
 		},
 
 		{
-			activation = AuroraFramework.libraries.events.create("commandService_command_"..name.."_activation"),
+			activation = AuroraFramework.libraries.events.create(),
 		},
 
 		AuroraFramework.services.commandService.commands,
@@ -4131,8 +4107,8 @@ end
 --// Callbacks \\--
 --------------------------------------------------------------------------------
 AuroraFramework.callbacks.onTick = {
-	internal = AuroraFramework.libraries.events.create("callback_onTick_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onTick_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onTick(...)
@@ -4143,8 +4119,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCreate = {
-	internal = AuroraFramework.libraries.events.create("callback_onCreate_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCreate_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCreate(...)
@@ -4155,8 +4131,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onDestroy = {
-	internal = AuroraFramework.libraries.events.create("callback_onDestroy_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onDestroy_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onDestroy(...)
@@ -4167,8 +4143,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCustomCommand = {
-	internal = AuroraFramework.libraries.events.create("callback_onCustomCommand_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCustomCommand_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCustomCommand(...)
@@ -4179,8 +4155,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onChatMessage = {
-	internal = AuroraFramework.libraries.events.create("callback_onChatMessage_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onChatMessage_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onChatMessage(...)
@@ -4191,8 +4167,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerJoin = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerJoin_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerJoin_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerJoin(...)
@@ -4203,8 +4179,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerSit = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerSit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerSit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerSit(...)
@@ -4215,8 +4191,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerUnsit = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerUnsit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerUnsit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerUnsit(...)
@@ -4227,8 +4203,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCharacterSit = {
-	internal = AuroraFramework.libraries.events.create("callback_onCharacterSit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCharacterSit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCharacterSit(...)
@@ -4239,8 +4215,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCharacterUnsit = {
-	internal = AuroraFramework.libraries.events.create("callback_onCharacterUnsit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCharacterUnsit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCharacterUnsit(...)
@@ -4251,8 +4227,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCharacterPickup = {
-	internal = AuroraFramework.libraries.events.create("callback_onCharacterPickup_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCharacterPickup_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCharacterPickup(...)
@@ -4263,8 +4239,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onEquipmentPickup = {
-	internal = AuroraFramework.libraries.events.create("callback_onEquipmentPickup_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onEquipmentPickup_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onEquipmentPickup(...)
@@ -4275,8 +4251,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onEquipmentDrop = {
-	internal = AuroraFramework.libraries.events.create("callback_onEquipmentDrop_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onEquipmentDrop_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onEquipmentDrop(...)
@@ -4287,8 +4263,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCharacterPickup = {
-	internal = AuroraFramework.libraries.events.create("callback_onCharacterPickup_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCharacterPickup_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCharacterPickup(...)
@@ -4299,8 +4275,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerRespawn = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerRespawn_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerRespawn_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerRespawn(...)
@@ -4311,8 +4287,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerLeave = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerLeave_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerLeave_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerLeave(...)
@@ -4323,8 +4299,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onToggleMap = {
-	internal = AuroraFramework.libraries.events.create("callback_onToggleMap_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onToggleMap_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onToggleMap(...)
@@ -4335,8 +4311,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onPlayerDie = {
-	internal = AuroraFramework.libraries.events.create("callback_onPlayerDie_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onPlayerDie_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onPlayerDie(...)
@@ -4347,8 +4323,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleSpawn = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleSpawn_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleSpawn_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleSpawn(...)
@@ -4359,8 +4335,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onGroupSpawn = {
-	internal = AuroraFramework.libraries.events.create("callback_onGroupSpawn_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onGroupSpawn_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onGroupSpawn(...)
@@ -4371,8 +4347,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleDespawn = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleDespawn_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleDespawn(...)
@@ -4383,8 +4359,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleLoad = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleLoad_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleLoad_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleLoad(...)
@@ -4395,8 +4371,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleUnload = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleUnload_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleUnload_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleUnload(...)
@@ -4407,8 +4383,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleTeleport = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleTeleport_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleTeleport_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleTeleport(...)
@@ -4419,8 +4395,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onObjectLoad = {
-	internal = AuroraFramework.libraries.events.create("callback_onObjectLoad_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onObjectLoad_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onObjectLoad(...)
@@ -4431,8 +4407,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onObjectUnload = {
-	internal = AuroraFramework.libraries.events.create("callback_onObjectUnload_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onObjectUnload_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onObjectUnload(...)
@@ -4443,8 +4419,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onButtonPress = {
-	internal = AuroraFramework.libraries.events.create("callback_onButtonPress_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onButtonPress_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onButtonPress(...)
@@ -4455,8 +4431,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCreatureSit = {
-	internal = AuroraFramework.libraries.events.create("callback_onCreatureSit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCreatureSit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCreatureSit(...)
@@ -4467,8 +4443,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCreatureUnsit = {
-	internal = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCreatureUnsit_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCreatureUnsit(...)
@@ -4479,8 +4455,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onCreaturePickup = {
-	internal = AuroraFramework.libraries.events.create("callback_onCreaturePickup_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onCreaturePickup_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onCreaturePickup(...)
@@ -4491,8 +4467,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onSpawnAddonComponent = {
-	internal = AuroraFramework.libraries.events.create("callback_onSpawnAddonComponent_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onSpawnAddonComponent_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onSpawnAddonComponent(...)
@@ -4503,8 +4479,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVehicleDamaged = {
-	internal = AuroraFramework.libraries.events.create("callback_onVehicleDamaged_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVehicleDamaged_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVehicleDamaged(...)
@@ -4515,8 +4491,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.httpReply = {
-	internal = AuroraFramework.libraries.events.create("callback_httpReply_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_httpReply_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function httpReply(...)
@@ -4527,8 +4503,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onFireExtinguished = {
-	internal = AuroraFramework.libraries.events.create("callback_onFireExtinguished_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onFireExtinguished_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onFireExtinguished(...)
@@ -4539,8 +4515,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onForestFireSpawned = {
-	internal = AuroraFramework.libraries.events.create("callback_onForestFireSpawned_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onForestFireSpawned_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onForestFireSpawned(...)
@@ -4551,8 +4527,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onForestFireExtinguished = {
-	internal = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onForestFireExtinguished_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onForestFireExtinguished(...)
@@ -4563,8 +4539,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onTornado = {
-	internal = AuroraFramework.libraries.events.create("callback_onTornado_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onTornado_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onTornado(...)
@@ -4575,8 +4551,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onMeteor = {
-	internal = AuroraFramework.libraries.events.create("callback_onMeteor_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onMeteor_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onMeteor(...)
@@ -4587,8 +4563,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onTsunami = {
-	internal = AuroraFramework.libraries.events.create("callback_onTsunami_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onTsunami_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onTsunami(...)
@@ -4599,8 +4575,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onWhirlpool = {
-	internal = AuroraFramework.libraries.events.create("callback_onWhirlpool_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onWhirlpool_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onWhirlpool(...)
@@ -4611,8 +4587,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onVolcano = {
-	internal = AuroraFramework.libraries.events.create("callback_onVolcano_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onVolcano_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onVolcano(...)
@@ -4623,8 +4599,8 @@ end
 ----------------
 
 AuroraFramework.callbacks.onOilSpill = {
-	internal = AuroraFramework.libraries.events.create("callback_onOilSpill_frameworkInternal"),
-	main = AuroraFramework.libraries.events.create("callback_onOilSpill_addon")
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
 }
 
 function onOilSpill(...)
@@ -4636,7 +4612,7 @@ end
 --// Initialization \\--
 --------------------------------------------------------------------------------
 -- // Ready event
-AuroraFramework.ready = AuroraFramework.libraries.events.create("auroraframework_ready")
+AuroraFramework.ready = AuroraFramework.libraries.events.create()
 
 ---@param save_create boolean
 AuroraFramework.callbacks.onCreate.internal:connect(function(save_create)

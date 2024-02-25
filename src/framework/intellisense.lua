@@ -868,8 +868,6 @@ _ = {
     __name__ = "event",
 
     properties = {
-        name = "", -- The name of this event
-
         ---@type table<integer, function>
         connections = {} -- All functions connected to this event
     },
@@ -882,10 +880,6 @@ _ = {
     -- Remove all connections to this event
     ---@param self af_libs_event_event
     clear = function(self) end,
-
-    -- Remove this event from the saved events
-    ---@param self af_libs_event_event
-    remove = function(self) end,
 
     -- Connect a function to this event
     ---@param self af_libs_event_event
