@@ -54,7 +54,8 @@ AuroraFramework.services.timerService.loop.create(5, function() -- calls this fu
 
     -- Connect a random function to the request response event
     ---@param response string
-    request.events.reply:connect(function(response)
+    ---@param successful boolean
+    request.events.reply:connect(function(response, successful)
         AuroraFramework.services.chatService.sendMessage("Server", "woah")
     end)
 end)
