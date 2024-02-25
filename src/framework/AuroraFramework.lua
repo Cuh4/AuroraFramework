@@ -2675,15 +2675,15 @@ AuroraFramework.services.HTTPService = {
 			end
 
 			-- handle the first awaiting reply
-			if request:hasFinished() then
-				request:remove()
-				return
-			end
-
 			local reply = request.properties.awaitingReplies[1]
 			reply.events.reply:fire(tostring(response), AuroraFramework.services.HTTPService.ok(response))
 
 			table.remove(request.properties.awaitingReplies, 1)
+
+			-- remove this request if there are no more awaiting replies remaining
+			if request:hasFinished() then
+				request:remove()
+			end
 		end)
 	end,
 
@@ -2763,8 +2763,6 @@ AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 	end
 
 	-- create a http reply class
-	local index = AuroraFramework.services.HTTPService.internal.createRequestIndex()
-
 	---@type af_services_http_awaitingreply
 	local awaitingReply = AuroraFramework.libraries.class.create(
 		"HTTPReply",
@@ -2871,13 +2869,6 @@ AuroraFramework.services.HTTPService.ok = function(response)
     }
 
     return notOk[response] == nil
-end
-
--- Cancel a request
----@param port integer
----@param url string
-AuroraFramework.services.HTTPService.cancel = function(port, url)
-	AuroraFramework.services.HTTPService.ongoingRequests[port.."|"..url] = nil
 end
 
 -- Convert a string to a Base64 String
