@@ -2749,7 +2749,7 @@ end
 ---@param port integer
 ---@param URL string
 ---@param callback fun(response: string, successful: boolean)|nil
----@return af_services_http_awaitingreply
+---@return af_services_http_request, af_services_http_awaitingreply
 AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 	-- for later
 	local index = AuroraFramework.services.HTTPService.internal.createRequestIndex(URL, port)
@@ -2781,7 +2781,7 @@ AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 	server.httpGet(port, URL)
 
 	-- return http request class
-	return awaitingReply
+	return request, awaitingReply
 end
 
 -- Convert a table of args into URL parameters
