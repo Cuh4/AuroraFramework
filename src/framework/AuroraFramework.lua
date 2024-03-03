@@ -2697,7 +2697,7 @@ AuroraFramework.services.HTTPService.internal.createRequest = function(URL, port
 		{
 			---@param self af_services_http_request
 			awaitingRepliesCount = function(self)
-				return #self.awaitingReplies
+				return #self.properties.awaitingReplies
 			end,
 
 			---@param self af_services_http_request
