@@ -9,18 +9,10 @@
 -- This example shows how you can send a HTTP request.
 ----------------------------------------
 
--- Let's pretend a HTTP server is running on port 6500, and whenever a request is sent to "/message", it returns a JSON object containing a message and an indentifier.
-
--- Note that HTTP requests can only be sent to localhost. This is a Stormworks limitation. If you want to send requests to places other than localhost (eg: google.com), you'll
--- need a HTTP server that redirects your request to wherever you want it to go, basically a proxy.
-
--- Only GET requests can be made. This is, of course, yet another Stormworks limitation.
-
-local hasHandled = {}
-
+-- Let's pretend that the URL "/foo" returns a string of "Hello, World!"
 AuroraFramework.services.timerService.loop.create(5, function() -- calls this function every 5 seconds
     -- Create the target url
-    local url = AuroraFramework.services.HTTPService.URLArgs("/message", -- becomes "/message?source=game"
+    local url = AuroraFramework.services.HTTPService.URLArgs("/foo", -- becomes "/foo?source=game"
         {
             name = "source",
             value = "game"
@@ -36,20 +28,8 @@ AuroraFramework.services.timerService.loop.create(5, function() -- calls this fu
             return
         end
 
-        -- Decode response
-        local decodedResponse = AuroraFramework.services.HTTPService.JSON.decode(response)
-
-        local identifier = decodedResponse.identifier
-        local message = decodedResponse.message
-
-        -- Check if we have sent this message already
-        if hasHandled[identifier] then
-            return
-        end
-
-        -- Send the message
-        hasHandled[identifier] = true
-        AuroraFramework.services.chatService.sendMessage("Message", message)
+        -- Send response
+        AuroraFramework.services.chatService.sendMessage("Message", response)
     end)
 
     -- Connect a random function to the request response event
