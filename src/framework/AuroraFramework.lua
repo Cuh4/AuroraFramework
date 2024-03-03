@@ -2646,7 +2646,7 @@ AuroraFramework.services.HTTPService = {
 			local index = AuroraFramework.services.HTTPService.internal.createRequestIndex(URL, port)
 			local request = AuroraFramework.services.HTTPService.ongoingRequests[index]
 
-			if not data then
+			if not request then
 				return
 			end
 
