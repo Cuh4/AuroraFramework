@@ -2753,6 +2753,8 @@ AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 		request.properties.awaitingReplies
 	)
 
+	awaitingReply.events.reply:connect(callback)
+
 	-- send the http request
 	server.httpGet(port, URL)
 
