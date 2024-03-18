@@ -3392,25 +3392,6 @@ end
 ---------------- UI
 AuroraFramework.services.UIService = {
 	initialize = function()
-		-- hacky fix to the host player not having UI shown if they loaded into a save with UI saved in g_savedata. weirdly this doesn't occur with ?reload_scripts, so its likely a stormworks quirk
-		AuroraFramework.services.timerService.delay.create(2, function()
-			-- the "host" would be a player who joined after server creation if this framework is running in a dedicated server
-			if AuroraFramework.services.playerService.isDedicatedServer then
-				return
-			end
-			
-			-- get host player (peer id 0)
-			local host = AuroraFramework.services.playerService.getPlayerByPeerID(0)
-
-			if not host then
-				return
-			end
-
-			for _, UI in pairs(AuroraFramework.services.UIService.getAllUIShownToPlayer(host)) do
-				UI:refresh()
-			end
-		end)
-
 		-- load map objects
 		for _, mapObject in pairs(g_savedata.AuroraFramework.UI.mapObjects) do
 			-- get the player, or nil if the ui is for everyone
@@ -3523,9 +3504,10 @@ AuroraFramework.services.UIService = {
 
 		-- show ui on join
 		AuroraFramework.services.playerService.events.onJoin:connect(function(player) ---@param player af_services_player_player
-			-- show all ui
 			for _, UI in pairs(AuroraFramework.services.UIService.getUIShownToEveryone()) do
-				UI:refresh()
+				AuroraFramework.services.timerService.delay.create(0.5, function(delay)
+					UI:refresh()
+				end)
 			end
 		end)
 
@@ -4655,7 +4637,7 @@ AuroraFramework.services.commandService.initialize()
 
 ---@param state af_ready_state
 AuroraFramework.ready:connect(function(state)
-	AuroraFramework.services.playerService.initialize(state)
+	AuroraFramework.services.playerService.initialize(state) -- important this is initialized before uiservice, otherwise ui belonging to players wont load
 	AuroraFramework.services.UIService.initialize(state)
 	AuroraFramework.services.vehicleService.initialize(state) -- important this is initialized before groupservice
 	AuroraFramework.services.groupService.initialize(state)
