@@ -3582,6 +3582,10 @@ AuroraFramework.services.UIService.getAllUIShownToPlayer = function(player)
 
 	for _, UIContainer in pairs(AuroraFramework.services.UIService.UI) do
 		for _, UI in pairs(UIContainer) do
+			if not UI.properties.player then
+				goto continue
+			end
+
 			if not AuroraFramework.services.playerService.isSamePlayer(UI.properties.player, player) then
 				goto continue
 			end
