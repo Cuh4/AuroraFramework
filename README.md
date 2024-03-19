@@ -34,6 +34,9 @@ end)
 
 You can view examples over in the `examples` folder.
 
+## 😔 | Quirks
+- Creating UI in the Player Service onJoin event when UI with the same name in g_savedata is about to get instantiated from the UI Service will cause the original UI to get overwritten. I can't think of a way to fix this. This happens because the Player Service is initialized before the UI Service. If this happened the other way around, the UI Service would break when loading UI parented to players from g_savedata. To get around this, you could create UI the next tick after the onJoin event by utilizing a delay.
+
 ## 📃 | Features
 - **Services** - This framework contains numerous functions/"classes" for different things that are categorized depending on what they do. These functions/"classes" go under services.
 - **OOP-Based** - This framework is entirely OOP-based. To apply something to a player, or a vehicle, you must find the player/vehicle object and call a method inside of the object.
