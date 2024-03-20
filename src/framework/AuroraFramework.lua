@@ -2642,28 +2642,31 @@ AuroraFramework.services.HTTPService = {
 		---@param URL string
 		---@param response string
 		AuroraFramework.callbacks.httpReply.internal:connect(function(port, URL, response)
-			-- get request
-			local index = AuroraFramework.services.HTTPService.internal.createRequestIndex(URL, port)
-			local request = AuroraFramework.services.HTTPService.ongoingRequests[index]
-
-			if not request then
+			if port == 0 then -- prevent performance impact from debuggerservice
 				return
 			end
 
-			-- handle the first awaiting reply
-			local reply = request.properties.awaitingReplies[1]
-			reply.events.reply:fire(tostring(response), AuroraFramework.services.HTTPService.ok(response))
+			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
+				-- check if the port and url matches
+				if request.properties.port ~= port and request.properties.url ~= URL then
+					goto continue
+				end
 
-			table.remove(request.properties.awaitingReplies, 1)
+				-- fire event
+				request.events.reply:fire(tostring(response), AuroraFramework.services.HTTPService.ok(response))
 
-			-- remove this request if there are no more awaiting replies remaining
-			if request:hasFinished() then
-				request:remove()
+				-- remove request
+				table.remove(AuroraFramework.services.HTTPService.ongoingRequests, index)
+
+				-- stop here to prevent handling multiple of the same request for one reply
+				break
+
+			    ::continue::
 			end
 		end)
 	end,
 
-	---@type table<string, af_services_http_request>
+	---@type table<integer, af_services_http_request>
 	ongoingRequests = {},
 
 	-- Encodes anything into a JSON string. Useful for encoding data ready to be passed through a HTTP request
@@ -2679,87 +2682,40 @@ AuroraFramework.services.HTTPService = {
 	internal = {}
 }
 
--- Joins a URL and port together to create a singular string, used for indexing requests
----@param URL string
+-- Send a GET request (limited to GET, SW limitation)
 ---@param port integer
-AuroraFramework.services.HTTPService.internal.createRequestIndex = function(URL, port)
-	return URL..":"..port
-end
-
--- Create a HTTP request
----@param URL string
----@param port integer
+---@param URL string 4082 characters max
+---@param callback fun(response: string, successful: boolean)|nil
 ---@return af_services_http_request
-AuroraFramework.services.HTTPService.internal.createRequest = function(URL, port)
+AuroraFramework.services.HTTPService.request = function(port, URL, callback)
+	-- create request
 	---@type af_services_http_request
-	return AuroraFramework.libraries.class.create(
+	local HTTPRequest = AuroraFramework.libraries.class.create(
 		"HTTPRequest",
-		{
-			---@param self af_services_http_request
-			awaitingRepliesCount = function(self)
-				return #self.properties.awaitingReplies
-			end,
-
-			---@param self af_services_http_request
-			hasFinished = function(self)
-				return self:awaitingRepliesCount() <= 0
-			end,
-
-			---@param self af_services_http_request
-			remove = function(self)
-				local index = AuroraFramework.services.HTTPService.internal.createRequestIndex(self.properties.URL, self.properties.port)
-				AuroraFramework.services.HTTPService.ongoingRequests[index] = nil
-			end
-		},
+		{},
 
 		{
 			port = port,
-			URL = URL,
-			awaitingReplies = {}
-		}
-	)
-end
-
-
--- Send a GET request (limited to GET, SW limitation)
----@param port integer
----@param URL string
----@param callback fun(response: string, successful: boolean)|nil
----@return af_services_http_request, af_services_http_awaitingreply
-AuroraFramework.services.HTTPService.request = function(port, URL, callback)
-	-- for later
-	local index = AuroraFramework.services.HTTPService.internal.createRequestIndex(URL, port)
-
-	-- check if a request has already been made
-	local request = AuroraFramework.services.HTTPService.ongoingRequests[index]
-
-	if not request then -- a request has already been made to the same port and url, so we simply stop here
-		AuroraFramework.services.HTTPService.ongoingRequests[index] = AuroraFramework.services.HTTPService.internal.createRequest(URL, port)
-		request = AuroraFramework.services.HTTPService.ongoingRequests[index]
-	end
-
-	-- create a http reply class
-	---@type af_services_http_awaitingreply
-	local awaitingReply = AuroraFramework.libraries.class.create(
-		"HTTPReply",
-
-		nil,
-		nil,
+			URL = URL
+		},
 
 		{
 			reply = AuroraFramework.libraries.events.create()
 		},
 
-		request.properties.awaitingReplies
+		AuroraFramework.services.HTTPService.ongoingRequests
 	)
 
-	awaitingReply.events.reply:connect(callback)
+	-- connect callback to event
+	if callback then
+		HTTPRequest.events.reply:connect(callback)
+	end
 
 	-- send the http request
 	server.httpGet(port, URL)
 
 	-- return http request class
-	return request, awaitingReply
+	return request
 end
 
 -- Convert a table of args into URL parameters
