@@ -2243,7 +2243,7 @@ AuroraFramework.services.playerService = {
 	---@param state af_ready_state
 	initialize = function(state)
 		-- Purge recognized peer IDs if loading into a save
-		-- This is because no players can be rejoining the server after a save
+		-- This is because no players can be rejoining the server after a save load
 		if state == "save_load" then
 			g_savedata.AuroraFramework.recognizedPeerIDs = {}
 		end
@@ -2276,7 +2276,9 @@ AuroraFramework.services.playerService = {
 			end
 
 			-- fire join event
-			AuroraFramework.services.playerService.events.onJoin:fire(playerData)
+			AuroraFramework.services.timerService.delay.create(0, function() -- to fix small uiservice bug
+				AuroraFramework.services.playerService.events.onJoin:fire(playerData)
+			end)
 
 			::continue::
 		end
@@ -2301,7 +2303,9 @@ AuroraFramework.services.playerService = {
 				return
 			end
 
-			AuroraFramework.services.playerService.events.onJoin:fire(player)
+			AuroraFramework.services.timerService.delay.create(0, function() -- to fix small uiservice bug
+				AuroraFramework.services.playerService.events.onJoin:fire(player)
+			end)
 		end)
 
 		-- Remove player data whenever a player leaves
@@ -3467,6 +3471,12 @@ AuroraFramework.services.UIService = {
 			end
 		end)
 
+		for _, player in pairs(AuroraFramework.services.playerService.getAllPlayers()) do
+			for _, UI in pairs(AuroraFramework.services.UIService.getAllUIShownToPlayer(player)) do
+				UI:refresh()
+			end
+		end
+
 		-- remove ui on leave
 		AuroraFramework.services.playerService.events.onLeave:connect(function(player) ---@param player af_services_player_player
 			for _, UI in pairs(AuroraFramework.services.UIService.getAllUIShownToPlayer(player)) do
@@ -3487,9 +3497,7 @@ AuroraFramework.services.UIService = {
 
 		---@type table<string, af_services_ui_map_line>
 		mapLines = {}
-	},
-
-	internal = {}
+	}
 }
 
 -- Get all UI shown to everyone
@@ -3932,7 +3940,7 @@ AuroraFramework.services.UIService.createMapObject = function(name, title, subti
 					return
 				end
 
-				server.addMapObject( -- what the FUCK
+				server.addMapObject(
 					peerID,
 					self.properties.id,
 					self.properties.positionType,
