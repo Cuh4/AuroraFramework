@@ -2953,6 +2953,10 @@ end
 ---@param end_delim string|nil
 ---@return any, number
 AuroraFramework.services.HTTPService.JSON.decode = function(str, pos, end_delim)
+	if str == nil then -- quick nil check
+		return str
+	end
+
 	pos = pos or 1
 
 	if pos > #str then
