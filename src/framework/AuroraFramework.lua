@@ -2648,7 +2648,14 @@ AuroraFramework.services.HTTPService = {
 				return
 			end
 
-			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
+			for index = #AuroraFramework.services.HTTPService.ongoingRequests, 1, -1 do -- because we're using table.remove
+				-- get request
+				local request = AuroraFramework.services.HTTPService.ongoingRequests[index]
+
+				if not request then
+					goto continue
+				end
+
 				-- check if the port and url matches
 				if request.properties.port ~= port and request.properties.URL ~= URL then
 					goto continue
