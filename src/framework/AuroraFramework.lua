@@ -1903,8 +1903,6 @@ AuroraFramework.services.vehicleService = {
 				return
 			end
 
-			vehicle.properties.loaded = true
-
 			-- fire events
 			AuroraFramework.services.vehicleService.events.onLoad:fire(vehicle)
 		end)
@@ -2036,10 +2034,6 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 
 			---@param self af_services_vehicle_vehicle
 			getVehicleComponents = function(self)
-				if not self.properties.loaded then
-					return
-				end
-
 				return (server.getVehicleComponents(self.properties.vehicle_id))
 			end,
 
@@ -2074,7 +2068,6 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			vehicle_id = vehicle_id,
 			spawnPos = matrix.translation(x, y, z),
 			cost = group_cost,
-			loaded = false,
 			group_id = nil, -- gets set up by ongroupspawn in groupservice
 			isPrimaryVehicle = false
 		},
