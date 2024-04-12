@@ -822,7 +822,7 @@ AuroraFramework.services.debuggerService = {
 
 		-- configurables
 		local artificialOnTickRequestURL = "auroraframework_debugger_ontick"
-		local threshold = 2500 -- ms
+		local threshold = 10000 -- ms
 
 		-- detect whether or not the addon has broken by finding out the time difference between onTick and an artificial ontick
 		local onTickPreviousTime = server.getTimeMillisec()
