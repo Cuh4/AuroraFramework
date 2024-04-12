@@ -2648,9 +2648,17 @@ AuroraFramework.services.HTTPService = {
 				return
 			end
 
+			-- check if the request was made for this addon
+			local addonIndex = tostring(AuroraFramework.attributes.AddonIndex)
+
+			if URL:sub(-#addonIndex) ~= addonIndex then
+				return
+			end
+
+			-- find request for this reply
 			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
 				-- check if the port and url matches
-				if request.properties.port ~= port and request.properties.URL ~= URL then
+				if request.properties.port ~= port or request.properties.URL ~= URL then
 					goto continue
 				end
 
@@ -2690,6 +2698,9 @@ AuroraFramework.services.HTTPService = {
 ---@param callback fun(response: string, successful: boolean)|nil
 ---@return af_services_http_request
 AuroraFramework.services.HTTPService.request = function(port, URL, callback)
+	-- add addon index to end of url
+	URL = URL..(URL:find("?") ~= nil and "&" or "?").."auroraframeworkaddonindex="..AuroraFramework.attributes.AddonIndex
+
 	-- create request
 	---@type af_services_http_request
 	local HTTPRequest = AuroraFramework.libraries.class.create(
