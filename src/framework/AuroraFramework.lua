@@ -2648,14 +2648,7 @@ AuroraFramework.services.HTTPService = {
 				return
 			end
 
-			for index = #AuroraFramework.services.HTTPService.ongoingRequests, 1, -1 do -- because we're using table.remove
-				-- get request
-				local request = AuroraFramework.services.HTTPService.ongoingRequests[index]
-
-				if not request then
-					goto continue
-				end
-
+			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
 				-- check if the port and url matches
 				if request.properties.port ~= port and request.properties.URL ~= URL then
 					goto continue
@@ -2665,7 +2658,7 @@ AuroraFramework.services.HTTPService = {
 				request.events.reply:fire(tostring(response), AuroraFramework.services.HTTPService.ok(response))
 
 				-- remove request
-				table.remove(AuroraFramework.services.HTTPService.ongoingRequests, index)
+				AuroraFramework.services.HTTPService.ongoingRequests[index] = nil
 
 				-- stop here to prevent handling multiple of the same request for one reply
 				break
@@ -2705,7 +2698,8 @@ AuroraFramework.services.HTTPService.request = function(port, URL, callback)
 
 		{
 			port = port,
-			URL = URL
+			URL = URL,
+			answered = false
 		},
 
 		{
