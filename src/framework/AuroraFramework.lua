@@ -2650,7 +2650,7 @@ AuroraFramework.services.HTTPService = {
 
 			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
 				-- check if the port and url matches
-				if request.properties.port ~= port and request.properties.url ~= URL then
+				if request.properties.port ~= port and request.properties.URL ~= URL then
 					goto continue
 				end
 
