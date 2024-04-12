@@ -1691,6 +1691,11 @@ AuroraFramework.services.groupService.internal.giveGroupData = function(group_id
 
 	group.properties.vehicles = vehicles
 	group.properties.primaryVehicle = AuroraFramework.services.groupService.internal.calculatePrimaryVehicle(group)
+
+	if not group.properties.primaryVehicle then
+		return
+	end
+
 	group.properties.primaryVehicle.properties.isPrimaryVehicle = true
 
 	-- parent group to groups in groupservice, then return group
