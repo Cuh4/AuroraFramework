@@ -973,7 +973,7 @@ end
 -- Attaches debug code to a function. Effectively tracks function usage and notifies you when a function is called by sending a message through the provided logger
 ---@param func function The function must be a global function and not a local one
 ---@param logger af_services_debugger_logger
----@param customHandler fun(attachedFunction: af_services_debugger_attached_function, returned: any, ...: any)|nil Function that is called when the modified function is called
+---@param customHandler fun(attachedFunction: af_services_debugger_attached_function, returned: table<integer, any>, ...: any)|nil Function that is called when the modified function is called
 AuroraFramework.services.debuggerService.attach = function(func, logger, customHandler)
 	-- find name if not provided
 	local funcTable, funcIndex, funcPathString = AuroraFramework.services.debuggerService.internal.findENVVariable(func)
@@ -1019,7 +1019,7 @@ AuroraFramework.services.debuggerService.attach = function(func, logger, customH
 		attachedFunction.properties.profiler:start()
 
 		-- call old function
-		local returned = func(...)
+		local returned = table.pack(func(...))
 
 		-- track stuffs
 		local executionTime = attachedFunction.properties.profiler:stop()
@@ -1040,19 +1040,19 @@ AuroraFramework.services.debuggerService.attach = function(func, logger, customH
 
 		-- send debug message
 		attachedFunction.properties.logger:send(
-			"%s() was called. | Usage Count: %s | Took: %s ms, AVG: %s ms | Returned: %s", 
+			"%s() was called. | Usage Count: %s | Took: %s ms, AVG: %s ms | Returned (#1): %s", 
 			attachedFunction.properties.name,
 			attachedFunction.properties.functionUsageCount,
 			executionTime,
 			averageExecutionTime,
-			tostring(returned)
+			tostring(returned[1])
 		)
 
 		-- fire event
 		attachedFunction.events.functionCall:fire(attachedFunction, returned, ...)
 
 		-- return actual function result
-		return returned
+		return table.unpack(returned)
 	end
 
 	attachedFunction.properties.targetFunction = funcTable[funcIndex]
