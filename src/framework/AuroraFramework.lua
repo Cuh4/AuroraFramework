@@ -2394,6 +2394,11 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 		return
 	end
 
+	-- check for unnamed client
+	if steam_id == 0 then
+		return
+	end
+
 	-- convert steam id to string
 	steam_id = tostring(steam_id)
 
