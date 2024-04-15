@@ -30,6 +30,12 @@
         AuroraFramework.services.UIService.createScreenUI(name, ...)
 
         But even then, you may still run into issues
+
+        ---
+
+        General rule of thumb:
+        - UI that is created for everyone (player = nil) at the start of the addon should be created after AuroraFramework.ready event
+        - UI that is created for a player at the start of the addons hould be created after PlayerService.onJoin event
 ]]
 
 AuroraFramework.ready:connect(function()
@@ -52,44 +58,44 @@ AuroraFramework.ready:connect(function()
 
     -- Now, let's create a custom player marker on the map.
     server.setGameSetting("map_show_players", false)
+end)
 
-    ---@param player af_services_player_player
-    AuroraFramework.services.playerService.events.onJoin:connect(function(player)
-        -- Create a map object for the player who just joined
-        local uiName = AuroraFramework.services.UIService.name("PlayerMapIcon", player) -- if the player's peer id is 5, then this would become: "PlayerMapIcon5". this is here to prevent multiple UIs having the same name and therefore overwriting each other
+---@param player af_services_player_player
+AuroraFramework.services.playerService.events.onJoin:connect(function(player)
+    -- Create a map object for the player who just joined
+    local uiName = AuroraFramework.services.UIService.name("PlayerMapIcon", player) -- if the player's peer id is 5, then this would become: "PlayerMapIcon5". this is here to prevent multiple UIs having the same name and therefore overwriting each other
 
-        local mapObject = AuroraFramework.services.UIService.createMapObject(
-            uiName, -- name of the ui
-            "[Player] "..player.properties.peer_id, -- title of the ui
-            "Steam ID: "..player.properties.steam_id, -- subtitle of the ui
-            matrix.translation(0, 0, 0), -- position of the ui, or position offset if the ui is attached to an object/vehicle
-            1, -- the marker type of the ui (1 = survivor)
-            nil, -- the player to show the map object to, or nil for everyone (nil by default)
-            50, -- radius of the map object
-            255, -- color rgba (red)
-            255, -- color rgba (green)
-            255, -- color rgba (blue)
-            255 -- color rgba (alpha, aka opacity)
-        )
+    local mapObject = AuroraFramework.services.UIService.createMapObject(
+        uiName, -- name of the ui
+        "[Player] "..player.properties.peer_id, -- title of the ui
+        "Steam ID: "..player.properties.steam_id, -- subtitle of the ui
+        matrix.translation(0, 0, 0), -- position of the ui, or position offset if the ui is attached to an object/vehicle
+        1, -- the marker type of the ui (1 = survivor)
+        nil, -- the player to show the map object to, or nil for everyone (nil by default)
+        50, -- radius of the map object
+        255, -- color rgba (red)
+        255, -- color rgba (green)
+        255, -- color rgba (blue)
+        255 -- color rgba (alpha, aka opacity)
+    )
 
-        -- Attach it to the player's character
-        local characterID = player:getCharacter()
-        mapObject:attach(2, characterID) -- position type, object/vehicle id. position type can be 0 for fixed, 1 for vehicles, and 2 for objects
-    end)
+    -- Attach it to the player's character
+    local characterID = player:getCharacter()
+    mapObject:attach(2, characterID) -- position type, object/vehicle id. position type can be 0 for fixed, 1 for vehicles, and 2 for objects
+end)
 
-    ---@param player af_services_player_player
-    AuroraFramework.services.playerService.events.onLeave:connect(function(player)
-        -- Get the player's map marker UI
-        local mapObject = AuroraFramework.services.UIService.getMapObject(
-            AuroraFramework.services.UIService.name("PlayerMapIcon", player)
-        )
+---@param player af_services_player_player
+AuroraFramework.services.playerService.events.onLeave:connect(function(player)
+    -- Get the player's map marker UI
+    local mapObject = AuroraFramework.services.UIService.getMapObject(
+        AuroraFramework.services.UIService.name("PlayerMapIcon", player)
+    )
 
-        -- Make sure it exists. Who knows, maybe something went wrong and the map object doesn't exist for some reason
-        if not mapObject then
-            return
-        end
+    -- Make sure it exists. Who knows, maybe something went wrong and the map object doesn't exist for some reason
+    if not mapObject then
+        return
+    end
 
-        -- And now, we shall remove it
-        mapObject:remove()
-    end)
+    -- And now, we shall remove it
+    mapObject:remove()
 end)
