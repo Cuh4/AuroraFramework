@@ -1898,9 +1898,9 @@ AuroraFramework.services.vehicleService = {
 			AuroraFramework.services.vehicleService.events.onSpawn:fire(vehicle)
 		end)
 
-		-- Update vehicle data on load
+		-- Fire load event
 		AuroraFramework.callbacks.onVehicleLoad.internal:connect(function(vehicle_id)
-			-- set vehicle loaded
+			-- get vehicle
 			local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
 
 			if not vehicle then
@@ -1909,6 +1909,19 @@ AuroraFramework.services.vehicleService = {
 
 			-- fire events
 			AuroraFramework.services.vehicleService.events.onLoad:fire(vehicle)
+		end)
+
+		-- Fire unload event
+		AuroraFramework.callbacks.onVehicleUnload.internal:connect(function(vehicle_id)
+			-- get vehicle
+			local vehicle = AuroraFramework.services.vehicleService.getVehicleByVehicleID(vehicle_id)
+
+			if not vehicle then
+				return
+			end
+
+			-- fire events
+			AuroraFramework.services.vehicleService.events.onUnload:fire(vehicle)
 		end)
 
 		-- Remove vehicle data whenever a vehicle is despawned
@@ -1933,6 +1946,7 @@ AuroraFramework.services.vehicleService = {
 	events = {
 		onSpawn = AuroraFramework.libraries.events.create(),
 		onLoad = AuroraFramework.libraries.events.create(),
+		onUnload = AuroraFramework.libraries.events.create(),
 		onDespawn = AuroraFramework.libraries.events.create()
 	},
 
