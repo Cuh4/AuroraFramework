@@ -22,7 +22,7 @@ end)
 AuroraFramework.services.timerService.loop.create(5, function(loop)
     local host = AuroraFramework.services.playerService.getPlayerByPeerID(0)
 
-    if not host then -- EITHER: framework isn't ready yet, so host is nil OR no players in the server because the addon is being ran in a dedicated server and the player service "isDedicatedServer" property is true, OR the same property is true in a non-dedicated server
+    if not host then -- host can be nil if there are no players in the server when the addon is being ran in a dedicated server and the player service "isDedicatedServer" property is true, OR the same property is true in a non-dedicated server
         return
     end
 
