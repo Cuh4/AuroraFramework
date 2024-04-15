@@ -1462,6 +1462,10 @@ AuroraFramework.services.TPSService = {
 			-- calculate tps
 			local now = server.getTimeMillisec()
 
+			if now == 0 then
+				return
+			end
+
 			local tps = AuroraFramework.libraries.miscellaneous.clamp( -- sometimes the tps can go over 62 (calculation issue), so we clamp it. the tps is accurate for the most part, though
 				1000 / (now - previous),
 				0,
