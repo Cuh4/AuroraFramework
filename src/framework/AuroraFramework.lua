@@ -1462,11 +1462,7 @@ AuroraFramework.services.TPSService = {
 			-- calculate tps
 			local now = server.getTimeMillisec()
 
-			if now == 0 then -- ds bug: server.getTimeMillisec() sometimes returns 0
-				return
-			end
-
-			local tps = AuroraFramework.libraries.miscellaneous.clamp( -- source: discord.gg/stormworks @ https://discord.com/channels/357480372084408322/905791966904729611/1120811437703561256
+			local tps = AuroraFramework.libraries.miscellaneous.clamp( -- sometimes the tps can go over 62 (calculation issue), so we clamp it. the tps is accurate for the most part, though
 				1000 / (now - previous),
 				0,
 				62
@@ -1476,13 +1472,16 @@ AuroraFramework.services.TPSService = {
 			AuroraFramework.services.TPSService.tpsData.tps = tps
 
 			-- calculate average tps
-			local average = AuroraFramework.libraries.miscellaneous.clamp(
-				0.01 * AuroraFramework.services.TPSService.tpsData.average + (1 - 0.01) * AuroraFramework.services.TPSService.tpsData.average,
-				0,
-				62
-			)
+			local averageTPSTable = AuroraFramework.services.TPSService.internal.averageTPSTable
 
-			AuroraFramework.services.TPSService.tpsData.average = average
+			if #averageTPSTable > 10 then
+				-- calculate average tps
+				AuroraFramework.services.TPSService.tpsData.average = AuroraFramework.libraries.miscellaneous.average(averageTPSTable)
+				AuroraFramework.services.TPSService.internal.averageTPSTable = {}
+			else
+				-- add tps to average tps table otherwise
+				table.insert(averageTPSTable, tps)
+			end
 
 			-- prepare for next tick
 			previous = now
@@ -1492,6 +1491,10 @@ AuroraFramework.services.TPSService = {
 	tpsData = {
 		tps = 62, -- The current server TPS
 		average = 62 -- The average server TPS, calculated over 10 ticks
+	},
+
+	internal = {
+		averageTPSTable = {}
 	}
 }
 
