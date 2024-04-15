@@ -22,7 +22,7 @@ AuroraFramework.services.timerService.loop.create(5, function() -- calls this fu
     -- Send a request
     ---@param response string
     ---@param success boolean
-    local request, awaitingReply = AuroraFramework.services.HTTPService.request(6500, url, function(response, success) -- the response is anything that the request returns
+    local request = AuroraFramework.services.HTTPService.request(6500, url, function(response, success) -- the response is anything that the request returns
         -- Check if the request was successful
         if not success then -- alternatively, you can do "if not AuroraFramework.services.HTTPService.ok(response) then". but this is unneeded because this is actually what happens behind the scenes
             return
@@ -34,8 +34,8 @@ AuroraFramework.services.timerService.loop.create(5, function() -- calls this fu
 
     -- Connect a random function to the request response event
     ---@param response string
-    ---@param successful boolean
-    awaitingReply.events.reply:connect(function(response, successful)
+    ---@param success boolean
+    request.events.reply:connect(function(response, success)
         AuroraFramework.services.chatService.sendMessage("Server", "woah")
     end)
 end)
