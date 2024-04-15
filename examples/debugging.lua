@@ -48,7 +48,9 @@ hello()
 
 -- You can also attach debug code to multiple functions:
 functions = {
-    hello = hello,
+    hello = function()
+        return "hello"
+    end,
     world = function()
         return "world"
     end
