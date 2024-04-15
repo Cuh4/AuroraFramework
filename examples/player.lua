@@ -68,7 +68,7 @@ AuroraFramework.services.chatService.events.onMessageSent:connect(function(messa
     end
 
     -- Check if they guessed it correctly
-    if tonumber(message) == randomNumber then
+    if tonumber(message.properties.content) == randomNumber then
         -- They guessed correctly, so say good job
         AuroraFramework.services.chatService.sendMessage(
             "Game",
@@ -92,7 +92,7 @@ end)
 AuroraFramework.services.playerService.events.onDie:connect(function(player)
     AuroraFramework.services.chatService.sendMessage(
         "Death",
-        ("loool! %s died! what a nerd!"):format(player.properties.name)
+        ("%s died."):format(player.properties.name)
     )
 end)
 
