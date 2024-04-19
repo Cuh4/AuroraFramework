@@ -2055,7 +2055,7 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 				local components = server.getVehicleComponents(self.properties.vehicle_id)
 
 				if type(components) == "number" then -- for some reason, server.getVehicleComponents returns a number on failure
-					components = nil
+					return nil
 				end
 
 				return components
