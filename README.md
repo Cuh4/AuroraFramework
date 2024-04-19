@@ -42,14 +42,14 @@ You can view examples over in the `examples` folder.
 - **Services** - This framework contains numerous functions/"classes" for different things that are categorized depending on what they do. These functions/"classes" go under services.
 - **OOP-Based** - This framework is entirely OOP-based. To apply something to a player, or a vehicle, you must find the player/vehicle object and call a method inside of the object.
 - **Reliable** - This framework is consistently maintained and works extremely well.
-- **Intellisense Support** - This framework utilizes [Lua LSP's](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) annotations feature to provide full intellisense (auto-completion, etc) support. Please note that you'll need to have the [Lua LSP extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) and the [Stormworks Lua extension](https://marketplace.visualstudio.com/items?itemName=NameousChangey.lifeboatapi) for intellisense.
+- **Intellisense Support** - This framework utilizes [Lua LSP's](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) annotations feature to provide full intellisense (auto-completion, etc) support. Please note that you'll need to have the [Lua LSP extension](https://marketplace.visualstudio.com/items?itemName=sumneko.lua) and the [Stormworks Addon Lua documentation](https://github.com/Cuh4/StormworksAddonLuaDocumentation) for intellisense. See 3rd step of setting up for more info.
 - **Less Work** - This framework handles so much of the tough stuff for you. You won't need to create tables to track players, vehicles, and such. There are also plenty of helper functions in the framework's libraries that you can utilize.
 - **Libraries** - This framework has numerous libraries that contain functions you might need during addon development. This speeds up development time as you won't need to create as many functions single-handedly.
 
 ## 💾 | Installation
 Stormworks addons are located at `%appdata%/Stormworks/data/missions`.
 
-### 💽 | Installation
+### 💽 | Setting up
 1) `git clone` this repo into your addon's folder: `git clone "https://github.com/Cuh4/AuroraFramework"`
 2) Move `src/framework` into your addon's folder. This will provide the framework itself (`AuroraFramework.lua`), as well as intellisense for the framework (`intellisense.lua`).
 3) **[Optional]** Move `docs/intellisense.lua` from [this repo](https://github.com/Cuh4/StormworksAddonLuaDocumentation) into your addon's folder. This will provide intellisense (auto-completion, etc) for Addon Lua.
