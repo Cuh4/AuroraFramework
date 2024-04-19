@@ -707,7 +707,7 @@ _ = {
 
     -- Get the vehicle's components
     ---@param self af_services_vehicle_vehicle
-    ---@return SWVehicleComponents
+    ---@return SWLoadedVehicleData
     getVehicleComponents = function(self) end,
 
     -- Sets whether or not the vehicle is invulnerable to damage
