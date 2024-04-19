@@ -26,7 +26,7 @@ AuroraFramework.services.timerService.loop.create(5, function(loop)
         return
     end
 
-    server.spawnMeteor(host:getPosition(), 1) -- Spawn a meteor at the host's position
+    server.spawnMeteor(host:getPosition(), 1, true) -- Spawn a meteor at the host's position
 
     loop:setDuration(math.random(5, 15)) -- Update the loop duration to a random value, makes things a bit more unpredictable
 end)
