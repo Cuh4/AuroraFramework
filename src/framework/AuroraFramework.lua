@@ -2083,6 +2083,18 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			---@param text string
 			setTooltip = function(self, text)
 				server.setVehicleTooltip(self.properties.vehicle_id, text)
+			end,
+
+			---@param self af_services_vehicle_vehicle
+			---@param character integer
+			---@param seatName string|nil
+			---@param seatVoxelPos SWMatrix|nil
+			placeCharacterInVehicle = function(self, character, seatName, seatVoxelPos)
+				if seatName then
+					server.setCharacterSeated(character, self.properties.vehicle_id, seatName)
+				else
+					server.setCharacterSeated(character, self.properties.vehicle_id, seatVoxelPos[13], seatVoxelPos[14], seatVoxelPos[15])
+				end
 			end
 		},
 
@@ -2529,6 +2541,19 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 			end,
 
 			---@param self af_services_player_player
+			revive = function(self)
+				-- get the player's character
+				local character = self:getCharacter()
+
+				if not character then
+					return
+				end
+
+				-- revive the character
+				server.reviveCharacter(character)
+			end,
+
+			---@param self af_services_player_player
 			kill = function(self)
 				local character = self:getCharacter()
 
@@ -2568,6 +2593,22 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 				else
 					server.removeAuth(self.properties.peer_id)
 				end
+			end,
+
+			---@param self af_services_player_player
+			---@param vehicle af_services_vehicle_vehicle
+			---@param seatName string|nil
+			---@param seatVoxelPos SWMatrix|nil
+			placeInVehicle = function(self, vehicle, seatName, seatVoxelPos)
+				-- get character
+				local character = self:getCharacter()
+
+				if not character then
+					return
+				end
+
+				-- place in vehicle
+				vehicle:placeCharacterInVehicle(character, seatName, seatVoxelPos)
 			end
 		},
 

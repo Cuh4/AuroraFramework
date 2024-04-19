@@ -728,7 +728,14 @@ _ = {
     -- Sets the tooltip of this vehicle
     ---@param self af_services_vehicle_vehicle
     ---@param text string
-    setTooltip = function(self, text) end
+    setTooltip = function(self, text) end,
+
+    -- Place a character into this vehicle
+    ---@param self af_services_vehicle_vehicle
+    ---@param character integer object ID
+    ---@param seatName string|nil required if seatVoxelPos isn't provided
+    ---@param seatVoxelPos SWMatrix|nil required if seatName isn't provided. example: matrix.translation(-1, 0, 0)
+    placeCharacterInVehicle = function(self, character, seatName, seatVoxelPos) end
 }
 
 ---------------- Players
@@ -803,6 +810,10 @@ _ = {
     ---@param damageToDeal number
     damage = function(self, damageToDeal) end,
 
+    -- Revive this player. Uses server.reviveCharacter under the hood
+    ---@param self af_services_player_player
+    revive = function(self) end,
+
     -- Kill this player
     ---@param self af_services_player_player
     kill = function(self) end,
@@ -819,7 +830,14 @@ _ = {
     -- Give or removes auth to/from the player
     ---@param self af_services_player_player
     ---@param shouldGive boolean
-    setAuth = function(self, shouldGive) end
+    setAuth = function(self, shouldGive) end,
+
+    -- Place this player into a vehicle seat
+    ---@param self af_services_player_player
+    ---@param vehicle af_services_vehicle_vehicle
+    ---@param seatName string|nil required if seatVoxelPos isn't provided
+    ---@param seatVoxelPos SWMatrix required if seatName isn't provided. example: matrix.translation(-1, 0, 0) 
+    placeInVehicle = function(self, vehicle, seatName, seatVoxelPos) end
 }
 
 -------------------------------------------------
