@@ -2530,7 +2530,7 @@ AuroraFramework.services.playerService.internal.givePlayerData = function(steam_
 				end
 
 				-- get the player's character data
-				local data = server.getCharacterData(character)
+				local data = self:getCharacterData()
 
 				if not data then
 					return
