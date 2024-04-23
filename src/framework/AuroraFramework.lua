@@ -432,6 +432,10 @@ end
 ---@param tbl table
 ---@return any
 AuroraFramework.libraries.miscellaneous.getRandomTableValue = function(tbl)
+	if #tbl < 1 then
+		return
+	end
+
     return tbl[math.random(1, #tbl)]
 end
 
