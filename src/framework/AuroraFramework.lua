@@ -152,6 +152,36 @@ end
 ---------------- Miscellaneous
 AuroraFramework.libraries.miscellaneous = {}
 
+-- Shallow copy a table
+---@param tbl table
+---@return table
+AuroraFramework.libraries.miscellaneous.shallowCopy = function(tbl)
+	local new = {}
+
+	for index, value in pairs(tbl) do
+		new[index] = value
+	end
+
+	return new
+end
+
+-- Deep copy a table
+---@param tbl table
+---@return table
+AuroraFramework.libraries.miscellaneous.deepCopy = function(tbl)
+	local new = {}
+
+	for index, value in pairs(tbl) do
+		if type(value) == "table" then
+			new[index] = AuroraFramework.libraries.miscellaneous.deepCopy(value)
+		else
+			new[index] = value
+		end
+	end
+
+	return new
+end
+
 -- Split a string (source: https://stackoverflow.com/questions/1426954/split-string-in-lua)
 ---@param str string
 ---@param separator string|nil
@@ -2730,7 +2760,7 @@ AuroraFramework.services.HTTPService = {
 			end
 
 			-- find request for this reply
-			for index, request in pairs(AuroraFramework.services.HTTPService.ongoingRequests) do
+			for index, request in pairs(AuroraFramework.libraries.miscellaneous.shallowCopy(AuroraFramework.services.HTTPService.ongoingRequests)) do
 				-- check if the port and url matches
 				if request.properties.port ~= port or request.properties.URL ~= URL then
 					goto continue
@@ -4646,6 +4676,18 @@ AuroraFramework.callbacks.onOilSpill = {
 function onOilSpill(...)
 	AuroraFramework.callbacks.onOilSpill.internal:fire(...)
 	AuroraFramework.callbacks.onOilSpill.main:fire(...)
+end
+
+----------------
+
+AuroraFramework.callbacks.onClearOilSpill = {
+	internal = AuroraFramework.libraries.events.create(),
+	main = AuroraFramework.libraries.events.create()
+}
+
+function onClearOilSpill(...)
+	AuroraFramework.callbacks.onClearOilSpill.internal:fire(...)
+	AuroraFramework.callbacks.onClearOilSpill.main:fire(...)
 end
 
 --------------------------------------------------------------------------------
