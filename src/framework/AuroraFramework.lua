@@ -3514,7 +3514,8 @@ AuroraFramework.services.UIService = {
 				popup.text,
 				popup.pos,
 				popup.renderDistance,
-				player
+				player,
+				popup.id
 			)
 
 			-- update properties
