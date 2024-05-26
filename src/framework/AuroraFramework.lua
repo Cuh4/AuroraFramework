@@ -3522,7 +3522,6 @@ AuroraFramework.services.UIService = {
 			ui:attach(popup.positionType, popup.attachID) -- automatically refreshes ui
 		end
 
-
 		-- load map lines
 		for _, mapLine in pairs(g_savedata.AuroraFramework.UI.mapLines) do
 			-- get the player, or nil if the ui is for everyone
