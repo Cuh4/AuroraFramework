@@ -41,7 +41,10 @@ g_savedata = {
 			mapObjects = {},
 
 			---@type table<string, af_savedata_screen_ui>
-			screen = {}
+			screen = {},
+
+			---@type table<string, af_savedata_popup>
+			popups = {}
 		},
 
 		---@type table<integer, boolean>
@@ -422,13 +425,7 @@ end
 -- Get a peer ID from a player, or -1 if player is nil
 ---@param player af_services_player_player|nil
 AuroraFramework.libraries.miscellaneous.getPeerID = function(player)
-	local id = -1
-
-	if player then
-		id = player.properties.peer_id
-	end
-
-	return id
+	return player and player.properties.peer_id or -1
 end
 
 -- Returns the value count of a table
@@ -3501,6 +3498,31 @@ AuroraFramework.services.UIService = {
 			ui:attach(mapObject.positionType, mapObject.attachID) -- automatically refreshes ui
 		end
 
+		-- load popups
+		for _, popup in pairs(g_savedata.AuroraFramework.UI.popups) do
+			-- get the player, or nil if the ui is for everyone
+			local player = AuroraFramework.services.playerService.getPlayerByPeerID(popup.peer_id)
+
+			-- if the player the ui was made for isnt in the server, don't create it
+			if not player and popup.peer_id ~= -1 then
+				return
+			end
+
+			-- make the ui
+			local ui = AuroraFramework.services.UIService.createPopupUI(
+				popup.name,
+				popup.text,
+				popup.pos,
+				popup.renderDistance,
+				player
+			)
+
+			-- update properties
+			ui.properties.visible = popup.visible
+			ui:attach(popup.positionType, popup.attachID) -- automatically refreshes ui
+		end
+
+
 		-- load map lines
 		for _, mapLine in pairs(g_savedata.AuroraFramework.UI.mapLines) do
 			-- get the player, or nil if the ui is for everyone
@@ -3614,7 +3636,10 @@ AuroraFramework.services.UIService = {
 		mapObjects = {},
 
 		---@type table<string, af_services_ui_map_line>
-		mapLines = {}
+		mapLines = {},
+
+		---@type table<string, af_services_ui_popup>
+		popups = {}
 	}
 }
 
@@ -3672,6 +3697,133 @@ AuroraFramework.services.UIService.name = function(name, player)
 	end
 
 	return name..player.properties.peer_id
+end
+
+-- Create a popup
+---@param name string
+---@param text string
+---@param pos SWMatrix
+---@param renderDistance number
+---@param player af_services_player_player|nil
+---@param custom_id integer|nil
+---@return af_services_ui_popup
+AuroraFramework.services.UIService.createPopupUI = function(name, text, pos, renderDistance, player, custom_id)
+	-- Get ID
+	local id = custom_id or server.getMapID()
+
+	-- If UI with the same name exists, use the ID from it and overwrite the UI entirely
+	local alreadyExistingUI = AuroraFramework.services.UIService.getPopupUI(name)
+
+	if alreadyExistingUI then
+		id = alreadyExistingUI.properties.id
+		alreadyExistingUI:remove()
+	end
+
+	-- Create UI
+	---@type af_services_ui_popup
+	local ui = AuroraFramework.libraries.class.create(
+		"UIPopup",
+
+		{
+			---@param self af_services_ui_popup
+			refresh = function(self)
+				self:updateSaveData()
+
+				local peerID = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player)
+
+				server.setPopup(
+					peerID,
+					self.properties.id,
+					"",
+					self.properties.visible,
+					self.properties.text,
+					self.properties.pos[13],
+					self.properties.pos[14],
+					self.properties.pos[15],
+					self.properties.renderDistance,
+					self.properties.positionType == 1 and self.properties.attachID or 0,
+					self.properties.positionType == 2 and self.properties.attachID or 0
+				)
+			end,
+
+			---@param self af_services_ui_popup
+			remove = function(self)
+				return AuroraFramework.services.UIService.removePopupUI(self.properties.name)
+			end,
+
+			---@param self af_services_ui_popup
+			---@param positionType SWPositionTypeEnum
+			---@param objectOrVehicleID integer
+			attach = function(self, positionType, objectOrVehicleID)
+				self.properties.positionType = positionType
+				self.properties.attachID = objectOrVehicleID
+				self:refresh()
+			end,
+
+			---@param self af_services_ui_popup
+			updateSaveData = function(self)
+				if not AuroraFramework.services.UIService.getPopupUI(self.properties.name) then
+					g_savedata.AuroraFramework.UI.popups[self.properties.name] = nil
+					return
+				end
+
+				g_savedata.AuroraFramework.UI.popups[self.properties.name] = {
+					name = self.properties.name,
+					text = self.properties.text,
+					visible = self.properties.visible,
+					peer_id = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.player),
+					id = self.properties.id,
+					renderDistance = self.properties.renderDistance,
+					positionType = self.properties.positionType,
+					attachID = self.properties.attachID,
+					pos = self.properties.pos
+				}
+			end
+		},
+
+		{
+			pos = pos,
+			text = text,
+			visible = true,
+			player = player,
+			name = name,
+			id = id,
+			positionType = 0,
+			attachID = 0,
+			renderDistance = renderDistance
+		},
+
+		nil,
+
+		AuroraFramework.services.UIService.UI.popups,
+		name
+	)
+
+	ui:refresh() -- show
+	return ui
+end
+
+-- Get a popup
+---@param name string
+---@return af_services_ui_popup
+AuroraFramework.services.UIService.getPopupUI = function(name)
+	return AuroraFramework.services.UIService.UI.popups[name]
+end
+
+-- Remove a popup
+---@param name string
+AuroraFramework.services.UIService.removePopupUI = function(name)
+	local data = AuroraFramework.services.UIService.getPopupUI(name)
+
+	if not data then
+		return
+	end
+
+	data.properties.visible = false
+	data:refresh() -- hide ui
+
+	AuroraFramework.services.UIService.UI.popups[name] = nil
+	data:updateSaveData() -- remove from savedata
 end
 
 -- Create a Screen UI object
@@ -3762,7 +3914,7 @@ end
 -- Remove a Screen UI object
 ---@param name string
 AuroraFramework.services.UIService.removeScreenUI = function(name)
-	local data = AuroraFramework.services.UIService.UI.screen[name]
+	local data = AuroraFramework.services.UIService.getScreenUI(name)
 
 	if not data then
 		return
@@ -3869,7 +4021,7 @@ end
 -- Remove a Map Label
 ---@param name string
 AuroraFramework.services.UIService.removeMapLabel = function(name)
-	local data = AuroraFramework.services.UIService.UI.mapLabels[name]
+	local data = AuroraFramework.services.UIService.getMapLabel(name)
 
 	if not data then
 		return
@@ -4002,7 +4154,7 @@ end
 -- Remove a Map Line
 ---@param name string
 AuroraFramework.services.UIService.removeMapLine = function(name)
-	local data = AuroraFramework.services.UIService.UI.mapLines[name]
+	local data = AuroraFramework.services.UIService.getMapLine(name)
 
 	if not data then
 		return
@@ -4160,7 +4312,7 @@ end
 -- Remove a Map Object
 ---@param name string
 AuroraFramework.services.UIService.removeMapObject = function(name)
-	local data = AuroraFramework.services.UIService.UI.mapObjects[name]
+	local data = AuroraFramework.services.UIService.getMapObject(name)
 
 	if not data then
 		return

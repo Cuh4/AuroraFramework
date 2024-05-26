@@ -28,8 +28,13 @@ _ = {
 ---@class af_savedata_map_label
 _ = {
     name = "",
-    startPoint = matrix.translation(),
-    endPoint = matrix.translation(),
+
+    ---@type SWMatrix
+    startPoint = nil,
+
+    ---@type SWMatrix
+    endPoint = nil,
+
     visible = true,
     peer_id = 0,
     id = 0,
@@ -56,7 +61,9 @@ _ = {
 ---@class af_savedata_map_object
 _ = {
     name = "",
-    pos = matrix.translation(),
+
+    ---@type SWMatrix
+    pos = nil,
     title = "",
     subtitle = "",
     visible = true,
@@ -72,6 +79,21 @@ _ = {
     a = 0,
     
     radius = 0
+}
+
+---@class af_savedata_popup
+_ = {
+    name = "",
+    text = "",
+    visible = true,
+    peer_id = 0,
+    id = 0,
+    renderDistance = 0,
+    positionType = 0,
+    attachID = 0,
+
+    ---@type SWMatrix
+    pos = nil
 }
 
 ---------------- Vehicle
@@ -109,7 +131,8 @@ _ = {
     properties = {
         name = "", -- The name of this zone
 
-        position = matrix.translation(), -- The position this zone is at
+        ---@type SWMatrix
+        position = nil, -- The position this zone is at
 
         size = 0, -- The radius of the zone in meters
 
@@ -163,7 +186,8 @@ _ = {
     properties = {
         name = "", -- The name of this zone
 
-        position = matrix.translation(), -- The position this zone is at
+        ---@type SWMatrix
+        position = nil, -- The position this zone is at
 
         size = 0, -- The radius of the zone in meters
 
@@ -346,7 +370,47 @@ _ = {
 }
 
 ---------------- UI
----@alias af_services_ui_ui af_services_ui_map_label|af_services_ui_map_object|af_services_ui_map_line|af_services_ui_screen
+---@alias af_services_ui_ui af_services_ui_map_label|af_services_ui_map_object|af_services_ui_map_line|af_services_ui_screen|af_services_ui_popup
+
+---@class af_services_ui_popup: af_libs_class_class
+_ = {
+    __name__ = "UIPopup",
+
+    properties = {
+        ---@type SWMatrix
+        pos = nil, -- The position where this UI is shown
+        text = "", -- The text shown in the UI
+        visible = false, -- Whether or not the UI is visible
+        renderDistance = 0, -- The render distance of this UI
+
+        ---@type af_services_player_player|nil
+        player = nil, -- The player this UI is shown to. If this is nil, the UI will be shown to everyone
+        name = "", -- The name of this UI
+        id = 0, -- The internal ID of this UI
+
+        ---@type SWPositionTypeEnum
+        positionType = nil, -- 0, 1, or 2 (fixed, vehicle, object)
+        attachID = 0, -- Vehicle ID/Object ID. 0 if not attached
+    },
+
+    -- Refreshes this UI
+    ---@param self af_services_ui_popup
+    refresh = function(self) end,
+
+    -- Removes this UI
+    ---@param self af_services_ui_popup
+    remove = function(self) end,
+
+    -- Make this UI follow a vehicle or object
+    ---@param self af_services_ui_popup
+    ---@param positionType SWPositionTypeEnum
+    ---@param objectOrVehicleID integer
+    attach = function(self, positionType, objectOrVehicleID) end,
+
+    -- Update g_savedata version. Used internally
+    ---@param self af_services_ui_popup
+    updateSaveData = function(self) end
+}
 
 ---@class af_services_ui_screen: af_libs_class_class
 _ = {
@@ -384,7 +448,8 @@ _ = {
     __name__ = "UIMapLabel",
 
     properties = {
-        pos = matrix.translation(), -- The position where this UI is shown on the map
+        ---@type SWMatrix
+        pos = nil, -- The position where this UI is shown on the map
 
         text = "", -- The text of this map label
         visible = false, -- Whether or not the UI is visible
@@ -417,8 +482,11 @@ _ = {
     __name__ = "UIMapLine",
 
     properties = {
-        startPoint = matrix.translation(), -- Where the line starts
-        endPoint = matrix.translation(), -- Where the line ends
+        ---@type SWMatrix
+        startPoint = nil, -- Where the line starts
+
+        ---@type SWMatrix
+        endPoint = nil, -- Where the line ends
 
         visible = false, -- Whether or not the UI is visible
 
@@ -444,7 +512,7 @@ _ = {
     remove = function(self) end,
 
     -- Update g_savedata version. Used internally
-    ---@param self af_services_ui_map_label
+    ---@param self af_services_ui_map_line
     updateSaveData = function(self) end
 }
 
@@ -453,7 +521,8 @@ _ = {
     __name__ = "UIMapObject",
 
     properties = {
-        pos = matrix.translation(), -- The position where this UI is shown on the map
+        ---@type SWMatrix
+        pos = nil, -- The position where this UI is shown on the map
 
         title = "", -- The title of this map object
         subtitle = "", -- The subtitle of this map object
@@ -494,7 +563,7 @@ _ = {
     attach = function(self, positionType, objectOrVehicleID) end,
 
     -- Update g_savedata version. Used internally
-    ---@param self af_services_ui_map_label
+    ---@param self af_services_ui_map_object
     updateSaveData = function(self) end
 }
 
@@ -604,7 +673,8 @@ _ = {
         ---@type table<integer, af_services_vehicle_vehicle>
         vehicles = {}, -- The vehicles that belong to this group
 
-        spawnPos = matrix.translation(),
+        ---@type SWMatrix
+        spawnPos = nil,
 
         ---@type af_services_vehicle_vehicle
         primaryVehicle = nil,
@@ -658,7 +728,8 @@ _ = {
         addonSpawned = false, -- Whether or not an addon spawned this vehicle
         vehicle_id = 0, -- The ID of this vehicle
 
-        spawnPos = matrix.translation(), -- The position this vehicle was spawned at
+        ---@type SWMatrix
+        spawnPos = nil, -- The position this vehicle was spawned at
 
         cost = 0 -- The cost of this vehicle. 0 if infinite_money is enabled
     },
