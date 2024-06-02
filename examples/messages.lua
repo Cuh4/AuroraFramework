@@ -50,8 +50,8 @@ AuroraFramework.services.chatService.events.onMessageSent:connect(function(messa
     end
 
     -- Edit the message
-    message:edit("No") -- edit the message for everyone
-    -- message:edit("No", player) -- edit the message only for the player who sent the message
+    message:edit(nil, "No") -- edit the message content for everyone
+    -- message:edit("NewTitle", "No") -- edit the message title for everyone
 
     -- Notify the player
     AuroraFramework.services.notificationService.info(

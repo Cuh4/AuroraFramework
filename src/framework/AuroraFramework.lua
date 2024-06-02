@@ -27,6 +27,9 @@ g_savedata = {
 		---@type table<integer, af_savedata_vehicle>
 		vehicles = {},
 
+		---@type table<integer, af_savedata_message>
+		messages = {},
+
 		---@type table<integer, af_savedata_group>
 		groups = {},
 
@@ -156,8 +159,9 @@ end
 AuroraFramework.libraries.miscellaneous = {}
 
 -- Shallow copy a table
----@param tbl table
----@return table
+---@generic tbl: table
+---@param tbl tbl
+---@return tbl
 AuroraFramework.libraries.miscellaneous.shallowCopy = function(tbl)
 	local new = {}
 
@@ -169,8 +173,9 @@ AuroraFramework.libraries.miscellaneous.shallowCopy = function(tbl)
 end
 
 -- Deep copy a table
----@param tbl table
----@return table
+---@generic tbl: table
+---@param tbl tbl
+---@return tbl
 AuroraFramework.libraries.miscellaneous.deepCopy = function(tbl)
 	local new = {}
 
@@ -3131,9 +3136,47 @@ end
 
 ---------------- Chat
 AuroraFramework.services.chatService = {
-	initialize = function()
+	---@param state af_ready_state
+	initialize = function(state)
+		-- load messages
+		if state == "addon_reload" then -- messages are cleared if a save is loaded, so we should only load messages after an addon reload
+			local highestID = 0
+
+			for _, message in pairs(g_savedata.AuroraFramework.messages) do
+				-- get player(s)
+				local author = AuroraFramework.services.playerService.getPlayerByPeerID(message.author)
+				local shownTo = AuroraFramework.services.playerService.getPlayerByPeerID(message.shownTo)
+
+				-- check if player who sent this message still exists. if not, no point in saving message
+				if not author and not message.addon then
+					goto continue
+				end
+	
+				-- save message internally
+				local constructedMessage = AuroraFramework.services.chatService.internal.construct(
+					message.content,
+					message.title,
+					author,
+					shownTo
+				)
+
+				-- change id
+				constructedMessage.properties.id = message.id
+
+				-- get highest id
+				if message.id > highestID then
+					highestID = message.id
+				end
+
+			    ::continue::
+			end
+
+			AuroraFramework.services.chatService.messageID = highestID
+		end
+
+		-- listen for new messages sent by players
 		AuroraFramework.callbacks.onChatMessage.internal:connect(function(peer_id, _, content)
-			AuroraFramework.services.timerService.delay.create(0.01, function() -- just so if the addon deletes the message, shit wont be fucked up (onchatmessage is fired before message is shown in chat)
+			AuroraFramework.services.timerService.delay.create(0.01, function() -- just so if the addon deletes the message, things wont get messed up (onchatmessage is fired before message is shown in chat)
 				-- get player
 				local player = AuroraFramework.services.playerService.getPlayerByPeerID(peer_id)
 
@@ -3142,15 +3185,12 @@ AuroraFramework.services.chatService = {
 				end
 
 				-- construct message
-				local message = AuroraFramework.services.chatService.internal.construct(player, content)
+				local message = AuroraFramework.services.chatService.internal.construct(content, "", player)
 
 				-- enforce message limit
-				if #AuroraFramework.services.chatService.messages > AuroraFramework.services.chatService.messageLimit then
-					table.remove(AuroraFramework.services.chatService.messages, 1)
+				if #AuroraFramework.services.chatService.getAllMessages() > AuroraFramework.services.chatService.messageLimit then
+					AuroraFramework.services.chatService.getOldestMessage():remove()
 				end
-
-				-- save the message
-				table.insert(AuroraFramework.services.chatService.messages, message)
 
 				-- fire event
 				AuroraFramework.services.chatService.events.onMessageSent:fire(message)
@@ -3160,53 +3200,147 @@ AuroraFramework.services.chatService = {
 
 	events = {
 		onMessageSent = AuroraFramework.libraries.events.create(), -- message
-		onMessageDeleted = AuroraFramework.libraries.events.create(), -- message, player|nil
-		onMessageEdited = AuroraFramework.libraries.events.create() -- message, player|nil
+		onMessageDeleted = AuroraFramework.libraries.events.create(), -- message
+		onMessageEdited = AuroraFramework.libraries.events.create() -- message
 	},
+
+	internal = {},
 
 	---@type table<integer, af_services_chat_message>
 	messages = {},
 	messageLimit = 129, -- max of 129, since thats all the chat window can contain
 
-	internal = {
-		message_id = 0
-	}
+	messageID = 0
 }
 
 -- Construct a message
----@param author af_services_player_player
 ---@param messageContent string
+---@param title string
+---@param author af_services_player_player|nil
+---@param shownTo af_services_player_player|nil
 ---@return af_services_chat_message
-AuroraFramework.services.chatService.internal.construct = function(author, messageContent)
-	AuroraFramework.services.chatService.internal.message_id = AuroraFramework.services.chatService.internal.message_id + 1
+AuroraFramework.services.chatService.internal.construct = function(messageContent, title, author, shownTo)
+	-- setup
+	AuroraFramework.services.chatService.messageID = AuroraFramework.services.chatService.messageID + 1
 
+	local messageID = AuroraFramework.services.chatService.messageID
+	local isAddon = author == nil
+
+	-- create message
 	---@type af_services_chat_message
 	local message = AuroraFramework.libraries.class.create(
 		"chatMessage",
 
 		{
 			---@param self af_services_chat_message
-			---@param player af_services_player_player
-			delete = function(self, player)
-				return AuroraFramework.services.chatService.deleteMessage(self, player)
+			delete = function(self)
+				return AuroraFramework.services.chatService.deleteMessage(self)
 			end,
 
 			---@param self af_services_chat_message
+			---@param newTitle string
 			---@param newContent string
-			---@param player af_services_player_player
-			edit = function(self, newContent, player)
-				return AuroraFramework.services.chatService.editMessage(self, newContent, player)
+			edit = function(self, newTitle, newContent)
+				return AuroraFramework.services.chatService.editMessage(self, newTitle, newContent)
+			end,
+
+			---@param self af_services_chat_message
+			---@param callback fun(message: af_services_chat_message, isThisMessage: boolean, index: integer)|nil
+			update = function(self, callback)
+				for index, message in pairs(AuroraFramework.services.chatService.getAllMessages()) do
+					-- check if this message is the same
+					local isSame = AuroraFramework.services.chatService.isSameMessage(message, self)
+
+					-- call callback
+					if callback then
+						callback(message, isSame, index)
+					end
+
+					-- if it is, update
+					if isSame then
+						AuroraFramework.services.chatService.messages[index] = self
+					end
+				end
+
+				g_savedata.AuroraFramework.messages[self.properties.id] = {
+					author = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.author),
+					shownTo = AuroraFramework.libraries.miscellaneous.getPeerID(self.properties.shownTo),
+					addon = self.properties.addon,
+					content = self.properties.content,
+					id = self.properties.id,
+					title = title
+				}
+			end,
+
+			---@param self af_services_chat_message
+			send = function(self)
+				server.announce(self.properties.title, self.properties.content, self.properties.addon and -1 or self.properties.author.properties.peer_id)
+			end,
+
+			---@param self af_services_chat_message
+			---@param index integer|nil
+			remove = function(self, index)
+				AuroraFramework.services.chatService.internal.remove(self, index)
 			end
 		},
 
 		{
 			author = author,
+			addon = isAddon,
 			content = messageContent,
-			id = AuroraFramework.services.chatService.internal.message_id
-		}
+			shownTo = shownTo,
+			id = messageID,
+			title = isAddon and title or author.properties.name
+		},
+
+		nil,
+
+		AuroraFramework.services.chatService.messages
 	)
 
+	-- return
 	return message
+end
+
+-- Send enough blank messages to clear chat
+AuroraFramework.services.chatService.internal.clear = function()
+	for _ = 1, AuroraFramework.services.chatService.messageLimit do
+		server.announce("", "") -- cant use chatService, itll save the message
+	end
+end
+
+-- Remove a message
+---@param message af_services_chat_message
+---@param index integer|nil
+AuroraFramework.services.chatService.internal.remove = function(message, index)
+	g_savedata.AuroraFramework.messages[message.properties.id] = nil
+	
+	if not index then
+		for msgIndex, msg in pairs(AuroraFramework.services.chatService.getAllMessages()) do
+			if AuroraFramework.services.chatService.isSameMessage(message, msg) then
+				index = msgIndex
+			end
+		end
+	end
+
+	table.remove(AuroraFramework.services.chatService.messages, index)
+end
+
+-- Get all mesasges
+---@return table<integer, af_services_chat_message>
+AuroraFramework.services.chatService.getAllMessages = function()
+	return AuroraFramework.libraries.miscellaneous.shallowCopy(AuroraFramework.services.chatService.messages)
+end
+
+-- Get a message by its ID
+---@param messageID integer
+---@return af_services_chat_message
+AuroraFramework.services.chatService.getMessageByID = function(messageID)
+	for _, message in pairs(AuroraFramework.services.chatService.getAllMessages()) do
+		if message.properties.id == messageID then
+			return message
+		end
+	end
 end
 
 -- Get all messages sent by a player
@@ -3215,7 +3349,7 @@ end
 AuroraFramework.services.chatService.getAllMessagesSentByAPlayer = function(player)
 	local list = {}
 
-	for _, message in pairs(AuroraFramework.services.chatService.messages) do
+	for _, message in pairs(AuroraFramework.services.chatService.getAllMessages()) do
 		if AuroraFramework.services.playerService.isSamePlayer(message.properties.author, player) then
 			table.insert(list, message)
 		end
@@ -3224,90 +3358,110 @@ AuroraFramework.services.chatService.getAllMessagesSentByAPlayer = function(play
 	return list
 end
 
+-- Get all messages sent by an addon
+---@return table<integer, af_services_chat_message>
+AuroraFramework.services.chatService.getAllMessagesSentByAnAddon = function()
+	local list = {}
+
+	for _, message in pairs(AuroraFramework.services.chatService.getAllMessages()) do
+		if message.properties.addon then
+			table.insert(list, message)
+		end
+	end
+
+	return list
+end
+
 -- Get the latest message
+---@return af_services_chat_message
 AuroraFramework.services.chatService.getLatestMessage = function()
-	return AuroraFramework.services.chatService.messages[#AuroraFramework.services.chatService.messages]
+	return AuroraFramework.services.chatService.getAllMessages()[#AuroraFramework.services.chatService.getAllMessages()]
 end
 
 -- Get the oldest message
+---@return af_services_chat_message
 AuroraFramework.services.chatService.getOldestMessage = function()
-	return AuroraFramework.services.chatService.messages[1]
+	return AuroraFramework.services.chatService.getAllMessages()[1]
+end
+
+-- Whether or not two messages are the same
+---@param messageA af_services_chat_message
+---@param messageB af_services_chat_message
+AuroraFramework.services.chatService.isSameMessage = function(messageA, messageB)
+	return messageA.properties.id == messageB.properties.id
 end
 
 -- Edit a message
 ---@param message af_services_chat_message
----@param newContent string
----@param player af_services_player_player|nil If player, the message will be edited for the player, else, everyone
-AuroraFramework.services.chatService.editMessage = function(message, newContent, player)
-	-- edit message
-	message.properties.content = newContent
-
+---@param newTitle string|nil
+---@param newContent string|nil
+AuroraFramework.services.chatService.editMessage = function(message, newTitle, newContent)
 	-- clear chat
-	AuroraFramework.services.chatService.clear(player)
+	AuroraFramework.services.chatService.internal.clear()
 
-	-- resend messages
-	for i, msg in pairs(AuroraFramework.services.chatService.messages) do
-		-- save edited message
-		if AuroraFramework.services.chatService.isSameMessage(msg, message) then
-			AuroraFramework.services.chatService.messages[i] = message
-		end
-
-		-- resend
-		AuroraFramework.services.chatService.sendMessage(msg.properties.author.properties.name, msg.properties.content, player)
+	-- edit message
+	if newTitle then
+		message.properties.title = newTitle
+	end
+	
+	if newContent then
+		message.properties.content = newContent
 	end
 
+	-- resend messages
+	message:update(function(msg, isThisMessage)
+		msg:send()
+	end)
+
 	-- fire event
-	AuroraFramework.services.chatService.events.onMessageEdited:fire(message, player)
+	AuroraFramework.services.chatService.events.onMessageEdited:fire(message)
 end
 
 -- Delete a message
 ---@param message af_services_chat_message
----@param player af_services_player_player|nil If player, the message will be deleted for the player, else, everyone
-AuroraFramework.services.chatService.deleteMessage = function(message, player)
+AuroraFramework.services.chatService.deleteMessage = function(message)
 	-- clear chat
-	AuroraFramework.services.chatService.clear(player)
+	AuroraFramework.services.chatService.internal.clear()
 
 	-- resend messages
-	for i, msg in pairs(AuroraFramework.services.chatService.messages) do
-		-- delete message
-		if AuroraFramework.services.chatService.isSameMessage(msg, message) then
-			AuroraFramework.services.chatService.messages[i] = nil
-			goto continue -- prevent sending the deleted message
+	local foundIndex = nil -- its important we call table.remove after iteration, otherwise it messes up the iteration
+
+	message:update(function(msg, isThisMessage, index)
+		if isThisMessage then -- don't resend this message, we're supposed to delete it
+			g_savedata.AuroraFramework.messages[msg.properties.id] = nil
+			foundIndex = index
+
+			return
 		end
 
-		-- resend
-		AuroraFramework.services.chatService.sendMessage(msg.properties.author.properties.name, msg.properties.content, player)
+		msg:send()
+	end)
 
-		-- next message
-	    ::continue::
+	-- remove message from framework
+	if foundIndex then
+		table.remove(AuroraFramework.services.chatService.messages, foundIndex)
 	end
 
 	-- fire event
-	AuroraFramework.services.chatService.events.onMessageDeleted:fire(message, player)
-end
-
--- Whether or not both messages are the same
----@param message1 af_services_chat_message
----@param message2 af_services_chat_message
----@return boolean
-AuroraFramework.services.chatService.isSameMessage = function(message1, message2)
-	return message1.properties.id == message2.properties.id
+	AuroraFramework.services.chatService.events.onMessageDeleted:fire(message)
 end
 
 -- Send a message to everyone/a player
 ---@param author string
 ---@param message string
 ---@param player af_services_player_player|nil
+---@return af_services_chat_message
 AuroraFramework.services.chatService.sendMessage = function(author, message, player)
-	server.announce(tostring(author), tostring(message), AuroraFramework.libraries.miscellaneous.getPeerID(player))
-end
+	local newMessage = AuroraFramework.services.chatService.internal.construct(
+		tostring(message),
+		tostring(author),
+		nil,
+		player
+	)
 
--- Clear chat for everyone/a player
----@param player af_services_player_player|nil
-AuroraFramework.services.chatService.clear = function(player)
-	for _ = 1, AuroraFramework.services.chatService.messageLimit do
-		AuroraFramework.services.chatService.sendMessage(" ", " ", player)
-	end
+	newMessage:send()
+
+	return newMessage
 end
 
 ---------------- Commands
@@ -4876,7 +5030,6 @@ AuroraFramework.services.zoneService.initialize()
 AuroraFramework.services.debuggerService.initialize()
 AuroraFramework.services.timerService.initialize()
 AuroraFramework.services.communicationService.initialize()
-AuroraFramework.services.chatService.initialize()
 AuroraFramework.services.HTTPService.initialize()
 AuroraFramework.services.TPSService.initialize()
 AuroraFramework.services.commandService.initialize()
@@ -4884,6 +5037,7 @@ AuroraFramework.services.commandService.initialize()
 ---@param state af_ready_state
 AuroraFramework.ready:connect(function(state)
 	AuroraFramework.services.playerService.initialize(state) -- important this is initialized before uiservice, otherwise ui belonging to players wont load
+	AuroraFramework.services.chatService.initialize(state)
 	AuroraFramework.services.UIService.initialize(state)
 	AuroraFramework.services.vehicleService.initialize(state) -- important this is initialized before groupservice
 	AuroraFramework.services.groupService.initialize(state)

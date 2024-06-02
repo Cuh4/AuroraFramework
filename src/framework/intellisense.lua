@@ -108,6 +108,17 @@ _ = {
     group_id = 0
 }
 
+---------------- Message
+---@class af_savedata_message
+_ = {
+    author = 0,
+    shownTo = 0,
+    addon = false,
+    content = "",
+    id = 0,
+    title = ""
+}
+
 ---------------- Group
 ---@class af_savedata_group
 _ = {
@@ -596,22 +607,41 @@ _ = {
 
     properties = {
         ---@type af_services_player_player
-        author = nil, -- The player who sent this message
+        author = nil, -- The player who sent this message. This is nil if this was sent by an addon
 
+        addon = false, -- Whether or not this message was sent by the addon
         content = "", -- The content of this message
-        id = 0 -- The ID of this message
+
+        ---@type af_services_player_player
+        shownTo = nil, -- The player this message is shown to. Nil if not sent by an addon
+
+        id = 0, -- The internal ID of this message
+        title = "" -- The title. Empty if not sent by addon
     },
 
-    -- Delete this message for everyone or just a specific player
+    -- Delete this message for everyone
     ---@param self af_services_chat_message
-    ---@param player af_services_player_player|nil
-    delete = function(self, player) end,
+    delete = function(self) end,
 
-    -- Edit this message for everyone or just a specific player
+    -- Edit this message for everyone
     ---@param self af_services_chat_message
-    ---@param newContent string
-    ---@param player af_services_player_player|nil
-    edit = function(self, newContent, player) end
+    ---@param newTitle string|nil
+    ---@param newContent string|nil
+    edit = function(self, newTitle, newContent) end,
+
+    -- Update this message in save data and in framework. Used internally
+    ---@param self af_services_chat_message
+    ---@param callback fun(message: af_services_chat_message, isThisMessage: boolean, index: integer)|nil
+    update = function(self, callback) end,
+
+    -- Send this message. Used internally
+    ---@param self af_services_chat_message
+    send = function(self) end,
+
+    -- Remove this message from framework and savedata. Used internally
+    ---@param self af_services_chat_message
+    ---@param index integer|nil
+    remove = function(self, index) end
 }
 
 ---------------- Commands
