@@ -1,9 +1,13 @@
 ![SW Screenshot](imgs/readme_top.png)
 
----
+
 
 # *Aurora Framework*
 
+## ⚠️ | Outdated
+This framework has been superseded by [**Noir**](https://github.com/cuhHub/Noir).
+
+This framework will still be maintained, but it is recommended to use Noir as it is better with performance, easy to use, helps with addon structure, and much more.
 
 ## 📚 | Overview
 Aurora Framework is a super reliable OOP-based framework that makes the creation of Stormworks: Build and Rescue (game) addons much easier.
