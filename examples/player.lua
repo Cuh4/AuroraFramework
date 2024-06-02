@@ -19,7 +19,7 @@ AuroraFramework.ready:connect(function()
     local host = AuroraFramework.services.playerService.getPlayerByPeerID(0) -- Host player (the one who created the server, or in dedicated servers, the server/first player to join depending on the player service's "isDedicatedServer" property)
 
     -- Note that multiple players can have the same name! 
-    -- In this case, the framework may choose the player that joined earlier, but it is not always the case!
+    -- In this case, the framework will choose the player that joined first due to player table order.
     local handsomeMan = AuroraFramework.services.playerService.getPlayerByName("Cuh4") -- Caps-sensitive search, must be exact
     local handsomeMan2 = AuroraFramework.services.playerService.getPlayerByNameSearch("CUH4") -- Non-caps sensitive search, can be partial, returns player with closest name to the provided name
 
