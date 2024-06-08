@@ -195,13 +195,13 @@ end
 ---@param separator string|nil
 ---@return table<integer, string>
 AuroraFramework.libraries.miscellaneous.splitString = function(str, separator)
-	if not sep then
-		sep = "%s"
+	if not separator then
+		separator = "%s"
 	end
 
 	local parts = {}
 
-	for part in string.gmatch(str, "([^"..sep.."]+)") do
+	for part in string.gmatch(str, "([^"..separator.."]+)") do
 		table.insert(parts, part)
 	end
 
