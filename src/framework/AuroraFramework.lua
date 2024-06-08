@@ -3274,7 +3274,7 @@ AuroraFramework.services.chatService.internal.construct = function(messageConten
 
 			---@param self af_services_chat_message
 			send = function(self)
-				server.announce(self.properties.title, self.properties.content, self.properties.addon and -1 or self.properties.author.properties.peer_id)
+				server.announce(self.properties.title, self.properties.content, self.properties.addon and (self.properties.shownTo and self.properties.shownTo.properties.peer_id or -1) or self.properties.author.properties.peer_id)
 			end,
 
 			---@param self af_services_chat_message
