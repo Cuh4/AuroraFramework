@@ -2004,6 +2004,13 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 		return
 	end
 
+	-- get data from sw
+	local vehicleData, success = server.getVehicleData(vehicle_id)
+
+	if not success then
+		return
+	end
+
 	-- convert ids to int
 	vehicle_id = math.floor(vehicle_id)
 	peer_id = math.floor(peer_id)
@@ -2141,7 +2148,9 @@ AuroraFramework.services.vehicleService.internal.giveVehicleData = function(vehi
 			spawnPos = matrix.translation(x, y, z),
 			cost = group_cost,
 			group_id = nil, -- gets set up by ongroupspawn in groupservice
-			isPrimaryVehicle = false
+			isPrimaryVehicle = false,
+			name = vehicleData.name,
+			authors = vehicleData.authors
 		},
 
 		nil,

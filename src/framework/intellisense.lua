@@ -761,7 +761,12 @@ _ = {
         ---@type SWMatrix
         spawnPos = nil, -- The position this vehicle was spawned at
 
-        cost = 0 -- The cost of this vehicle. 0 if infinite_money is enabled
+        cost = 0, -- The cost of this vehicle. 0 if infinite_money is enabled
+
+        name = "", -- The name of this vehicle
+
+        ---@type table<integer, SWVehicleAuthor>
+        authors = {} -- The authors of this vehicle
     },
 
     -- Get the group of this vehicle
